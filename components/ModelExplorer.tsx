@@ -836,9 +836,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
         id="summary-table"
         className="rounded-[2rem] border border-slate-200/70 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1a2248]/80 dark:bg-[linear-gradient(180deg,#0a1024_0%,#070c1d_100%)] dark:shadow-[0_22px_64px_rgba(2,6,23,0.5)]"
       >
-        <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white">{strings.summaryTitle}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{strings.summaryTitle}</h2>
             <p className="mt-1 text-base text-slate-600 dark:text-slate-400">{strings.summarySubtitle}</p>
           </div>
           <div className="text-right text-sm text-slate-600 dark:text-slate-400">
@@ -987,7 +987,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           className="min-h-[32rem] rounded-[2rem] border border-slate-200/70 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1c2348]/80 dark:bg-[linear-gradient(180deg,#0b1025_0%,#080d1f_100%)] dark:shadow-[0_24px_64px_rgba(2,6,23,0.5)]"
         >
           <div className="mb-5">
-            <h2 className="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white">{strings.latestTitle}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{strings.latestTitle}</h2>
             <p className="mt-1 text-base text-slate-600 dark:text-slate-400">{strings.latestSubtitle}</p>
           </div>
           <div className="space-y-3">
@@ -1028,7 +1028,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1c2348]/80 dark:bg-[linear-gradient(180deg,#0b1025_0%,#080d1f_100%)] dark:shadow-[0_24px_64px_rgba(2,6,23,0.5)]"
         >
           <div className="mb-5">
-            <h2 className="text-4xl font-semibold tracking-tight text-slate-900 dark:text-white">{strings.aiNewsTitle}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{strings.aiNewsTitle}</h2>
             {strings.aiNewsSubtitle ? (
               <p className="mt-1 text-base text-slate-600 dark:text-slate-400">{strings.aiNewsSubtitle}</p>
             ) : null}
@@ -1087,9 +1087,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
         </section>
       ) : activeSection === "llm" ? (
         <section className="rounded-[2rem] border border-slate-200/70 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1a2248]/80 dark:bg-[linear-gradient(180deg,#0a1024_0%,#070c1d_100%)] dark:shadow-[0_22px_64px_rgba(2,6,23,0.5)]">
-          <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
                 {locale === "tr" ? "LLM Detaylar" : "LLM Details"}
               </h2>
             </div>
