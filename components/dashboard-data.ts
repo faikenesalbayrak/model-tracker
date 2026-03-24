@@ -1,0 +1,162 @@
+import type {
+  BenchmarkPoint,
+  LeaderboardRow,
+  PricePoint,
+  ReleaseItem,
+} from "./dashboard-types";
+import { daysAgo } from "./dashboard-utils";
+
+export const fallbackReleases: ReleaseItem[] = [
+  {
+    id: "openai-gpt-4-1",
+    lab: "OpenAI",
+    model: "GPT-4.1",
+    releasedAt: daysAgo(2),
+    summary:
+      "A fast multimodal update for internal reasoning and workflow-heavy tasks.",
+    url: "https://openai.com",
+  },
+  {
+    id: "anthropic-sonnet-4",
+    lab: "Anthropic",
+    model: "Claude Sonnet 4",
+    releasedAt: daysAgo(4),
+    summary:
+      "Balanced model for analysis, retrieval, and long-form responses.",
+    url: "https://www.anthropic.com",
+  },
+  {
+    id: "deepseek-v3-1",
+    lab: "DeepSeek",
+    model: "DeepSeek V3.1",
+    releasedAt: daysAgo(6),
+    summary:
+      "Strong open-weight release with competitive benchmark performance.",
+    url: "https://www.deepseek.com",
+  },
+];
+
+export const fallbackLeaderboard: LeaderboardRow[] = [
+  {
+    id: "gpt-4-1",
+    lab: "OpenAI",
+    model: "GPT-4.1",
+    parameters: "Unknown",
+    mmlu: 89.4,
+    humaneval: 92.1,
+    mtBench: 8.7,
+    arc: 93.2,
+    hellaswag: 96.4,
+    releasedAt: daysAgo(2),
+    openSource: false,
+  },
+  {
+    id: "claude-sonnet-4",
+    lab: "Anthropic",
+    model: "Claude Sonnet 4",
+    parameters: "Unknown",
+    mmlu: 88.9,
+    humaneval: 90.3,
+    mtBench: 8.5,
+    arc: 92.8,
+    hellaswag: 95.7,
+    releasedAt: daysAgo(4),
+    openSource: false,
+  },
+  {
+    id: "deepseek-v3-1",
+    lab: "DeepSeek",
+    model: "DeepSeek V3.1",
+    parameters: "685B",
+    mmlu: 84.7,
+    humaneval: 86.4,
+    mtBench: 8.0,
+    arc: 89.2,
+    hellaswag: 94.1,
+    releasedAt: daysAgo(6),
+    openSource: true,
+  },
+  {
+    id: "qwen-2-5",
+    lab: "Alibaba",
+    model: "Qwen 2.5",
+    parameters: "72B",
+    mmlu: 82.8,
+    humaneval: 84.5,
+    mtBench: 7.8,
+    arc: 88.3,
+    hellaswag: 93.5,
+    releasedAt: daysAgo(10),
+    openSource: true,
+  },
+];
+
+export const fallbackBenchmarks: BenchmarkPoint[] = [
+  {
+    id: "mmlu-1",
+    date: daysAgo(210),
+    lab: "OpenAI",
+    model: "GPT-4.1",
+    record: true,
+    score: 89.4,
+  },
+  {
+    id: "mmlu-2",
+    date: daysAgo(160),
+    lab: "Anthropic",
+    model: "Claude Sonnet 4",
+    record: false,
+    score: 88.9,
+  },
+  {
+    id: "mmlu-3",
+    date: daysAgo(110),
+    lab: "DeepSeek",
+    model: "DeepSeek V3.1",
+    record: false,
+    score: 84.7,
+  },
+  {
+    id: "mmlu-4",
+    date: daysAgo(35),
+    lab: "Alibaba",
+    model: "Qwen 2.5",
+    record: true,
+    score: 86.2,
+  },
+];
+
+export const fallbackPricing: PricePoint[] = [
+  {
+    id: "price-1",
+    lab: "OpenAI",
+    model: "GPT-4.1",
+    params: 1_000,
+    pricePer1m: 12,
+    score: 89.4,
+  },
+  {
+    id: "price-2",
+    lab: "Anthropic",
+    model: "Claude Sonnet 4",
+    params: 900,
+    pricePer1m: 8,
+    score: 88.9,
+  },
+  {
+    id: "price-3",
+    lab: "DeepSeek",
+    model: "DeepSeek V3.1",
+    params: 685,
+    pricePer1m: 2.5,
+    score: 84.7,
+  },
+  {
+    id: "price-4",
+    lab: "Alibaba",
+    model: "Qwen 2.5",
+    params: 72,
+    pricePer1m: 1.8,
+    score: 82.8,
+  },
+];
