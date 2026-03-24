@@ -204,7 +204,7 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
               </p>
             </div>
             <div className="flex flex-col items-end gap-3 animate-enter animate-enter-delay-1 lg:shrink-0">
-              <div className="flex flex-nowrap justify-end gap-3">
+              <div className="flex flex-wrap justify-end gap-3">
                 <StatCard
                   label={locale === "tr" ? "Toplam Listelenen Model" : "Total Listed Models"}
                   value={listedModelCount}
@@ -295,11 +295,11 @@ function StatCard({
   value: number;
 }) {
   return (
-    <div className="panel-interactive min-w-[140px] rounded-3xl border border-slate-200/70 bg-white/90 px-5 py-4 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/65">
+    <div className="panel-interactive w-[140px] min-w-0 rounded-3xl border border-slate-200/70 bg-white/90 px-5 py-4 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/65">
       <div className="text-[0.68rem] font-semibold tracking-[0.2em] text-slate-500 dark:text-slate-400">
         {label}
       </div>
-      <div className="mt-2 text-4xl font-bold tabular-nums text-slate-950 dark:text-white sm:text-5xl">{value}</div>
+      <div className="mt-2 text-3xl font-bold tabular-nums text-slate-950 dark:text-white sm:text-5xl">{value}</div>
       {meta ? (
         <div className="mt-1 max-w-[220px] truncate text-[11px] text-slate-500 dark:text-slate-400" title={meta}>
           {meta}
