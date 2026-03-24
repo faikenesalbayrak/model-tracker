@@ -1,19 +1,13 @@
 "use client";
 
-import Image from "next/image";
-import { useTheme } from "next-themes";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import {
   Languages,
-  Monitor,
-  MoonStar,
-  RefreshCcw,
-  Sparkles,
-  SunMedium,
 } from "lucide-react";
-import { fallbackBenchmarks, fallbackLeaderboard, fallbackPricing, fallbackReleases } from "./dashboard-data";
 import type {
-  BenchmarkPoint,
+  AAModelRow,
+  AiNewsItem,
   FeedState,
   LeaderboardRow,
   Locale,
@@ -21,16 +15,12 @@ import type {
   ReleaseItem,
 } from "./dashboard-types";
 import { daysAgo, formatLocaleCode } from "./dashboard-utils";
-import { HeroReleases } from "./HeroReleases";
-import { LeaderboardTable } from "./LeaderboardTable";
-import { PricePerformance } from "./PricePerformance";
-import { SotaChart } from "./SotaChart";
-
-import logoDark from "../style/logos/tt-dark-horizontal-single.png";
-import logoLight from "../style/logos/tt-light-horizontal-single.png";
+import { CapabilityTierBoard } from "./CapabilityTierBoard";
+import { ModelExplorer } from "./ModelExplorer";
 
 type DashboardBundle = {
-  benchmarks: FeedState<BenchmarkPoint[]>;
+  artificialAnalysis: FeedState<AAModelRow[]>;
+  aiNews: FeedState<AiNewsItem[]>;
   leaderboard: FeedState<LeaderboardRow[]>;
   pricing: FeedState<PricePoint[]>;
   releases: FeedState<ReleaseItem[]>;
@@ -41,33 +31,32 @@ const copy = {
     title: "AI Intelligence Dashboard",
     subtitle:
       "Track fresh model releases, benchmark movement, and price-to-performance in one internal view.",
+    updated: "Updated",
     locale: "TR / EN",
     theme: "Theme",
-    refresh: "Refresh",
     loading: "Fetching internal feeds",
     sourceRelease: "Hugging Face Hub",
     sourceLeaderboard: "Hugging Face Leaderboard",
-    sourceBenchmarks: "Papers With Code",
     sourcePricing: "Pricing Feed",
+    sourceAA: "Artificial Analysis",
+    sourceAiNews: "LLM Stats AI News",
     overview: "Overview",
     ready: "Snapshot ready",
-    safeMode: "Resilient fallback stays visible when upstream APIs slow down.",
   },
   tr: {
     title: "AI Intelligence Dashboard",
-    subtitle:
-      "Yeni model release'lerini, benchmark hareketlerini ve fiyat/performans görünümünü tek ekranda izleyin.",
+    subtitle: "",
+    updated: "Güncellendi",
     locale: "TR / EN",
     theme: "Tema",
-    refresh: "Yenile",
     loading: "İç veri kaynakları alınıyor",
     sourceRelease: "Hugging Face Hub",
     sourceLeaderboard: "Hugging Face Leaderboard",
-    sourceBenchmarks: "Papers With Code",
     sourcePricing: "Fiyat Verisi",
+    sourceAA: "Artificial Analysis",
+    sourceAiNews: "LLM Stats AI News",
     overview: "Genel Bakış",
-    ready: "Gorunum hazir",
-    safeMode: "Ust API yavasladiginda dayanikli fallback gorunur kalir.",
+    ready: "Görünüm hazır",
   },
 } as const;
 
@@ -82,52 +71,91 @@ const BRANDED_STYLE = {
   "--tt-pink": "#CB29AC",
 } as import("react").CSSProperties;
 
-export default function DashboardApp() {
-  return <DashboardShell />;
+type DashboardAppProps = {
+  showCapabilityTiers?: boolean;
+};
+
+export default function DashboardApp({ showCapabilityTiers = false }: DashboardAppProps) {
+  return <DashboardShell showCapabilityTiers={showCapabilityTiers} />;
 }
 
-function DashboardShell() {
+function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean }) {
   const [locale, setLocale] = useState<Locale>("en");
-  const [refreshTick, setRefreshTick] = useState(0);
+  const [activeSection, setActiveSection] = useState("general");
   const strings = copy[locale];
   const [feeds, setFeeds] = useState<DashboardBundle>(() => makeInitialFeeds());
 
   useEffect(() => {
     let alive = true;
+    const sourceLabels = copy.en;
 
     async function run() {
       setFeeds((current) => ({
         ...current,
-        benchmarks: { ...current.benchmarks, loading: true, error: null },
-        leaderboard: { ...current.leaderboard, loading: true, error: null },
-        pricing: { ...current.pricing, loading: true, error: null },
-        releases: { ...current.releases, loading: true, error: null },
+        artificialAnalysis: { ...current.artificialAnalysis, data: [], loading: true, error: null },
+        aiNews: { ...current.aiNews, data: [], loading: true, error: null },
+        leaderboard: { ...current.leaderboard, data: [], loading: true, error: null },
+        pricing: { ...current.pricing, data: [], loading: true, error: null },
+        releases: { ...current.releases, data: [], loading: true, error: null },
       }));
 
-      const [releases, leaderboard, benchmarks, pricing] = await Promise.all([
-        loadFeed("releases", "/api/releases", fallbackReleases, strings.sourceRelease, parseReleasesFeed),
-        loadFeed(
-          "leaderboard",
-          "/api/leaderboard",
-          fallbackLeaderboard,
-          strings.sourceLeaderboard,
-          parseLeaderboardFeed,
-        ),
-        loadFeed(
-          "benchmarks",
-          "/api/benchmarks",
-          fallbackBenchmarks,
-          strings.sourceBenchmarks,
-          parseBenchmarksFeed,
-        ),
-        loadFeed("pricing", "/api/pricing", fallbackPricing, strings.sourcePricing, parsePricingFeed),
-      ]);
+      const releasesPromise = loadFeed(
+        "releases",
+        "/api/releases",
+        [],
+        sourceLabels.sourceRelease,
+        parseReleasesFeed,
+      );
+      const leaderboardPromise = loadFeed(
+        "leaderboard",
+        "/api/leaderboard",
+        [],
+        sourceLabels.sourceLeaderboard,
+        parseLeaderboardFeed,
+      );
+      const pricingPromise = loadFeed(
+        "pricing",
+        "/api/pricing",
+        [],
+        sourceLabels.sourcePricing,
+        parsePricingFeed,
+      );
+      const aaPromise = loadFeed(
+        "artificial-analysis",
+        "/api/artificial-analysis",
+        [],
+        sourceLabels.sourceAA,
+        parseAAModelsFeed,
+        45_000,
+      );
+      const aiNewsPromise = loadFeed(
+        "ai-news",
+        "/api/ai-news",
+        [],
+        sourceLabels.sourceAiNews,
+        parseAiNewsFeed,
+      );
 
-      if (!alive) {
-        return;
-      }
-
-      setFeeds({ releases, leaderboard, benchmarks, pricing });
+      void releasesPromise.then((releases) => {
+        if (!alive) return;
+        setFeeds((current) => ({ ...current, releases }));
+      });
+      void leaderboardPromise.then((leaderboard) => {
+        if (!alive) return;
+        setFeeds((current) => ({ ...current, leaderboard }));
+      });
+      void pricingPromise.then((pricing) => {
+        if (!alive) return;
+        setFeeds((current) => ({ ...current, pricing }));
+      });
+      void aaPromise.then((artificialAnalysis) => {
+        if (!alive) return;
+        setFeeds((current) => ({ ...current, artificialAnalysis }));
+      });
+      void aiNewsPromise.then((aiNews) => {
+        if (!alive) return;
+        setFeeds((current) => ({ ...current, aiNews }));
+      });
     }
 
     void run();
@@ -135,129 +163,97 @@ function DashboardShell() {
     return () => {
       alive = false;
     };
-  }, [refreshTick, strings.sourceBenchmarks, strings.sourceLeaderboard, strings.sourcePricing, strings.sourceRelease]);
+  }, []);
 
   const totals = useMemo(
     () => ({
       releases: feeds.releases.data.length,
       leaderboard: feeds.leaderboard.data.length,
-      benchmarks: feeds.benchmarks.data.length,
       pricing: feeds.pricing.data.length,
+      aa: feeds.artificialAnalysis.data.length,
     }),
     [feeds],
   );
 
-  const hasAnyLoading =
-    feeds.releases.loading ||
-    feeds.leaderboard.loading ||
-    feeds.benchmarks.loading ||
-    feeds.pricing.loading;
+  const listedModelCount = totals.releases + totals.leaderboard + totals.pricing + totals.aa;
+  const sourceCount = new Set([
+    feeds.releases.sourceLabel,
+    feeds.leaderboard.sourceLabel,
+    feeds.pricing.sourceLabel,
+    feeds.artificialAnalysis.sourceLabel,
+  ]).size;
 
   return (
     <div
-      className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(201,12,15,0.16),transparent_25%),radial-gradient(circle_at_top_right,rgba(0,12,84,0.14),transparent_30%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] text-slate-950 transition-colors duration-300 dark:bg-[radial-gradient(circle_at_top_left,rgba(201,12,15,0.18),transparent_25%),radial-gradient(circle_at_top_right,rgba(0,12,84,0.18),transparent_30%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] dark:text-white"
+      className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(201,12,15,0.16),transparent_25%),radial-gradient(circle_at_top_right,rgba(0,12,84,0.14),transparent_30%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] text-slate-950 transition-colors duration-300 dark:bg-[radial-gradient(circle_at_top_left,rgba(17,94,255,0.2),transparent_30%),radial-gradient(circle_at_top_right,rgba(11,20,46,0.8),transparent_42%),linear-gradient(180deg,#050b18_0%,#0a1228_100%)] dark:text-slate-100"
       style={BRANDED_STYLE}
     >
-      <header className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8 lg:pt-10">
-        <div className="animate-enter relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+      <HeaderControlsPortal>
+        <LocaleToggle locale={locale} setLocale={setLocale} />
+      </HeaderControlsPortal>
+      <header className="mx-auto flex w-full max-w-none flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:pt-4">
+        <div className="animate-enter relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/55 dark:shadow-[0_24px_72px_rgba(2,6,23,0.55)]">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(201,12,15,0.08),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(0,53,214,0.08),transparent_26%)]" />
-          <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-            <div className="max-w-4xl">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="panel-interactive overflow-hidden rounded-2xl border border-slate-200/70 bg-white px-3 py-2 shadow-sm dark:border-white/10 dark:bg-slate-950">
-                  <Image
-                    alt="Turkish Technology logo"
-                    className="hidden h-8 w-auto dark:block"
-                    priority
-                    src={logoDark}
-                  />
-                  <Image
-                    alt="Turkish Technology logo"
-                    className="h-8 w-auto dark:hidden"
-                    priority
-                    src={logoLight}
-                  />
-                </div>
-                <span className="rounded-full border border-[color:var(--tt-red)]/20 bg-[color:var(--tt-red)]/10 px-3 py-1.5 text-xs font-semibold tracking-[0.22em] text-[color:var(--tt-red)]">
-                  {strings.overview}
-                </span>
-                <span className="rounded-full border border-slate-200/70 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
-                  {hasAnyLoading ? strings.loading : strings.ready}
-                </span>
-              </div>
-              <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl">
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl xl:max-w-3xl">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:whitespace-nowrap">
                 {strings.title}
               </h1>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
-                {strings.subtitle}
+              <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                {strings.updated} {formatHeaderDate(feeds.artificialAnalysis.lastSuccessAt, locale)}
               </p>
             </div>
-            <div className="flex flex-wrap gap-3 animate-enter animate-enter-delay-1">
-              <StatCard label={locale === "tr" ? "Release" : "Releases"} value={totals.releases} />
-              <StatCard label={locale === "tr" ? "Leaderboard" : "Leaderboard"} value={totals.leaderboard} />
-              <StatCard label={locale === "tr" ? "Benchmark" : "Benchmarks"} value={totals.benchmarks} />
-              <StatCard label={locale === "tr" ? "Fiyat" : "Pricing"} value={totals.pricing} />
-            </div>
-          </div>
-          <div className="relative mt-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200/70 bg-white/80 p-4 dark:border-white/10 dark:bg-slate-950/60">
-            <div className="flex flex-wrap items-center gap-2">
-              <LocaleToggle locale={locale} setLocale={setLocale} />
-              <ThemeToggle locale={locale} />
-              <button
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-[color:var(--tt-red)]/30 hover:bg-[color:var(--tt-red)]/5 hover:text-slate-950 focus-visible:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:hover:bg-white/10 dark:hover:text-white"
-                onClick={() => setRefreshTick((value) => value + 1)}
-                type="button"
-              >
-                <RefreshCcw className={`h-4 w-4 ${hasAnyLoading ? "animate-spin" : ""}`} />
-                {strings.refresh}
-              </button>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-              <Sparkles className="h-4 w-4 text-[color:var(--tt-red)]" />
-              <span>{strings.safeMode}</span>
+            <div className="flex flex-col items-end gap-3 animate-enter animate-enter-delay-1 lg:shrink-0">
+              <div className="flex flex-nowrap justify-end gap-3">
+                <StatCard
+                  label={locale === "tr" ? "Toplam Listelenen Model" : "Total Listed Models"}
+                  value={listedModelCount}
+                />
+                <StatCard
+                  label={locale === "tr" ? "Kaynak Sayısı" : "Source Count"}
+                  value={sourceCount}
+                />
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-12 sm:px-6 lg:px-8">
-        <HeroReleases
-          error={feeds.releases.error}
-          items={feeds.releases.data}
-          lastSuccessAt={feeds.releases.lastSuccessAt}
+      <main className="mx-auto flex w-full max-w-none flex-col gap-6 px-4 pb-12 sm:px-6 lg:px-8">
+        <ModelExplorer
+          aaModels={feeds.artificialAnalysis.data}
+          aiNews={feeds.aiNews.data}
           locale={locale}
-          loading={feeds.releases.loading}
-          sourceLabel={feeds.releases.sourceLabel}
+          onSectionChange={setActiveSection}
         />
-        <div className="grid gap-6 xl:grid-cols-2">
-          <LeaderboardTable
-            error={feeds.leaderboard.error}
-            items={feeds.leaderboard.data}
-            lastSuccessAt={feeds.leaderboard.lastSuccessAt}
+        {showCapabilityTiers && activeSection === "general" ? (
+          <CapabilityTierBoard
+            items={feeds.artificialAnalysis.data}
             locale={locale}
-            loading={feeds.leaderboard.loading}
-            sourceLabel={feeds.leaderboard.sourceLabel}
           />
-          <SotaChart
-            error={feeds.benchmarks.error}
-            items={feeds.benchmarks.data}
-            lastSuccessAt={feeds.benchmarks.lastSuccessAt}
-            locale={locale}
-            loading={feeds.benchmarks.loading}
-            sourceLabel={feeds.benchmarks.sourceLabel}
-          />
-        </div>
-        <PricePerformance
-          error={feeds.pricing.error}
-          items={feeds.pricing.data}
-          lastSuccessAt={feeds.pricing.lastSuccessAt}
-          locale={locale}
-          loading={feeds.pricing.loading}
-          sourceLabel={feeds.pricing.sourceLabel}
-        />
+        ) : null}
       </main>
     </div>
   );
+}
+
+function HeaderControlsPortal({ children }: { children: React.ReactNode }) {
+  const mounted = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
+
+  if (!mounted) {
+    return null;
+  }
+
+  const target = document.getElementById("dashboard-header-controls");
+  if (!target) {
+    return null;
+  }
+
+  return createPortal(children, target);
 }
 
 function LocaleToggle({
@@ -268,14 +264,14 @@ function LocaleToggle({
   setLocale: (value: Locale) => void;
 }) {
   return (
-    <div className="inline-flex rounded-full border border-slate-200/80 bg-white p-1 shadow-sm dark:border-white/10 dark:bg-white/5">
+    <div className="inline-flex rounded-full border border-slate-200/80 bg-white p-1 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/70">
       {(["en", "tr"] as const).map((value) => (
         <button
           key={value}
           aria-pressed={locale === value}
           className={`rounded-full px-3 py-2 text-sm font-semibold transition ${locale === value
               ? "bg-[color:var(--tt-red)] text-white shadow"
-              : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+              : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
             }`}
           onClick={() => setLocale(value)}
           type="button"
@@ -283,92 +279,80 @@ function LocaleToggle({
           {formatLocaleCode(value)}
         </button>
       ))}
-      <span className="sr-only">Language selector</span>
+      <span className="sr-only">{locale === "tr" ? "Dil seçici" : "Language selector"}</span>
       <Languages className="sr-only h-4 w-4" />
     </div>
   );
 }
 
-function ThemeToggle({ locale }: { locale: Locale }) {
-  const { resolvedTheme, setTheme } = useTheme();
-  const mounted = useSyncExternalStore(
-    () => () => undefined,
-    () => true,
-    () => false,
-  );
-  const canToggle = typeof resolvedTheme === "string";
-  const isDark = resolvedTheme === "dark";
-  const label = !mounted
-    ? locale === "tr"
-      ? "Tema"
-      : "Theme"
-    : isDark
-      ? locale === "tr"
-        ? "Acik"
-        : "Light"
-      : locale === "tr"
-        ? "Koyu"
-        : "Dark";
-
+function StatCard({
+  label,
+  meta,
+  value,
+}: {
+  label: string;
+  meta?: string;
+  value: number;
+}) {
   return (
-    <button
-      aria-label="Theme toggle"
-      aria-pressed={mounted ? isDark : false}
-      className="inline-flex items-center gap-2 rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:border-[color:var(--tt-red)]/30 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:hover:bg-white/10 dark:hover:text-white"
-      onClick={() => {
-        if (!mounted || !canToggle) return;
-        setTheme(isDark ? "light" : "dark");
-      }}
-      type="button"
-    >
-      {!mounted ? (
-        <Monitor className="h-4 w-4" />
-      ) : isDark ? (
-        <SunMedium className="h-4 w-4" />
-      ) : (
-        <MoonStar className="h-4 w-4" />
-      )}
-      {label}
-    </button>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="panel-interactive min-w-[120px] rounded-3xl border border-slate-200/70 bg-white/90 px-4 py-3 shadow-sm dark:border-white/10 dark:bg-white/5">
+    <div className="panel-interactive min-w-[140px] rounded-3xl border border-slate-200/70 bg-white/90 px-5 py-4 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/65">
       <div className="text-[0.68rem] font-semibold tracking-[0.2em] text-slate-500 dark:text-slate-400">
         {label}
       </div>
-      <div className="mt-2 text-2xl font-semibold tabular-nums text-slate-950 dark:text-white">{value}</div>
+      <div className="mt-2 text-4xl font-bold tabular-nums text-slate-950 dark:text-white sm:text-5xl">{value}</div>
+      {meta ? (
+        <div className="mt-1 max-w-[220px] truncate text-[11px] text-slate-500 dark:text-slate-400" title={meta}>
+          {meta}
+        </div>
+      ) : null}
     </div>
   );
 }
 
+function formatHeaderDate(value: string, locale: Locale) {
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed)) {
+    return locale === "tr" ? "Tarih yok" : "No date";
+  }
+
+  return new Intl.DateTimeFormat(locale === "tr" ? "tr-TR" : "en-US", {
+    day: "numeric",
+    month: "short",
+  }).format(parsed);
+}
+
 function makeInitialFeeds(): DashboardBundle {
   return {
-    releases: {
-      data: fallbackReleases,
+    artificialAnalysis: {
+      data: [],
       error: null,
-      lastSuccessAt: fallbackReleases[0]?.releasedAt ?? daysAgo(1),
+      lastSuccessAt: daysAgo(1),
+      loading: true,
+      sourceLabel: copy.en.sourceAA,
+    },
+    aiNews: {
+      data: [],
+      error: null,
+      lastSuccessAt: daysAgo(1),
+      loading: true,
+      sourceLabel: copy.en.sourceAiNews,
+    },
+    releases: {
+      data: [],
+      error: null,
+      lastSuccessAt: daysAgo(1),
       loading: true,
       sourceLabel: copy.en.sourceRelease,
     },
     leaderboard: {
-      data: fallbackLeaderboard,
+      data: [],
       error: null,
-      lastSuccessAt: fallbackLeaderboard[0]?.releasedAt ?? daysAgo(1),
+      lastSuccessAt: daysAgo(1),
       loading: true,
       sourceLabel: copy.en.sourceLeaderboard,
     },
-    benchmarks: {
-      data: fallbackBenchmarks,
-      error: null,
-      lastSuccessAt: fallbackBenchmarks[0]?.date ?? daysAgo(1),
-      loading: true,
-      sourceLabel: copy.en.sourceBenchmarks,
-    },
     pricing: {
-      data: fallbackPricing,
+      data: [],
       error: null,
       lastSuccessAt: daysAgo(1),
       loading: true,
@@ -383,9 +367,10 @@ async function loadFeed<T>(
   fallback: T,
   sourceLabel: string,
   normalize: (payload: unknown) => T | null,
+  timeoutMs = 15_000,
 ): Promise<FeedState<T>> {
   try {
-    const payload = await requestJson(url);
+    const payload = await requestJson(url, timeoutMs);
     const normalized = normalize(payload);
 
     if (!normalized) {
@@ -410,12 +395,12 @@ async function loadFeed<T>(
   }
 }
 
-async function requestJson(url: string) {
+async function requestJson(url: string, timeoutMs = 15_000) {
   const maxAttempts = 3;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 15000);
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const response = await fetch(url, {
@@ -464,17 +449,22 @@ function parseLeaderboardFeed(payload: unknown) {
   return normalized.length ? normalized : null;
 }
 
-function parseBenchmarksFeed(payload: unknown) {
-  const data = extractList(payload, ["items", "points", "data", "results"]);
-  const normalized = data.map(normalizeBenchmarkItem).filter(Boolean) as BenchmarkPoint[];
-
-  return normalized.length ? normalized : null;
-}
-
 function parsePricingFeed(payload: unknown) {
   const data = extractList(payload, ["items", "points", "data", "results"]);
   const normalized = data.map(normalizePriceItem).filter(Boolean) as PricePoint[];
 
+  return normalized.length ? normalized : null;
+}
+
+function parseAAModelsFeed(payload: unknown) {
+  const data = extractList(payload, ["items", "rows", "data", "results"]);
+  const normalized = data.map(normalizeAAModelItem).filter(Boolean) as AAModelRow[];
+  return normalized.length ? normalized : null;
+}
+
+function parseAiNewsFeed(payload: unknown) {
+  const data = extractList(payload, ["items", "news", "rows", "data", "results"]);
+  const normalized = data.map(normalizeAiNewsItem).filter(Boolean) as AiNewsItem[];
   return normalized.length ? normalized : null;
 }
 
@@ -513,21 +503,6 @@ function normalizeLeaderboardItem(value: unknown): LeaderboardRow | null {
   };
 }
 
-function normalizeBenchmarkItem(value: unknown): BenchmarkPoint | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  return {
-    id: pickString(value, ["id", "slug", "name"], crypto.randomUUID()),
-    date: pickString(value, ["date", "releasedAt", "publishedAt"], new Date().toISOString()),
-    lab: pickString(value, ["lab", "provider", "organization"], "Unknown"),
-    model: pickString(value, ["model", "name", "title"], "Unknown model"),
-    record: pickBoolean(value, ["record", "isRecord", "best"]),
-    score: pickNumber(value, ["score", "value", "mmlu", "humaneval"], 0),
-  };
-}
-
 function normalizePriceItem(value: unknown): PricePoint | null {
   if (!isRecord(value)) {
     return null;
@@ -540,6 +515,74 @@ function normalizePriceItem(value: unknown): PricePoint | null {
     params: pickNumber(value, ["params", "parameters", "parameterCount"], 0),
     pricePer1m: pickNumber(value, ["pricePer1m", "pricePer1mTokens", "price"], 0),
     score: pickNumber(value, ["score", "value", "mmlu", "humaneval"], 0),
+  };
+}
+
+function normalizeAAModelItem(value: unknown): AAModelRow | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const model = pickString(value, ["short_name", "name", "model"], "Unknown model");
+  const lab = pickString(value, ["lab", "provider", "organization", "creator"], "Unknown");
+  const creator = isRecord(value.model_creators) ? value.model_creators : null;
+  const timescaleData = isRecord(value.timescaleData) ? value.timescaleData : null;
+  const endToEnd = isRecord(value.end_to_end_response_time_metrics)
+    ? value.end_to_end_response_time_metrics
+    : null;
+  const openWeights = pickBoolean(value, ["is_open_weights", "openSource", "open_weights"]);
+  const reasoning = pickBoolean(value, ["reasoning_model", "reasoning"]);
+  const releaseDate = pickString(value, ["release_date", "releasedAt", "date"], "");
+  const hostsUrl = pickString(value, ["hosts_url", "model_url", "url"], "");
+  const modelUrl =
+    hostsUrl.startsWith("http")
+      ? hostsUrl
+      : hostsUrl
+        ? `https://artificialanalysis.ai${hostsUrl}`
+        : null;
+
+  return {
+    id: pickString(value, ["id", "slug", "name"], crypto.randomUUID()),
+    model,
+    lab: pickString(creator ?? value, ["name", "lab", "provider"], lab),
+    intelligenceIndex: pickNullableNumber(value, ["intelligence_index"]),
+    codingIndex: pickNullableNumber(value, ["coding_index"]),
+    agenticIndex: pickNullableNumber(value, ["agentic_index"]),
+    gpqa: pickNullableNumber(value, ["gpqa"]),
+    mmluPro: pickNullableNumber(value, ["mmlu_pro"]),
+    terminalBenchHard: pickNullableNumber(value, ["terminalbench_hard"]),
+    pricePer1m: pickNullableNumber(value, ["price_1m_blended_3_to_1"]),
+    inputPricePer1m: pickNullableNumber(value, ["price_1m_input_tokens"]),
+    outputPricePer1m: pickNullableNumber(value, ["price_1m_output_tokens"]),
+    outputTokensPerSecond: pickNullableNumber(timescaleData ?? {}, ["median_output_speed"]),
+    ttftSeconds: pickNullableNumber(timescaleData ?? {}, ["median_time_to_first_chunk"]),
+    endToEndSeconds: pickNullableNumber(endToEnd ?? {}, ["total_time"]),
+    contextWindowTokens: pickNullableNumber(value, ["context_window_tokens"]),
+    openWeights,
+    reasoning,
+    releaseDate: releaseDate || null,
+    modelUrl,
+  };
+}
+
+function normalizeAiNewsItem(value: unknown): AiNewsItem | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const link = pickString(value, ["link", "url", "href"], "");
+  if (!link) {
+    return null;
+  }
+
+  return {
+    id: pickString(value, ["id"], link),
+    title: pickString(value, ["title", "name"], "Untitled"),
+    link,
+    source: pickString(value, ["source", "publisher"], "LLM Stats"),
+    publishedAt: pickString(value, ["publishedAt", "pubDate", "date"], new Date().toISOString()),
+    timeAgo: pickString(value, ["timeAgo"], "") || null,
+    imageUrl: pickString(value, ["imageUrl", "image", "thumbnail", "image_url"], "") || null,
   };
 }
 
@@ -633,6 +676,11 @@ function pickNumber(value: Record<string, unknown>, keys: string[], fallback: nu
   }
 
   return fallback;
+}
+
+function pickNullableNumber(value: Record<string, unknown>, keys: string[]) {
+  const parsed = pickNumber(value, keys, Number.NaN);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function pickBoolean(value: Record<string, unknown>, keys: string[]) {

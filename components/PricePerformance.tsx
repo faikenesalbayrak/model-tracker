@@ -67,8 +67,8 @@ export function PricePerformance({
         <EmptyState message={strings.empty} />
       ) : (
         <div className="space-y-4">
-          <div className="panel-interactive rounded-3xl border border-slate-200/70 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
-            <div className="overflow-x-auto">
+          <div className="panel-interactive overflow-x-auto rounded-[1.75rem] border border-slate-200/70 bg-white/80 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
+            <div className="min-w-[860px]">
               <ScatterChart margin={{ top: 12, right: 18, bottom: 12, left: 8 }} width={860} height={340}>
                 <CartesianGrid strokeDasharray="4 6" stroke="rgba(148,163,184,0.25)" />
                 <XAxis
@@ -91,7 +91,7 @@ export function PricePerformance({
               </ScatterChart>
             </div>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{strings.subtitle}</p>
+          <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">{strings.subtitle}</p>
         </div>
       )}
     </SectionFrame>
@@ -112,7 +112,7 @@ function ScatterTooltip({ active, payload, locale }: ScatterTooltipProps) {
   const point = payload[0].payload as PricePoint;
 
   return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm shadow-xl dark:border-white/10 dark:bg-slate-950">
+    <div className="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-[0_18px_40px_rgba(15,23,42,0.14)] dark:border-white/10 dark:bg-slate-950">
       <div className="font-semibold text-slate-950 dark:text-white">{point.model}</div>
       <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{point.lab}</div>
       <div className="mt-2 text-sm text-slate-700 dark:text-slate-200">
@@ -127,7 +127,7 @@ function ScatterTooltip({ active, payload, locale }: ScatterTooltipProps) {
 
 function ChartSkeleton() {
   return (
-    <div className="h-[360px] animate-pulse rounded-3xl border border-slate-200/70 bg-slate-100/90 dark:border-white/10 dark:bg-white/5" />
+    <div className="h-[360px] animate-pulse rounded-[1.75rem] border border-slate-200/70 bg-slate-100/90 shadow-[0_14px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/5" />
   );
 }
 

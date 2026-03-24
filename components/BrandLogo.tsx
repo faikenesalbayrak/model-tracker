@@ -41,9 +41,18 @@ type BrandLogoProps = Omit<
 export function BrandLogo({
   variant = "dark-horizontal-single",
   alt = "Turkish Technology",
+  style,
   ...props
 }: BrandLogoProps) {
   const src = logoByVariant[variant] ?? logoByVariant["dark-horizontal-single"];
 
-  return <Image src={src} alt={alt} priority={false} {...props} />;
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      priority={false}
+      style={{ objectFit: "contain", ...style }}
+      {...props}
+    />
+  );
 }

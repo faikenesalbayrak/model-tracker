@@ -1,0 +1,102 @@
+{
+  "last_success_at": "2026-03-24T15:01:28.058Z",
+  "source": "llm_stats_ai_news",
+  "data": [
+    {
+      "id": "http://www.techmeme.com/260324/p20#a260324p20",
+      "title": "Beehiiv now lets creators manage their accounts through AI platforms; the first iteration of Beehiiv MCP supports subscriber analysis and SEO optimization",
+      "link": "https://www.axios.com/2026/03/24/beehiiv-creator-ai-chatbot-mcp",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-24T14:40:01.000Z",
+      "timeAgo": "21m ago"
+    },
+    {
+      "id": "https://towardsdatascience.com/production-ready-llm-agents-a-comprehensive-framework-for-offline-evaluation/",
+      "title": "Production-Ready LLM Agents: A Comprehensive Framework for Offline Evaluation",
+      "link": "https://towardsdatascience.com/production-ready-llm-agents-a-comprehensive-framework-for-offline-evaluation/",
+      "source": "Planet AI",
+      "publishedAt": "2026-03-24T13:30:00.000Z",
+      "timeAgo": "1h ago"
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p18#a260324p18",
+      "title": "Mirage, formerly Captions, which develops an AI video editing and marketing suite, raised $75M from General Catalyst, after moving to a freemium model in 2025",
+      "link": "https://techcrunch.com/2026/03/24/mirage-raises-75m-to-continue-building-models-for-its-ai-video-editing-app-captions/",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-24T13:25:03.000Z",
+      "timeAgo": "1h ago"
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p17#a260324p17",
+      "title": "Amazon's Zoox plans to launch a paid robotaxi service in Las Vegas by late June, pending local approvals and an NHTSA exemption, ahead of a San Francisco launch",
+      "link": "https://www.ft.com/content/4f58a788-4bfa-4954-a185-98eb96cb4ea0",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-24T13:10:15.000Z",
+      "timeAgo": "1h ago"
+    },
+    {
+      "id": "https://www.kdnuggets.com/getting-started-with-nanobot-build-your-first-ai-agent",
+      "title": "Getting Started with Nanobot: Build Your First AI Agent",
+      "link": "https://www.kdnuggets.com/getting-started-with-nanobot-build-your-first-ai-agent",
+      "source": "Planet AI",
+      "publishedAt": "2026-03-24T12:14:39.000Z",
+      "timeAgo": "2h ago"
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p15#a260324p15",
+      "title": "Kleiner Perkins raised $3.5B for two new funds, allocating $1B to its 22nd early-stage fund and $2.5B to a growth-stage fund, taking its AUM to $21B+",
+      "link": "https://www.bloomberg.com/news/articles/2026-03-24/kleiner-perkins-raises-3-5-billion-to-invest-in-the-ai-boom",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-24T12:12:51.000Z",
+      "timeAgo": "2h ago"
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p13#a260324p13",
+      "title": "How Palantir became a flashpoint on the US campaign trail due to its ICE work, ahead of the midterms; six lawmakers publicly refuse any further Palantir funds (Financial Times)",
+      "link": "https://www.ft.com/content/5d6f924d-2e7e-4a5e-ae20-d4f8e29a7d17",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-24T11:00:40.000Z",
+      "timeAgo": "4h ago"
+    },
+    {
+      "id": "https://thesequence.substack.com/p/the-sequence-knowledge-829-world",
+      "title": "The Sequence Knowledge #829: World Models and Physical AI",
+      "link": "https://thesequence.substack.com/p/the-sequence-knowledge-829-world",
+      "source": "The Sequence",
+      "publishedAt": "2026-03-24T10:57:19.000Z",
+      "timeAgo": "4h ago"
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p11#a260324p11",
+      "title": "Xiaomi reports Q4 revenue up 7.3% YoY to ~$17B, narrowly above est., its slowest growth since 2023, as EV sales failed to make up for slumping smartphone demand (Bloomberg)",
+      "link": "https://www.bloomberg.com/news/articles/2026-03-24/xiaomi-sales-grows-slowest-in-years-in-sign-of-poor-phone-demand",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-24T10:20:01.000Z",
+      "timeAgo": "4h ago"
+    },
+    {
+      "id": "https://the-decoder.com/?p=33547",
+      "title": "Anthropic lets Claude take control of your desktop when regular app integrations fall short",
+      "link": "https://the-decoder.com/anthropic-lets-claude-take-control-of-your-desktop-when-regular-app-integrations-fall-short/",
+      "source": "The Decoder",
+      "publishedAt": "2026-03-24T09:56:41.000Z",
+      "timeAgo": "5h ago"
+    },
+    {
+      "id": "https://machinelearningmastery.com/beyond-the-vector-store-building-the-full-data-layer-for-ai-applications/",
+      "title": "Beyond the Vector Store: Building the Full Data Layer for AI Applications",
+      "link": "https://machinelearningmastery.com/beyond-the-vector-store-building-the-full-data-layer-for-ai-applications/",
+      "source": "Planet AI",
+      "publishedAt": "2026-03-24T09:00:03.000Z",
+      "timeAgo": "6h ago"
+    },
+    {
+      "id": "https://www.therundown.ai/p/anthropic-claude-gets-remote-control",
+      "title": "Anthropic's Claude gets remote control",
+      "link": "https://www.therundown.ai/p/anthropic-claude-gets-remote-control",
+      "source": "The Rundown AI",
+      "publishedAt": "2026-03-24T09:00:00.000Z",
+      "timeAgo": "6h ago"
+    }
+  ]
+}

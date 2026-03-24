@@ -1,0 +1,5050 @@
+{
+  "route": "pricing",
+  "source": "pricing_feed",
+  "generated_at": "2026-03-24T11:08:21.977Z",
+  "last_success_at": "2026-03-24T11:08:21.977Z",
+  "stale": false,
+  "data": [
+    {
+      "id": "minimax:minimax-minimax-m2-7:pricing",
+      "kind": "pricing",
+      "lab": "Minimax",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.525,
+      "title": "MiniMax: MiniMax M2.7",
+      "subtitle": "Minimax",
+      "timestamp": "2026-03-18T12:24:57.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "minimax/minimax-m2.7",
+        "context_length": 204800,
+        "price_1m_input": 0.3,
+        "price_1m_output": 1.2,
+        "price_1m_blended": 0.5249999999999999
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-4-nano:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.463,
+      "title": "OpenAI: GPT-5.4 Nano",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-03-17T11:49:47.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.4-nano",
+        "context_length": 400000,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 1.25,
+        "price_1m_blended": 0.4625
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-4-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.688,
+      "title": "OpenAI: GPT-5.4 Mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-03-17T11:49:38.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.4-mini",
+        "context_length": 400000,
+        "price_1m_input": 0.75,
+        "price_1m_output": 4.5,
+        "price_1m_blended": 1.6875
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-small-2603:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.262,
+      "title": "Mistral: Mistral Small 4",
+      "subtitle": "Mistral AI",
+      "timestamp": "2026-03-16T21:14:45.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-small-2603",
+        "context_length": 262144,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.26249999999999996
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-4-20-multi-agent-beta:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3,
+      "title": "xAI: Grok 4.20 Multi-Agent Beta",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2026-03-12T14:22:47.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-4.20-multi-agent-beta",
+        "context_length": 2000000,
+        "price_1m_input": 2,
+        "price_1m_output": 6,
+        "price_1m_blended": 3
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-4-20-beta:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3,
+      "title": "xAI: Grok 4.20 Beta",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2026-03-12T14:22:34.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-4.20-beta",
+        "context_length": 2000000,
+        "price_1m_input": 2,
+        "price_1m_output": 6,
+        "price_1m_blended": 3
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-3-super-120b-a12b-free:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "NVIDIA: Nemotron 3 Super (free)",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2026-03-11T16:07:19.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/nemotron-3-super-120b-a12b:free",
+        "context_length": 262144,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-3-super-120b-a12b:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.2,
+      "title": "NVIDIA: Nemotron 3 Super",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2026-03-11T16:07:19.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/nemotron-3-super-120b-a12b",
+        "context_length": 262144,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.5,
+        "price_1m_blended": 0.2
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-5-9b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.075,
+      "title": "Qwen: Qwen3.5-9B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-03-10T14:19:56.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3.5-9b",
+        "context_length": 256000,
+        "price_1m_input": 0.049999999999999996,
+        "price_1m_output": 0.15,
+        "price_1m_blended": 0.075
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-4-pro:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 67.5,
+      "title": "OpenAI: GPT-5.4 Pro",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-03-05T18:12:46.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.4-pro",
+        "context_length": 1050000,
+        "price_1m_input": 30,
+        "price_1m_output": 180,
+        "price_1m_blended": 67.5
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-4:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 5.625,
+      "title": "OpenAI: GPT-5.4",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-03-05T18:12:32.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.4",
+        "context_length": 1050000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 15,
+        "price_1m_blended": 5.625
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-3-chat:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.813,
+      "title": "OpenAI: GPT-5.3 Chat",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-03-03T18:54:21.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.3-chat",
+        "context_length": 128000,
+        "price_1m_input": 1.75,
+        "price_1m_output": 14,
+        "price_1m_blended": 4.8125
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-3-1-flash-lite-preview:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.563,
+      "title": "Google: Gemini 3.1 Flash Lite Preview",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2026-03-03T04:37:53.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-3.1-flash-lite-preview",
+        "context_length": 1048576,
+        "price_1m_input": 0.25,
+        "price_1m_output": 1.5,
+        "price_1m_blended": 0.5625
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-3-1-flash-image-preview:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.125,
+      "title": "Google: Nano Banana 2 (Gemini 3.1 Flash Image Preview)",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2026-02-26T15:25:58.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-3.1-flash-image-preview",
+        "context_length": 65536,
+        "price_1m_input": 0.5,
+        "price_1m_output": 3,
+        "price_1m_blended": 1.125
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-5-35b-a3b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.447,
+      "title": "Qwen: Qwen3.5-35B-A3B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-02-25T21:10:22.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3.5-35b-a3b",
+        "context_length": 262144,
+        "price_1m_input": 0.1625,
+        "price_1m_output": 1.3,
+        "price_1m_blended": 0.446875
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-5-27b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.536,
+      "title": "Qwen: Qwen3.5-27B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-02-25T21:10:10.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3.5-27b",
+        "context_length": 262144,
+        "price_1m_input": 0.195,
+        "price_1m_output": 1.56,
+        "price_1m_blended": 0.53625
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-5-122b-a10b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.715,
+      "title": "Qwen: Qwen3.5-122B-A10B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-02-25T21:09:49.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3.5-122b-a10b",
+        "context_length": 262144,
+        "price_1m_input": 0.26,
+        "price_1m_output": 2.08,
+        "price_1m_blended": 0.7150000000000001
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-5-flash-02-23:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.114,
+      "title": "Qwen: Qwen3.5-Flash",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-02-25T21:09:36.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3.5-flash-02-23",
+        "context_length": 1000000,
+        "price_1m_input": 0.065,
+        "price_1m_output": 0.26,
+        "price_1m_blended": 0.11375
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-3-1-pro-preview-customtools:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.5,
+      "title": "Google: Gemini 3.1 Pro Preview Custom Tools",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2026-02-25T18:58:43.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-3.1-pro-preview-customtools",
+        "context_length": 1048576,
+        "price_1m_input": 2,
+        "price_1m_output": 12,
+        "price_1m_blended": 4.5
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-3-codex:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.813,
+      "title": "OpenAI: GPT-5.3-Codex",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-02-24T18:52:44.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.3-codex",
+        "context_length": 400000,
+        "price_1m_input": 1.75,
+        "price_1m_output": 14,
+        "price_1m_blended": 4.8125
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-3-1-pro-preview:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.5,
+      "title": "Google: Gemini 3.1 Pro Preview",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2026-02-19T14:00:27.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-3.1-pro-preview",
+        "context_length": 1048576,
+        "price_1m_input": 2,
+        "price_1m_output": 12,
+        "price_1m_blended": 4.5
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-sonnet-4-6:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "Anthropic: Claude Sonnet 4.6",
+      "subtitle": "Anthropic",
+      "timestamp": "2026-02-17T15:43:10.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-sonnet-4.6",
+        "context_length": 1000000,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-5-plus-02-15:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.585,
+      "title": "Qwen: Qwen3.5 Plus 2026-02-15",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-02-16T08:10:16.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3.5-plus-02-15",
+        "context_length": 1000000,
+        "price_1m_input": 0.26,
+        "price_1m_output": 1.56,
+        "price_1m_blended": 0.585
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-5-397b-a17b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.878,
+      "title": "Qwen: Qwen3.5 397B A17B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-02-16T06:23:38.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3.5-397b-a17b",
+        "context_length": 262144,
+        "price_1m_input": 0.39,
+        "price_1m_output": 2.34,
+        "price_1m_blended": 0.8775
+      }
+    },
+    {
+      "id": "minimax:minimax-minimax-m2-5-free:pricing",
+      "kind": "pricing",
+      "lab": "Minimax",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "MiniMax: MiniMax M2.5 (free)",
+      "subtitle": "Minimax",
+      "timestamp": "2026-02-12T15:01:42.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "minimax/minimax-m2.5:free",
+        "context_length": 196608,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "minimax:minimax-minimax-m2-5:pricing",
+      "kind": "pricing",
+      "lab": "Minimax",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.443,
+      "title": "MiniMax: MiniMax M2.5",
+      "subtitle": "Minimax",
+      "timestamp": "2026-02-12T15:01:42.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "minimax/minimax-m2.5",
+        "context_length": 196608,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 1.17,
+        "price_1m_blended": 0.4425
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-max-thinking:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.56,
+      "title": "Qwen: Qwen3 Max Thinking",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-02-09T21:18:21.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-max-thinking",
+        "context_length": 262144,
+        "price_1m_input": 0.78,
+        "price_1m_output": 3.9,
+        "price_1m_blended": 1.56
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-opus-4-6:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 10,
+      "title": "Anthropic: Claude Opus 4.6",
+      "subtitle": "Anthropic",
+      "timestamp": "2026-02-04T15:30:50.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-opus-4.6",
+        "context_length": 1000000,
+        "price_1m_input": 5,
+        "price_1m_output": 25,
+        "price_1m_blended": 10
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-coder-next:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.277,
+      "title": "Qwen: Qwen3 Coder Next",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2026-02-04T00:15:01.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-coder-next",
+        "context_length": 262144,
+        "price_1m_input": 0.12,
+        "price_1m_output": 0.75,
+        "price_1m_blended": 0.27749999999999997
+      }
+    },
+    {
+      "id": "minimax:minimax-minimax-m2-her:pricing",
+      "kind": "pricing",
+      "lab": "Minimax",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.525,
+      "title": "MiniMax: MiniMax M2-her",
+      "subtitle": "Minimax",
+      "timestamp": "2026-01-23T14:07:19.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "minimax/minimax-m2-her",
+        "context_length": 65536,
+        "price_1m_input": 0.3,
+        "price_1m_output": 1.2,
+        "price_1m_blended": 0.5249999999999999
+      }
+    },
+    {
+      "id": "openai:openai-gpt-audio:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.375,
+      "title": "OpenAI: GPT Audio",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-01-19T22:42:49.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-audio",
+        "context_length": 128000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 10,
+        "price_1m_blended": 4.375
+      }
+    },
+    {
+      "id": "openai:openai-gpt-audio-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.05,
+      "title": "OpenAI: GPT Audio Mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-01-19T21:50:19.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-audio-mini",
+        "context_length": 128000,
+        "price_1m_input": 0.6,
+        "price_1m_output": 2.4,
+        "price_1m_blended": 1.0499999999999998
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-2-codex:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.813,
+      "title": "OpenAI: GPT-5.2-Codex",
+      "subtitle": "OpenAI",
+      "timestamp": "2026-01-14T16:48:35.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.2-codex",
+        "context_length": 400000,
+        "price_1m_input": 1.75,
+        "price_1m_output": 14,
+        "price_1m_blended": 4.8125
+      }
+    },
+    {
+      "id": "minimax:minimax-minimax-m2-1:pricing",
+      "kind": "pricing",
+      "lab": "Minimax",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.44,
+      "title": "MiniMax: MiniMax M2.1",
+      "subtitle": "Minimax",
+      "timestamp": "2025-12-23T01:56:37.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "minimax/minimax-m2.1",
+        "context_length": 196608,
+        "price_1m_input": 0.27,
+        "price_1m_output": 0.95,
+        "price_1m_blended": 0.44
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-3-flash-preview:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.125,
+      "title": "Google: Gemini 3 Flash Preview",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-12-17T15:57:58.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-3-flash-preview",
+        "context_length": 1048576,
+        "price_1m_input": 0.5,
+        "price_1m_output": 3,
+        "price_1m_blended": 1.125
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-small-creative:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.15,
+      "title": "Mistral: Mistral Small Creative",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-12-16T18:10:53.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-small-creative",
+        "context_length": 32768,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.3,
+        "price_1m_blended": 0.15
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-3-nano-30b-a3b-free:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "NVIDIA: Nemotron 3 Nano 30B A3B (free)",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2025-12-14T16:54:35.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/nemotron-3-nano-30b-a3b:free",
+        "context_length": 256000,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-3-nano-30b-a3b:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.088,
+      "title": "NVIDIA: Nemotron 3 Nano 30B A3B",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2025-12-14T16:54:35.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/nemotron-3-nano-30b-a3b",
+        "context_length": 262144,
+        "price_1m_input": 0.049999999999999996,
+        "price_1m_output": 0.19999999999999998,
+        "price_1m_blended": 0.0875
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-2-chat:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.813,
+      "title": "OpenAI: GPT-5.2 Chat",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-12-10T18:03:03.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.2-chat",
+        "context_length": 128000,
+        "price_1m_input": 1.75,
+        "price_1m_output": 14,
+        "price_1m_blended": 4.8125
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-2-pro:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 57.75,
+      "title": "OpenAI: GPT-5.2 Pro",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-12-10T18:03:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.2-pro",
+        "context_length": 400000,
+        "price_1m_input": 21,
+        "price_1m_output": 168,
+        "price_1m_blended": 57.75
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-2:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.813,
+      "title": "OpenAI: GPT-5.2",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-12-10T18:02:55.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.2",
+        "context_length": 400000,
+        "price_1m_input": 1.75,
+        "price_1m_output": 14,
+        "price_1m_blended": 4.8125
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-devstral-2512:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.8,
+      "title": "Mistral: Devstral 2 2512",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-12-09T13:03:39.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/devstral-2512",
+        "context_length": 262144,
+        "price_1m_input": 0.39999999999999997,
+        "price_1m_output": 2,
+        "price_1m_blended": 0.8
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-1-codex-max:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "OpenAI: GPT-5.1-Codex-Max",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-12-04T20:08:54.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.1-codex-max",
+        "context_length": 400000,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-ministral-14b-2512:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.2,
+      "title": "Mistral: Ministral 3 14B 2512",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-12-02T13:22:15.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/ministral-14b-2512",
+        "context_length": 262144,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 0.19999999999999998,
+        "price_1m_blended": 0.19999999999999998
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-ministral-8b-2512:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.15,
+      "title": "Mistral: Ministral 3 8B 2512",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-12-02T13:20:54.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/ministral-8b-2512",
+        "context_length": 262144,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.15,
+        "price_1m_blended": 0.15
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-ministral-3b-2512:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.1,
+      "title": "Mistral: Ministral 3 3B 2512",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-12-02T13:19:20.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/ministral-3b-2512",
+        "context_length": 131072,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.09999999999999999,
+        "price_1m_blended": 0.09999999999999999
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-large-2512:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.75,
+      "title": "Mistral: Mistral Large 3 2512",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-12-01T21:27:52.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-large-2512",
+        "context_length": 262144,
+        "price_1m_input": 0.5,
+        "price_1m_output": 1.5,
+        "price_1m_blended": 0.75
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-v3-2-speciale:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.6,
+      "title": "DeepSeek: DeepSeek V3.2 Speciale",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-12-01T13:13:57.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-v3.2-speciale",
+        "context_length": 163840,
+        "price_1m_input": 0.39999999999999997,
+        "price_1m_output": 1.2,
+        "price_1m_blended": 0.6
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-v3-2:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.29,
+      "title": "DeepSeek: DeepSeek V3.2",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-12-01T13:10:42.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-v3.2",
+        "context_length": 163840,
+        "price_1m_input": 0.26,
+        "price_1m_output": 0.38,
+        "price_1m_blended": 0.29000000000000004
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-opus-4-5:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 10,
+      "title": "Anthropic: Claude Opus 4.5",
+      "subtitle": "Anthropic",
+      "timestamp": "2025-11-24T18:56:20.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-opus-4.5",
+        "context_length": 200000,
+        "price_1m_input": 5,
+        "price_1m_output": 25,
+        "price_1m_blended": 10
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-3-pro-image-preview:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.5,
+      "title": "Google: Nano Banana Pro (Gemini 3 Pro Image Preview)",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-11-20T15:49:57.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-3-pro-image-preview",
+        "context_length": 65536,
+        "price_1m_input": 2,
+        "price_1m_output": 12,
+        "price_1m_blended": 4.5
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-4-1-fast:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.275,
+      "title": "xAI: Grok 4.1 Fast",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2025-11-19T21:25:02.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-4.1-fast",
+        "context_length": 2000000,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 0.5,
+        "price_1m_blended": 0.275
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-3-pro-preview:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.5,
+      "title": "Google: Gemini 3 Pro Preview",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-11-18T14:04:28.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-3-pro-preview",
+        "context_length": 1048576,
+        "price_1m_input": 2,
+        "price_1m_output": 12,
+        "price_1m_blended": 4.5
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-1:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "OpenAI: GPT-5.1",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-11-13T18:58:25.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.1",
+        "context_length": 400000,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-1-chat:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "OpenAI: GPT-5.1 Chat",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-11-13T18:58:22.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.1-chat",
+        "context_length": 128000,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-1-codex:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "OpenAI: GPT-5.1-Codex",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-11-13T18:58:18.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.1-codex",
+        "context_length": 400000,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-1-codex-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.688,
+      "title": "OpenAI: GPT-5.1-Codex-Mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-11-13T18:17:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5.1-codex-mini",
+        "context_length": 400000,
+        "price_1m_input": 0.25,
+        "price_1m_output": 2,
+        "price_1m_blended": 0.6875
+      }
+    },
+    {
+      "id": "perplexity-sonar:perplexity-sonar-pro-search:pricing",
+      "kind": "pricing",
+      "lab": "Perplexity (Sonar)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "Perplexity: Sonar Pro Search",
+      "subtitle": "Perplexity (Sonar)",
+      "timestamp": "2025-10-30T19:59:26.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "perplexity/sonar-pro-search",
+        "context_length": 200000,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-voxtral-small-24b-2507:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.15,
+      "title": "Mistral: Voxtral Small 24B 2507",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-10-30T14:39:04.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/voxtral-small-24b-2507",
+        "context_length": 32000,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.3,
+        "price_1m_blended": 0.15
+      }
+    },
+    {
+      "id": "openai:openai-gpt-oss-safeguard-20b:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.131,
+      "title": "OpenAI: gpt-oss-safeguard-20b",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-10-29T15:47:16.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-oss-safeguard-20b",
+        "context_length": 131072,
+        "price_1m_input": 0.075,
+        "price_1m_output": 0.3,
+        "price_1m_blended": 0.13124999999999998
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-nano-12b-v2-vl-free:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "NVIDIA: Nemotron Nano 12B 2 VL (free)",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2025-10-28T18:19:25.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/nemotron-nano-12b-v2-vl:free",
+        "context_length": 128000,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-nano-12b-v2-vl:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.3,
+      "title": "NVIDIA: Nemotron Nano 12B 2 VL",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2025-10-28T18:19:25.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/nemotron-nano-12b-v2-vl",
+        "context_length": 131072,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.3
+      }
+    },
+    {
+      "id": "minimax:minimax-minimax-m2:pricing",
+      "kind": "pricing",
+      "lab": "Minimax",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.441,
+      "title": "MiniMax: MiniMax M2",
+      "subtitle": "Minimax",
+      "timestamp": "2025-10-23T20:41:33.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "minimax/minimax-m2",
+        "context_length": 196608,
+        "price_1m_input": 0.255,
+        "price_1m_output": 1,
+        "price_1m_blended": 0.44125000000000003
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-vl-32b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.182,
+      "title": "Qwen: Qwen3 VL 32B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-10-23T14:55:32.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-vl-32b-instruct",
+        "context_length": 131072,
+        "price_1m_input": 0.10400000000000001,
+        "price_1m_output": 0.41600000000000004,
+        "price_1m_blended": 0.18200000000000002
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-image-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 2.375,
+      "title": "OpenAI: GPT-5 Image Mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-10-16T14:23:03.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5-image-mini",
+        "context_length": 400000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 2,
+        "price_1m_blended": 2.375
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-haiku-4-5:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 2,
+      "title": "Anthropic: Claude Haiku 4.5",
+      "subtitle": "Anthropic",
+      "timestamp": "2025-10-15T17:00:38.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-haiku-4.5",
+        "context_length": 200000,
+        "price_1m_input": 1,
+        "price_1m_output": 5,
+        "price_1m_blended": 2
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-vl-8b-thinking:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.429,
+      "title": "Qwen: Qwen3 VL 8B Thinking",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-10-14T17:42:26.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-vl-8b-thinking",
+        "context_length": 131072,
+        "price_1m_input": 0.117,
+        "price_1m_output": 1.365,
+        "price_1m_blended": 0.429
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-vl-8b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.185,
+      "title": "Qwen: Qwen3 VL 8B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-10-14T17:35:08.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-vl-8b-instruct",
+        "context_length": 131072,
+        "price_1m_input": 0.08,
+        "price_1m_output": 0.5,
+        "price_1m_blended": 0.185
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-image:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 10,
+      "title": "OpenAI: GPT-5 Image",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-10-14T13:19:46.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5-image",
+        "context_length": 400000,
+        "price_1m_input": 10,
+        "price_1m_output": 10,
+        "price_1m_blended": 10
+      }
+    },
+    {
+      "id": "openai:openai-o3-deep-research:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 17.5,
+      "title": "OpenAI: o3 Deep Research",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-10-10T20:54:21.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o3-deep-research",
+        "context_length": 200000,
+        "price_1m_input": 10,
+        "price_1m_output": 40,
+        "price_1m_blended": 17.5
+      }
+    },
+    {
+      "id": "openai:openai-o4-mini-deep-research:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.5,
+      "title": "OpenAI: o4 Mini Deep Research",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-10-10T20:54:02.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o4-mini-deep-research",
+        "context_length": 200000,
+        "price_1m_input": 2,
+        "price_1m_output": 8,
+        "price_1m_blended": 3.5
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-llama-3-3-nemotron-super-49b-v1-5:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.175,
+      "title": "NVIDIA: Llama 3.3 Nemotron Super 49B V1.5",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2025-10-10T13:03:15.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+        "context_length": 131072,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.175
+      }
+    },
+    {
+      "id": "baidu-ernie:baidu-ernie-4-5-21b-a3b-thinking:pricing",
+      "kind": "pricing",
+      "lab": "Baidu (ERNIE)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.123,
+      "title": "Baidu: ERNIE 4.5 21B A3B Thinking",
+      "subtitle": "Baidu (ERNIE)",
+      "timestamp": "2025-10-09T22:28:07.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "baidu/ernie-4.5-21b-a3b-thinking",
+        "context_length": 131072,
+        "price_1m_input": 0.07,
+        "price_1m_output": 0.28,
+        "price_1m_blended": 0.12250000000000001
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-5-flash-image:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.85,
+      "title": "Google: Nano Banana (Gemini 2.5 Flash Image)",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-10-07T20:53:51.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.5-flash-image",
+        "context_length": 32768,
+        "price_1m_input": 0.3,
+        "price_1m_output": 2.5,
+        "price_1m_blended": 0.85
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-vl-30b-a3b-thinking:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.488,
+      "title": "Qwen: Qwen3 VL 30B A3B Thinking",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-10-06T23:47:59.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-vl-30b-a3b-thinking",
+        "context_length": 131072,
+        "price_1m_input": 0.13,
+        "price_1m_output": 1.56,
+        "price_1m_blended": 0.48750000000000004
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-vl-30b-a3b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.228,
+      "title": "Qwen: Qwen3 VL 30B A3B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-10-06T23:47:56.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-vl-30b-a3b-instruct",
+        "context_length": 131072,
+        "price_1m_input": 0.13,
+        "price_1m_output": 0.52,
+        "price_1m_blended": 0.2275
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-pro:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 41.25,
+      "title": "OpenAI: GPT-5 Pro",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-10-06T18:51:03.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5-pro",
+        "context_length": 400000,
+        "price_1m_input": 15,
+        "price_1m_output": 120,
+        "price_1m_blended": 41.25
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-sonnet-4-5:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "Anthropic: Claude Sonnet 4.5",
+      "subtitle": "Anthropic",
+      "timestamp": "2025-09-29T16:01:16.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-sonnet-4.5",
+        "context_length": 1000000,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-v3-2-exp:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.305,
+      "title": "DeepSeek: DeepSeek V3.2 Exp",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-09-29T12:54:41.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-v3.2-exp",
+        "context_length": 163840,
+        "price_1m_input": 0.27,
+        "price_1m_output": 0.41,
+        "price_1m_blended": 0.305
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-5-flash-lite-preview-09-2025:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.175,
+      "title": "Google: Gemini 2.5 Flash Lite Preview 09-2025",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-09-25T17:01:26.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.5-flash-lite-preview-09-2025",
+        "context_length": 1048576,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.175
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-vl-235b-a22b-thinking:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.845,
+      "title": "Qwen: Qwen3 VL 235B A22B Thinking",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-23T23:04:50.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-vl-235b-a22b-thinking",
+        "context_length": 131072,
+        "price_1m_input": 0.26,
+        "price_1m_output": 2.6,
+        "price_1m_blended": 0.845
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-vl-235b-a22b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.37,
+      "title": "Qwen: Qwen3 VL 235B A22B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-23T23:04:47.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-vl-235b-a22b-instruct",
+        "context_length": 262144,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 0.88,
+        "price_1m_blended": 0.37
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-max:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.56,
+      "title": "Qwen: Qwen3 Max",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-23T21:26:48.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-max",
+        "context_length": 262144,
+        "price_1m_input": 0.78,
+        "price_1m_output": 3.9,
+        "price_1m_blended": 1.56
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-coder-plus:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.3,
+      "title": "Qwen: Qwen3 Coder Plus",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-23T21:25:07.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-coder-plus",
+        "context_length": 1000000,
+        "price_1m_input": 0.65,
+        "price_1m_output": 3.25,
+        "price_1m_blended": 1.3
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-codex:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "OpenAI: GPT-5 Codex",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-09-23T16:03:23.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5-codex",
+        "context_length": 400000,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-v3-1-terminus:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.355,
+      "title": "DeepSeek: DeepSeek V3.1 Terminus",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-09-22T13:37:55.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-v3.1-terminus",
+        "context_length": 163840,
+        "price_1m_input": 0.21,
+        "price_1m_output": 0.7899999999999999,
+        "price_1m_blended": 0.355
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-4-fast:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.275,
+      "title": "xAI: Grok 4 Fast",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2025-09-19T00:01:30.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-4-fast",
+        "context_length": 2000000,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 0.5,
+        "price_1m_blended": 0.275
+      }
+    },
+    {
+      "id": "alibaba-qwen:alibaba-tongyi-deepresearch-30b-a3b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.18,
+      "title": "Tongyi DeepResearch 30B A3B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-18T15:53:24.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "alibaba/tongyi-deepresearch-30b-a3b",
+        "context_length": 131072,
+        "price_1m_input": 0.09,
+        "price_1m_output": 0.44999999999999996,
+        "price_1m_blended": 0.18
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-coder-flash:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.39,
+      "title": "Qwen: Qwen3 Coder Flash",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-17T13:25:36.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-coder-flash",
+        "context_length": 1000000,
+        "price_1m_input": 0.195,
+        "price_1m_output": 0.975,
+        "price_1m_blended": 0.39
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-next-80b-a3b-thinking:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.268,
+      "title": "Qwen: Qwen3 Next 80B A3B Thinking",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-11T17:38:04.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-next-80b-a3b-thinking",
+        "context_length": 131072,
+        "price_1m_input": 0.0975,
+        "price_1m_output": 0.78,
+        "price_1m_blended": 0.268125
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-next-80b-a3b-instruct-free:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Qwen: Qwen3 Next 80B A3B Instruct (free)",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-11T17:36:53.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-next-80b-a3b-instruct:free",
+        "context_length": 262144,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-next-80b-a3b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.343,
+      "title": "Qwen: Qwen3 Next 80B A3B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-11T17:36:53.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-next-80b-a3b-instruct",
+        "context_length": 262144,
+        "price_1m_input": 0.09,
+        "price_1m_output": 1.1,
+        "price_1m_blended": 0.3425
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-plus-2025-07-28-thinking:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.39,
+      "title": "Qwen: Qwen Plus 0728 (thinking)",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-08T16:06:39.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-plus-2025-07-28:thinking",
+        "context_length": 1000000,
+        "price_1m_input": 0.26,
+        "price_1m_output": 0.78,
+        "price_1m_blended": 0.39
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-plus-2025-07-28:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.39,
+      "title": "Qwen: Qwen Plus 0728",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-09-08T16:06:39.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-plus-2025-07-28",
+        "context_length": 1000000,
+        "price_1m_input": 0.26,
+        "price_1m_output": 0.78,
+        "price_1m_blended": 0.39
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-nano-9b-v2-free:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "NVIDIA: Nemotron Nano 9B V2 (free)",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2025-09-05T21:13:27.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/nemotron-nano-9b-v2:free",
+        "context_length": 128000,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-nano-9b-v2:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.07,
+      "title": "NVIDIA: Nemotron Nano 9B V2",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2025-09-05T21:13:27.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/nemotron-nano-9b-v2",
+        "context_length": 131072,
+        "price_1m_input": 0.04,
+        "price_1m_output": 0.16,
+        "price_1m_blended": 0.07
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-30b-a3b-thinking-2507:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.16,
+      "title": "Qwen: Qwen3 30B A3B Thinking 2507",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-08-28T16:39:52.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-30b-a3b-thinking-2507",
+        "context_length": 131072,
+        "price_1m_input": 0.08,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.15999999999999998
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-code-fast-1:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.525,
+      "title": "xAI: Grok Code Fast 1",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2025-08-26T20:08:47.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-code-fast-1",
+        "context_length": 256000,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 1.5,
+        "price_1m_blended": 0.525
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-chat-v3-1:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.3,
+      "title": "DeepSeek: DeepSeek V3.1",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-08-21T12:33:48.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-chat-v3.1",
+        "context_length": 32768,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.75,
+        "price_1m_blended": 0.3
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-audio-preview:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.375,
+      "title": "OpenAI: GPT-4o Audio",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-15T04:44:21.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o-audio-preview",
+        "context_length": 128000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 10,
+        "price_1m_blended": 4.375
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-medium-3-1:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.8,
+      "title": "Mistral: Mistral Medium 3.1",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-08-13T14:33:59.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-medium-3.1",
+        "context_length": 131072,
+        "price_1m_input": 0.39999999999999997,
+        "price_1m_output": 2,
+        "price_1m_blended": 0.8
+      }
+    },
+    {
+      "id": "baidu-ernie:baidu-ernie-4-5-21b-a3b:pricing",
+      "kind": "pricing",
+      "lab": "Baidu (ERNIE)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.123,
+      "title": "Baidu: ERNIE 4.5 21B A3B",
+      "subtitle": "Baidu (ERNIE)",
+      "timestamp": "2025-08-12T21:29:27.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "baidu/ernie-4.5-21b-a3b",
+        "context_length": 120000,
+        "price_1m_input": 0.07,
+        "price_1m_output": 0.28,
+        "price_1m_blended": 0.12250000000000001
+      }
+    },
+    {
+      "id": "baidu-ernie:baidu-ernie-4-5-vl-28b-a3b:pricing",
+      "kind": "pricing",
+      "lab": "Baidu (ERNIE)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.245,
+      "title": "Baidu: ERNIE 4.5 VL 28B A3B",
+      "subtitle": "Baidu (ERNIE)",
+      "timestamp": "2025-08-12T21:07:16.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "baidu/ernie-4.5-vl-28b-a3b",
+        "context_length": 30000,
+        "price_1m_input": 0.14,
+        "price_1m_output": 0.56,
+        "price_1m_blended": 0.24500000000000002
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-chat:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "OpenAI: GPT-5 Chat",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-07T17:30:37.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5-chat",
+        "context_length": 128000,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "OpenAI: GPT-5",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-07T17:23:33.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5",
+        "context_length": 400000,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.688,
+      "title": "OpenAI: GPT-5 Mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-07T17:23:27.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5-mini",
+        "context_length": 400000,
+        "price_1m_input": 0.25,
+        "price_1m_output": 2,
+        "price_1m_blended": 0.6875
+      }
+    },
+    {
+      "id": "openai:openai-gpt-5-nano:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.137,
+      "title": "OpenAI: GPT-5 Nano",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-07T17:23:22.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-5-nano",
+        "context_length": 400000,
+        "price_1m_input": 0.049999999999999996,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.13749999999999998
+      }
+    },
+    {
+      "id": "openai:openai-gpt-oss-120b-free:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "OpenAI: gpt-oss-120b (free)",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-05T17:17:11.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-oss-120b:free",
+        "context_length": 131072,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "openai:openai-gpt-oss-120b:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.077,
+      "title": "OpenAI: gpt-oss-120b",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-05T17:17:11.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-oss-120b",
+        "context_length": 131072,
+        "price_1m_input": 0.039,
+        "price_1m_output": 0.19,
+        "price_1m_blended": 0.07675
+      }
+    },
+    {
+      "id": "openai:openai-gpt-oss-20b-free:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "OpenAI: gpt-oss-20b (free)",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-05T17:17:09.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-oss-20b:free",
+        "context_length": 131072,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "openai:openai-gpt-oss-20b:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.05,
+      "title": "OpenAI: gpt-oss-20b",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-08-05T17:17:09.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-oss-20b",
+        "context_length": 131072,
+        "price_1m_input": 0.03,
+        "price_1m_output": 0.11,
+        "price_1m_blended": 0.05
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-opus-4-1:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 30,
+      "title": "Anthropic: Claude Opus 4.1",
+      "subtitle": "Anthropic",
+      "timestamp": "2025-08-05T16:33:11.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-opus-4.1",
+        "context_length": 200000,
+        "price_1m_input": 15,
+        "price_1m_output": 75,
+        "price_1m_blended": 30
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-codestral-2508:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.45,
+      "title": "Mistral: Codestral 2508",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-08-01T20:20:30.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/codestral-2508",
+        "context_length": 256000,
+        "price_1m_input": 0.3,
+        "price_1m_output": 0.8999999999999999,
+        "price_1m_blended": 0.44999999999999996
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-coder-30b-a3b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.12,
+      "title": "Qwen: Qwen3 Coder 30B A3B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-07-31T14:32:59.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-coder-30b-a3b-instruct",
+        "context_length": 160000,
+        "price_1m_input": 0.07,
+        "price_1m_output": 0.27,
+        "price_1m_blended": 0.12000000000000001
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-30b-a3b-instruct-2507:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.143,
+      "title": "Qwen: Qwen3 30B A3B Instruct 2507",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-07-29T16:36:05.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-30b-a3b-instruct-2507",
+        "context_length": 262144,
+        "price_1m_input": 0.09,
+        "price_1m_output": 0.3,
+        "price_1m_blended": 0.14250000000000002
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-235b-a22b-thinking-2507:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.486,
+      "title": "Qwen: Qwen3 235B A22B Thinking 2507",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-07-25T13:19:17.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-235b-a22b-thinking-2507",
+        "context_length": 131072,
+        "price_1m_input": 0.14950000000000002,
+        "price_1m_output": 1.495,
+        "price_1m_blended": 0.48587500000000006
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-coder-free:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Qwen: Qwen3 Coder 480B A35B (free)",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-07-23T00:29:06.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-coder:free",
+        "context_length": 262000,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-coder:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.415,
+      "title": "Qwen: Qwen3 Coder 480B A35B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-07-23T00:29:06.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-coder",
+        "context_length": 262144,
+        "price_1m_input": 0.22,
+        "price_1m_output": 1,
+        "price_1m_blended": 0.41500000000000004
+      }
+    },
+    {
+      "id": "bytedance-doubao:bytedance-ui-tars-1-5-7b:pricing",
+      "kind": "pricing",
+      "lab": "ByteDance (Doubao)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.125,
+      "title": "ByteDance: UI-TARS 7B ",
+      "subtitle": "ByteDance (Doubao)",
+      "timestamp": "2025-07-22T17:24:16.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "bytedance/ui-tars-1.5-7b",
+        "context_length": 128000,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.19999999999999998,
+        "price_1m_blended": 0.125
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-5-flash-lite:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.175,
+      "title": "Google: Gemini 2.5 Flash Lite",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-07-22T16:04:36.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.5-flash-lite",
+        "context_length": 1048576,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.175
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-235b-a22b-2507:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.078,
+      "title": "Qwen: Qwen3 235B A22B Instruct 2507",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-07-21T17:39:15.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-235b-a22b-2507",
+        "context_length": 262144,
+        "price_1m_input": 0.071,
+        "price_1m_output": 0.09999999999999999,
+        "price_1m_blended": 0.07824999999999999
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-devstral-medium:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.8,
+      "title": "Mistral: Devstral Medium",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-07-10T15:28:41.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/devstral-medium",
+        "context_length": 131072,
+        "price_1m_input": 0.39999999999999997,
+        "price_1m_output": 2,
+        "price_1m_blended": 0.8
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-devstral-small:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.15,
+      "title": "Mistral: Devstral Small 1.1",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-07-10T15:19:11.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/devstral-small",
+        "context_length": 131072,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.3,
+        "price_1m_blended": 0.15
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-4:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "xAI: Grok 4",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2025-07-09T19:01:29.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-4",
+        "context_length": 256000,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3n-e2b-it-free:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Google: Gemma 3n 2B (free)",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-07-09T15:28:24.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3n-e2b-it:free",
+        "context_length": 8192,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "baidu-ernie:baidu-ernie-4-5-vl-424b-a47b:pricing",
+      "kind": "pricing",
+      "lab": "Baidu (ERNIE)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.628,
+      "title": "Baidu: ERNIE 4.5 VL 424B A47B ",
+      "subtitle": "Baidu (ERNIE)",
+      "timestamp": "2025-06-30T16:28:23.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "baidu/ernie-4.5-vl-424b-a47b",
+        "context_length": 123000,
+        "price_1m_input": 0.42,
+        "price_1m_output": 1.25,
+        "price_1m_blended": 0.6275
+      }
+    },
+    {
+      "id": "baidu-ernie:baidu-ernie-4-5-300b-a47b:pricing",
+      "kind": "pricing",
+      "lab": "Baidu (ERNIE)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.485,
+      "title": "Baidu: ERNIE 4.5 300B A47B ",
+      "subtitle": "Baidu (ERNIE)",
+      "timestamp": "2025-06-30T16:15:39.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "baidu/ernie-4.5-300b-a47b",
+        "context_length": 123000,
+        "price_1m_input": 0.28,
+        "price_1m_output": 1.1,
+        "price_1m_blended": 0.48500000000000004
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-small-3-2-24b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.106,
+      "title": "Mistral: Mistral Small 3.2 24B",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-06-20T18:10:16.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-small-3.2-24b-instruct",
+        "context_length": 128000,
+        "price_1m_input": 0.075,
+        "price_1m_output": 0.19999999999999998,
+        "price_1m_blended": 0.10624999999999998
+      }
+    },
+    {
+      "id": "minimax:minimax-minimax-m1:pricing",
+      "kind": "pricing",
+      "lab": "Minimax",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.85,
+      "title": "MiniMax: MiniMax M1",
+      "subtitle": "Minimax",
+      "timestamp": "2025-06-17T22:46:54.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "minimax/minimax-m1",
+        "context_length": 1000000,
+        "price_1m_input": 0.39999999999999997,
+        "price_1m_output": 2.2,
+        "price_1m_blended": 0.8500000000000001
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-5-flash:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.85,
+      "title": "Google: Gemini 2.5 Flash",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-06-17T15:01:28.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.5-flash",
+        "context_length": 1048576,
+        "price_1m_input": 0.3,
+        "price_1m_output": 2.5,
+        "price_1m_blended": 0.85
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-5-pro:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "Google: Gemini 2.5 Pro",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-06-17T14:12:24.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.5-pro",
+        "context_length": 1048576,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "openai:openai-o3-pro:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 35,
+      "title": "OpenAI: o3 Pro",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-06-10T23:32:32.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o3-pro",
+        "context_length": 200000,
+        "price_1m_input": 20,
+        "price_1m_output": 80,
+        "price_1m_blended": 35
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-3-mini:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.35,
+      "title": "xAI: Grok 3 Mini",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2025-06-10T19:20:45.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-3-mini",
+        "context_length": 131072,
+        "price_1m_input": 0.3,
+        "price_1m_output": 0.5,
+        "price_1m_blended": 0.35
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-3:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "xAI: Grok 3",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2025-06-10T19:15:08.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-3",
+        "context_length": 131072,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-5-pro-preview:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "Google: Gemini 2.5 Pro Preview 06-05",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-06-05T15:27:37.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.5-pro-preview",
+        "context_length": 1048576,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-r1-0528:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.875,
+      "title": "DeepSeek: R1 0528",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-05-28T17:59:30.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-r1-0528",
+        "context_length": 163840,
+        "price_1m_input": 0.44999999999999996,
+        "price_1m_output": 2.1500000000000004,
+        "price_1m_blended": 0.875
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-opus-4:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 30,
+      "title": "Anthropic: Claude Opus 4",
+      "subtitle": "Anthropic",
+      "timestamp": "2025-05-22T16:27:25.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-opus-4",
+        "context_length": 200000,
+        "price_1m_input": 15,
+        "price_1m_output": 75,
+        "price_1m_blended": 30
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-sonnet-4:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "Anthropic: Claude Sonnet 4",
+      "subtitle": "Anthropic",
+      "timestamp": "2025-05-22T16:12:51.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-sonnet-4",
+        "context_length": 200000,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3n-e4b-it-free:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Google: Gemma 3n 4B (free)",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-05-20T21:33:44.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3n-e4b-it:free",
+        "context_length": 8192,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3n-e4b-it:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.025,
+      "title": "Google: Gemma 3n 4B",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-05-20T21:33:44.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3n-e4b-it",
+        "context_length": 32768,
+        "price_1m_input": 0.02,
+        "price_1m_output": 0.04,
+        "price_1m_blended": 0.025
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-medium-3:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.8,
+      "title": "Mistral: Mistral Medium 3",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-05-07T14:15:41.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-medium-3",
+        "context_length": 131072,
+        "price_1m_input": 0.39999999999999997,
+        "price_1m_output": 2,
+        "price_1m_blended": 0.8
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-5-pro-preview-05-06:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.438,
+      "title": "Google: Gemini 2.5 Pro Preview 05-06",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-05-07T00:41:53.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.5-pro-preview-05-06",
+        "context_length": 1048576,
+        "price_1m_input": 1.25,
+        "price_1m_output": 10,
+        "price_1m_blended": 3.4375
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-4b-free:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Qwen: Qwen3 4B (free)",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-04-30T16:38:24.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-4b:free",
+        "context_length": 40960,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-guard-4-12b:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.18,
+      "title": "Meta: Llama Guard 4 12B",
+      "subtitle": "Meta AI",
+      "timestamp": "2025-04-30T01:06:33.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-guard-4-12b",
+        "context_length": 163840,
+        "price_1m_input": 0.18,
+        "price_1m_output": 0.18,
+        "price_1m_blended": 0.18
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-30b-a3b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.13,
+      "title": "Qwen: Qwen3 30B A3B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-04-28T22:16:44.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-30b-a3b",
+        "context_length": 40960,
+        "price_1m_input": 0.08,
+        "price_1m_output": 0.28,
+        "price_1m_blended": 0.13
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-8b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.137,
+      "title": "Qwen: Qwen3 8B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-04-28T21:43:52.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-8b",
+        "context_length": 40960,
+        "price_1m_input": 0.049999999999999996,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.13749999999999998
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-14b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.105,
+      "title": "Qwen: Qwen3 14B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-04-28T21:41:18.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-14b",
+        "context_length": 40960,
+        "price_1m_input": 0.06,
+        "price_1m_output": 0.24,
+        "price_1m_blended": 0.105
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-32b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.12,
+      "title": "Qwen: Qwen3 32B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-04-28T21:32:25.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-32b",
+        "context_length": 40960,
+        "price_1m_input": 0.08,
+        "price_1m_output": 0.24,
+        "price_1m_blended": 0.12
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen3-235b-a22b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.796,
+      "title": "Qwen: Qwen3 235B A22B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-04-28T21:29:17.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen3-235b-a22b",
+        "context_length": 131072,
+        "price_1m_input": 0.45499999999999996,
+        "price_1m_output": 1.8199999999999998,
+        "price_1m_blended": 0.7962499999999999
+      }
+    },
+    {
+      "id": "openai:openai-o4-mini-high:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.925,
+      "title": "OpenAI: o4 Mini High",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-04-16T17:23:32.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o4-mini-high",
+        "context_length": 200000,
+        "price_1m_input": 1.1,
+        "price_1m_output": 4.4,
+        "price_1m_blended": 1.9250000000000003
+      }
+    },
+    {
+      "id": "openai:openai-o3:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.5,
+      "title": "OpenAI: o3",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-04-16T17:10:57.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o3",
+        "context_length": 200000,
+        "price_1m_input": 2,
+        "price_1m_output": 8,
+        "price_1m_blended": 3.5
+      }
+    },
+    {
+      "id": "openai:openai-o4-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.925,
+      "title": "OpenAI: o4 Mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-04-16T16:29:02.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o4-mini",
+        "context_length": 200000,
+        "price_1m_input": 1.1,
+        "price_1m_output": 4.4,
+        "price_1m_blended": 1.9250000000000003
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen2-5-coder-7b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.045,
+      "title": "Qwen: Qwen2.5 Coder 7B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-04-15T16:34:47.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen2.5-coder-7b-instruct",
+        "context_length": 32768,
+        "price_1m_input": 0.03,
+        "price_1m_output": 0.09,
+        "price_1m_blended": 0.045
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4-1:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.5,
+      "title": "OpenAI: GPT-4.1",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-04-14T17:23:05.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4.1",
+        "context_length": 1047576,
+        "price_1m_input": 2,
+        "price_1m_output": 8,
+        "price_1m_blended": 3.5
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4-1-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.7,
+      "title": "OpenAI: GPT-4.1 Mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-04-14T17:23:01.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4.1-mini",
+        "context_length": 1047576,
+        "price_1m_input": 0.39999999999999997,
+        "price_1m_output": 1.5999999999999999,
+        "price_1m_blended": 0.7
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4-1-nano:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.175,
+      "title": "OpenAI: GPT-4.1 Nano",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-04-14T17:22:49.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4.1-nano",
+        "context_length": 1047576,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.175
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-3-mini-beta:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.35,
+      "title": "xAI: Grok 3 Mini Beta",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2025-04-09T23:09:55.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-3-mini-beta",
+        "context_length": 131072,
+        "price_1m_input": 0.3,
+        "price_1m_output": 0.5,
+        "price_1m_blended": 0.35
+      }
+    },
+    {
+      "id": "xai-grok:x-ai-grok-3-beta:pricing",
+      "kind": "pricing",
+      "lab": "xAI (Grok)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "xAI: Grok 3 Beta",
+      "subtitle": "xAI (Grok)",
+      "timestamp": "2025-04-09T23:07:48.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "x-ai/grok-3-beta",
+        "context_length": 131072,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-llama-3-1-nemotron-ultra-253b-v1:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.9,
+      "title": "NVIDIA: Llama 3.1 Nemotron Ultra 253B v1",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2025-04-08T12:24:19.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+        "context_length": 131072,
+        "price_1m_input": 0.6,
+        "price_1m_output": 1.7999999999999998,
+        "price_1m_blended": 0.8999999999999999
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-4-maverick:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.262,
+      "title": "Meta: Llama 4 Maverick",
+      "subtitle": "Meta AI",
+      "timestamp": "2025-04-05T19:37:02.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-4-maverick",
+        "context_length": 1048576,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.26249999999999996
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-4-scout:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.135,
+      "title": "Meta: Llama 4 Scout",
+      "subtitle": "Meta AI",
+      "timestamp": "2025-04-05T19:31:59.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-4-scout",
+        "context_length": 327680,
+        "price_1m_input": 0.08,
+        "price_1m_output": 0.3,
+        "price_1m_blended": 0.135
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen2-5-vl-32b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.3,
+      "title": "Qwen: Qwen2.5 VL 32B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-03-24T18:10:38.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen2.5-vl-32b-instruct",
+        "context_length": 128000,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.3
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-chat-v3-0324:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.343,
+      "title": "DeepSeek: DeepSeek V3 0324",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-03-24T13:59:15.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-chat-v3-0324",
+        "context_length": 163840,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 0.77,
+        "price_1m_blended": 0.3425
+      }
+    },
+    {
+      "id": "openai:openai-o1-pro:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 262.5,
+      "title": "OpenAI: o1-pro",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-03-19T22:26:51.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o1-pro",
+        "context_length": 200000,
+        "price_1m_input": 150,
+        "price_1m_output": 600,
+        "price_1m_blended": 262.5
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-small-3-1-24b-instruct-free:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Mistral: Mistral Small 3.1 24B (free)",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-03-17T19:15:37.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-small-3.1-24b-instruct:free",
+        "context_length": 128000,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-small-3-1-24b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.05,
+      "title": "Mistral: Mistral Small 3.1 24B",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-03-17T19:15:37.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-small-3.1-24b-instruct",
+        "context_length": 131072,
+        "price_1m_input": 0.03,
+        "price_1m_output": 0.11,
+        "price_1m_blended": 0.05
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3-4b-it-free:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Google: Gemma 3 4B (free)",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-03-13T22:38:30.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3-4b-it:free",
+        "context_length": 32768,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3-4b-it:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.05,
+      "title": "Google: Gemma 3 4B",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-03-13T22:38:30.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3-4b-it",
+        "context_length": 131072,
+        "price_1m_input": 0.04,
+        "price_1m_output": 0.08,
+        "price_1m_blended": 0.05
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3-12b-it-free:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Google: Gemma 3 12B (free)",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-03-13T21:50:25.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3-12b-it:free",
+        "context_length": 32768,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3-12b-it:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.063,
+      "title": "Google: Gemma 3 12B",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-03-13T21:50:25.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3-12b-it",
+        "context_length": 131072,
+        "price_1m_input": 0.04,
+        "price_1m_output": 0.13,
+        "price_1m_blended": 0.0625
+      }
+    },
+    {
+      "id": "cohere:cohere-command-a:pricing",
+      "kind": "pricing",
+      "lab": "Cohere",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.375,
+      "title": "Cohere: Command A",
+      "subtitle": "Cohere",
+      "timestamp": "2025-03-13T19:32:22.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "cohere/command-a",
+        "context_length": 256000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 10,
+        "price_1m_blended": 4.375
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-mini-search-preview:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.262,
+      "title": "OpenAI: GPT-4o-mini Search Preview",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-03-12T22:22:02.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o-mini-search-preview",
+        "context_length": 128000,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.26249999999999996
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-search-preview:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.375,
+      "title": "OpenAI: GPT-4o Search Preview",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-03-12T22:19:09.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o-search-preview",
+        "context_length": 128000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 10,
+        "price_1m_blended": 4.375
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3-27b-it-free:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Google: Gemma 3 27B (free)",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-03-12T05:12:39.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3-27b-it:free",
+        "context_length": 131072,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-3-27b-it:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.1,
+      "title": "Google: Gemma 3 27B",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-03-12T05:12:39.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-3-27b-it",
+        "context_length": 131072,
+        "price_1m_input": 0.08,
+        "price_1m_output": 0.16,
+        "price_1m_blended": 0.1
+      }
+    },
+    {
+      "id": "perplexity-sonar:perplexity-sonar-reasoning-pro:pricing",
+      "kind": "pricing",
+      "lab": "Perplexity (Sonar)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.5,
+      "title": "Perplexity: Sonar Reasoning Pro",
+      "subtitle": "Perplexity (Sonar)",
+      "timestamp": "2025-03-07T02:08:28.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "perplexity/sonar-reasoning-pro",
+        "context_length": 128000,
+        "price_1m_input": 2,
+        "price_1m_output": 8,
+        "price_1m_blended": 3.5
+      }
+    },
+    {
+      "id": "perplexity-sonar:perplexity-sonar-pro:pricing",
+      "kind": "pricing",
+      "lab": "Perplexity (Sonar)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "Perplexity: Sonar Pro",
+      "subtitle": "Perplexity (Sonar)",
+      "timestamp": "2025-03-07T01:53:43.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "perplexity/sonar-pro",
+        "context_length": 200000,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "perplexity-sonar:perplexity-sonar-deep-research:pricing",
+      "kind": "pricing",
+      "lab": "Perplexity (Sonar)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.5,
+      "title": "Perplexity: Sonar Deep Research",
+      "subtitle": "Perplexity (Sonar)",
+      "timestamp": "2025-03-07T01:34:06.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "perplexity/sonar-deep-research",
+        "context_length": 128000,
+        "price_1m_input": 2,
+        "price_1m_output": 8,
+        "price_1m_blended": 3.5
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwq-32b:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.257,
+      "title": "Qwen: QwQ 32B",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-03-05T21:06:54.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwq-32b",
+        "context_length": 131072,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.58,
+        "price_1m_blended": 0.25749999999999995
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-0-flash-lite-001:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.131,
+      "title": "Google: Gemini 2.0 Flash Lite",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-02-25T17:56:52.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.0-flash-lite-001",
+        "context_length": 1048576,
+        "price_1m_input": 0.075,
+        "price_1m_output": 0.3,
+        "price_1m_blended": 0.13124999999999998
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-3-7-sonnet:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "Anthropic: Claude 3.7 Sonnet",
+      "subtitle": "Anthropic",
+      "timestamp": "2025-02-24T18:35:10.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-3.7-sonnet",
+        "context_length": 200000,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-3-7-sonnet-thinking:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 6,
+      "title": "Anthropic: Claude 3.7 Sonnet (thinking)",
+      "subtitle": "Anthropic",
+      "timestamp": "2025-02-24T18:35:10.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-3.7-sonnet:thinking",
+        "context_length": 200000,
+        "price_1m_input": 3,
+        "price_1m_output": 15,
+        "price_1m_blended": 6
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-saba:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.3,
+      "title": "Mistral: Saba",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-02-17T14:40:39.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-saba",
+        "context_length": 32768,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.3
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-guard-3-8b:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.03,
+      "title": "Llama Guard 3 8B",
+      "subtitle": "Meta AI",
+      "timestamp": "2025-02-12T23:01:58.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-guard-3-8b",
+        "context_length": 131072,
+        "price_1m_input": 0.02,
+        "price_1m_output": 0.06,
+        "price_1m_blended": 0.03
+      }
+    },
+    {
+      "id": "openai:openai-o3-mini-high:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.925,
+      "title": "OpenAI: o3 Mini High",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-02-12T15:03:31.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o3-mini-high",
+        "context_length": 200000,
+        "price_1m_input": 1.1,
+        "price_1m_output": 4.4,
+        "price_1m_blended": 1.9250000000000003
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemini-2-0-flash-001:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.175,
+      "title": "Google: Gemini 2.0 Flash",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2025-02-05T15:30:13.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemini-2.0-flash-001",
+        "context_length": 1048576,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.175
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-vl-plus:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.205,
+      "title": "Qwen: Qwen VL Plus",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-02-05T04:54:15.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-vl-plus",
+        "context_length": 131072,
+        "price_1m_input": 0.1365,
+        "price_1m_output": 0.40950000000000003,
+        "price_1m_blended": 0.20475000000000002
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-vl-max:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.91,
+      "title": "Qwen: Qwen VL Max",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-02-01T18:25:04.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-vl-max",
+        "context_length": 131072,
+        "price_1m_input": 0.52,
+        "price_1m_output": 2.08,
+        "price_1m_blended": 0.91
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-turbo:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.057,
+      "title": "Qwen: Qwen-Turbo",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-02-01T11:56:14.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-turbo",
+        "context_length": 131072,
+        "price_1m_input": 0.0325,
+        "price_1m_output": 0.13,
+        "price_1m_blended": 0.056875
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen2-5-vl-72b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.8,
+      "title": "Qwen: Qwen2.5 VL 72B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-02-01T11:45:11.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen2.5-vl-72b-instruct",
+        "context_length": 32768,
+        "price_1m_input": 0.7999999999999999,
+        "price_1m_output": 0.7999999999999999,
+        "price_1m_blended": 0.7999999999999999
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-plus:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.39,
+      "title": "Qwen: Qwen-Plus",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-02-01T11:37:20.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-plus",
+        "context_length": 1000000,
+        "price_1m_input": 0.26,
+        "price_1m_output": 0.78,
+        "price_1m_blended": 0.39
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-max:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.82,
+      "title": "Qwen: Qwen-Max ",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2025-02-01T09:31:29.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-max",
+        "context_length": 32768,
+        "price_1m_input": 1.04,
+        "price_1m_output": 4.16,
+        "price_1m_blended": 1.82
+      }
+    },
+    {
+      "id": "openai:openai-o3-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.925,
+      "title": "OpenAI: o3 Mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2025-01-31T19:28:41.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o3-mini",
+        "context_length": 200000,
+        "price_1m_input": 1.1,
+        "price_1m_output": 4.4,
+        "price_1m_blended": 1.9250000000000003
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-small-24b-instruct-2501:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.057,
+      "title": "Mistral: Mistral Small 3",
+      "subtitle": "Mistral AI",
+      "timestamp": "2025-01-30T16:43:29.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-small-24b-instruct-2501",
+        "context_length": 32768,
+        "price_1m_input": 0.049999999999999996,
+        "price_1m_output": 0.08,
+        "price_1m_blended": 0.057499999999999996
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-r1-distill-qwen-32b:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.29,
+      "title": "DeepSeek: R1 Distill Qwen 32B",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-01-29T23:53:50.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-r1-distill-qwen-32b",
+        "context_length": 32768,
+        "price_1m_input": 0.29,
+        "price_1m_output": 0.29,
+        "price_1m_blended": 0.29
+      }
+    },
+    {
+      "id": "perplexity-sonar:perplexity-sonar:pricing",
+      "kind": "pricing",
+      "lab": "Perplexity (Sonar)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1,
+      "title": "Perplexity: Sonar",
+      "subtitle": "Perplexity (Sonar)",
+      "timestamp": "2025-01-27T21:36:48.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "perplexity/sonar",
+        "context_length": 127072,
+        "price_1m_input": 1,
+        "price_1m_output": 1,
+        "price_1m_blended": 1
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-r1-distill-llama-70b:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.725,
+      "title": "DeepSeek: R1 Distill Llama 70B",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-01-23T20:12:49.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-r1-distill-llama-70b",
+        "context_length": 131072,
+        "price_1m_input": 0.7,
+        "price_1m_output": 0.7999999999999999,
+        "price_1m_blended": 0.7249999999999999
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-r1:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.15,
+      "title": "DeepSeek: R1",
+      "subtitle": "DeepSeek",
+      "timestamp": "2025-01-20T13:51:35.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-r1",
+        "context_length": 64000,
+        "price_1m_input": 0.7,
+        "price_1m_output": 2.5,
+        "price_1m_blended": 1.15
+      }
+    },
+    {
+      "id": "minimax:minimax-minimax-01:pricing",
+      "kind": "pricing",
+      "lab": "Minimax",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.425,
+      "title": "MiniMax: MiniMax-01",
+      "subtitle": "Minimax",
+      "timestamp": "2025-01-15T04:31:02.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "minimax/minimax-01",
+        "context_length": 1000192,
+        "price_1m_input": 0.19999999999999998,
+        "price_1m_output": 1.1,
+        "price_1m_blended": 0.42500000000000004
+      }
+    },
+    {
+      "id": "microsoft-phi:microsoft-phi-4:pricing",
+      "kind": "pricing",
+      "lab": "Microsoft (Phi)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.084,
+      "title": "Microsoft: Phi 4",
+      "subtitle": "Microsoft (Phi)",
+      "timestamp": "2025-01-10T06:17:52.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "microsoft/phi-4",
+        "context_length": 16384,
+        "price_1m_input": 0.065,
+        "price_1m_output": 0.14,
+        "price_1m_blended": 0.08375
+      }
+    },
+    {
+      "id": "deepseek:deepseek-deepseek-chat:pricing",
+      "kind": "pricing",
+      "lab": "DeepSeek",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.462,
+      "title": "DeepSeek: DeepSeek V3",
+      "subtitle": "DeepSeek",
+      "timestamp": "2024-12-26T19:28:40.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "deepseek/deepseek-chat",
+        "context_length": 163840,
+        "price_1m_input": 0.32,
+        "price_1m_output": 0.8899999999999999,
+        "price_1m_blended": 0.46249999999999997
+      }
+    },
+    {
+      "id": "openai:openai-o1:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 26.25,
+      "title": "OpenAI: o1",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-12-17T18:26:39.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/o1",
+        "context_length": 200000,
+        "price_1m_input": 15,
+        "price_1m_output": 60,
+        "price_1m_blended": 26.25
+      }
+    },
+    {
+      "id": "cohere:cohere-command-r7b-12-2024:pricing",
+      "kind": "pricing",
+      "lab": "Cohere",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.066,
+      "title": "Cohere: Command R7B (12-2024)",
+      "subtitle": "Cohere",
+      "timestamp": "2024-12-14T06:35:52.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "cohere/command-r7b-12-2024",
+        "context_length": 128000,
+        "price_1m_input": 0.0375,
+        "price_1m_output": 0.15,
+        "price_1m_blended": 0.06562499999999999
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-3-70b-instruct-free:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Meta: Llama 3.3 70B Instruct (free)",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-12-06T17:28:57.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.3-70b-instruct:free",
+        "context_length": 65536,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-3-70b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.155,
+      "title": "Meta: Llama 3.3 70B Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-12-06T17:28:57.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.3-70b-instruct",
+        "context_length": 131072,
+        "price_1m_input": 0.09999999999999999,
+        "price_1m_output": 0.32,
+        "price_1m_blended": 0.155
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-2024-11-20:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.375,
+      "title": "OpenAI: GPT-4o (2024-11-20)",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-11-20T18:33:14.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o-2024-11-20",
+        "context_length": 128000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 10,
+        "price_1m_blended": 4.375
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-large-2411:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3,
+      "title": "Mistral Large 2411",
+      "subtitle": "Mistral AI",
+      "timestamp": "2024-11-19T01:11:25.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-large-2411",
+        "context_length": 131072,
+        "price_1m_input": 2,
+        "price_1m_output": 6,
+        "price_1m_blended": 3
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-large-2407:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3,
+      "title": "Mistral Large 2407",
+      "subtitle": "Mistral AI",
+      "timestamp": "2024-11-19T01:06:55.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-large-2407",
+        "context_length": 131072,
+        "price_1m_input": 2,
+        "price_1m_output": 6,
+        "price_1m_blended": 3
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-pixtral-large-2411:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3,
+      "title": "Mistral: Pixtral Large 2411",
+      "subtitle": "Mistral AI",
+      "timestamp": "2024-11-19T00:49:48.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/pixtral-large-2411",
+        "context_length": 131072,
+        "price_1m_input": 2,
+        "price_1m_output": 6,
+        "price_1m_blended": 3
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-2-5-coder-32b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.745,
+      "title": "Qwen2.5 Coder 32B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2024-11-11T23:40:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-2.5-coder-32b-instruct",
+        "context_length": 32768,
+        "price_1m_input": 0.66,
+        "price_1m_output": 1,
+        "price_1m_blended": 0.745
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-3-5-haiku:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.6,
+      "title": "Anthropic: Claude 3.5 Haiku",
+      "subtitle": "Anthropic",
+      "timestamp": "2024-11-04T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-3.5-haiku",
+        "context_length": 200000,
+        "price_1m_input": 0.7999999999999999,
+        "price_1m_output": 4,
+        "price_1m_blended": 1.6
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-3-5-sonnet:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 12,
+      "title": "Anthropic: Claude 3.5 Sonnet",
+      "subtitle": "Anthropic",
+      "timestamp": "2024-10-22T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-3.5-sonnet",
+        "context_length": 200000,
+        "price_1m_input": 6,
+        "price_1m_output": 30,
+        "price_1m_blended": 12
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-2-5-7b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.055,
+      "title": "Qwen: Qwen2.5 7B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2024-10-16T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-2.5-7b-instruct",
+        "context_length": 32768,
+        "price_1m_input": 0.04,
+        "price_1m_output": 0.09999999999999999,
+        "price_1m_blended": 0.05499999999999999
+      }
+    },
+    {
+      "id": "nvidia-nemotron:nvidia-llama-3-1-nemotron-70b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.2,
+      "title": "NVIDIA: Llama 3.1 Nemotron 70B Instruct",
+      "subtitle": "NVIDIA (Nemotron)",
+      "timestamp": "2024-10-15T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "nvidia/llama-3.1-nemotron-70b-instruct",
+        "context_length": 131072,
+        "price_1m_input": 1.2,
+        "price_1m_output": 1.2,
+        "price_1m_blended": 1.2
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-2-3b-instruct-free:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0,
+      "title": "Meta: Llama 3.2 3B Instruct (free)",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-09-25T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.2-3b-instruct:free",
+        "context_length": 131072,
+        "price_1m_input": 0,
+        "price_1m_output": 0,
+        "price_1m_blended": 0
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-2-3b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.123,
+      "title": "Meta: Llama 3.2 3B Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-09-25T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.2-3b-instruct",
+        "context_length": 80000,
+        "price_1m_input": 0.051,
+        "price_1m_output": 0.33999999999999997,
+        "price_1m_blended": 0.12325
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-2-1b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.07,
+      "title": "Meta: Llama 3.2 1B Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-09-25T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.2-1b-instruct",
+        "context_length": 60000,
+        "price_1m_input": 0.027,
+        "price_1m_output": 0.19999999999999998,
+        "price_1m_blended": 0.07024999999999999
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-2-11b-vision-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.049,
+      "title": "Meta: Llama 3.2 11B Vision Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-09-25T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.2-11b-vision-instruct",
+        "context_length": 131072,
+        "price_1m_input": 0.049,
+        "price_1m_output": 0.049,
+        "price_1m_blended": 0.049
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-2-5-72b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.188,
+      "title": "Qwen2.5 72B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2024-09-19T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-2.5-72b-instruct",
+        "context_length": 32768,
+        "price_1m_input": 0.12,
+        "price_1m_output": 0.39,
+        "price_1m_blended": 0.1875
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-pixtral-12b:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.1,
+      "title": "Mistral: Pixtral 12B",
+      "subtitle": "Mistral AI",
+      "timestamp": "2024-09-10T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/pixtral-12b",
+        "context_length": 32768,
+        "price_1m_input": 0.1,
+        "price_1m_output": 0.1,
+        "price_1m_blended": 0.1
+      }
+    },
+    {
+      "id": "cohere:cohere-command-r-08-2024:pricing",
+      "kind": "pricing",
+      "lab": "Cohere",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.262,
+      "title": "Cohere: Command R (08-2024)",
+      "subtitle": "Cohere",
+      "timestamp": "2024-08-30T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "cohere/command-r-08-2024",
+        "context_length": 128000,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.26249999999999996
+      }
+    },
+    {
+      "id": "cohere:cohere-command-r-plus-08-2024:pricing",
+      "kind": "pricing",
+      "lab": "Cohere",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.375,
+      "title": "Cohere: Command R+ (08-2024)",
+      "subtitle": "Cohere",
+      "timestamp": "2024-08-30T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "cohere/command-r-plus-08-2024",
+        "context_length": 128000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 10,
+        "price_1m_blended": 4.375
+      }
+    },
+    {
+      "id": "alibaba-qwen:qwen-qwen-2-5-vl-7b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Alibaba (Qwen)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.2,
+      "title": "Qwen: Qwen2.5-VL 7B Instruct",
+      "subtitle": "Alibaba (Qwen)",
+      "timestamp": "2024-08-28T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "qwen/qwen-2.5-vl-7b-instruct",
+        "context_length": 32768,
+        "price_1m_input": 0.2,
+        "price_1m_output": 0.2,
+        "price_1m_blended": 0.2
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-2024-08-06:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.375,
+      "title": "OpenAI: GPT-4o (2024-08-06)",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-08-06T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o-2024-08-06",
+        "context_length": 128000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 10,
+        "price_1m_blended": 4.375
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-1-405b:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4,
+      "title": "Meta: Llama 3.1 405B (base)",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-08-02T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.1-405b",
+        "context_length": 32768,
+        "price_1m_input": 4,
+        "price_1m_output": 4,
+        "price_1m_blended": 4
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-1-8b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.027,
+      "title": "Meta: Llama 3.1 8B Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-07-23T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.1-8b-instruct",
+        "context_length": 16384,
+        "price_1m_input": 0.02,
+        "price_1m_output": 0.049999999999999996,
+        "price_1m_blended": 0.027499999999999997
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-1-70b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.4,
+      "title": "Meta: Llama 3.1 70B Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-07-23T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3.1-70b-instruct",
+        "context_length": 131072,
+        "price_1m_input": 0.39999999999999997,
+        "price_1m_output": 0.39999999999999997,
+        "price_1m_blended": 0.39999999999999997
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-nemo:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.025,
+      "title": "Mistral: Mistral Nemo",
+      "subtitle": "Mistral AI",
+      "timestamp": "2024-07-19T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-nemo",
+        "context_length": 131072,
+        "price_1m_input": 0.02,
+        "price_1m_output": 0.04,
+        "price_1m_blended": 0.025
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-mini-2024-07-18:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.262,
+      "title": "OpenAI: GPT-4o-mini (2024-07-18)",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-07-18T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o-mini-2024-07-18",
+        "context_length": 128000,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.26249999999999996
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-mini:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.262,
+      "title": "OpenAI: GPT-4o-mini",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-07-18T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o-mini",
+        "context_length": 128000,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.26249999999999996
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-2-27b-it:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.65,
+      "title": "Google: Gemma 2 27B",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2024-07-13T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-2-27b-it",
+        "context_length": 8192,
+        "price_1m_input": 0.65,
+        "price_1m_output": 0.65,
+        "price_1m_blended": 0.65
+      }
+    },
+    {
+      "id": "google-deepmind:google-gemma-2-9b-it:pricing",
+      "kind": "pricing",
+      "lab": "Google DeepMind",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.045,
+      "title": "Google: Gemma 2 9B",
+      "subtitle": "Google DeepMind",
+      "timestamp": "2024-06-28T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "google/gemma-2-9b-it",
+        "context_length": 8192,
+        "price_1m_input": 0.03,
+        "price_1m_output": 0.09,
+        "price_1m_blended": 0.045
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-2024-05-13:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 7.5,
+      "title": "OpenAI: GPT-4o (2024-05-13)",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-05-13T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o-2024-05-13",
+        "context_length": 128000,
+        "price_1m_input": 5,
+        "price_1m_output": 15,
+        "price_1m_blended": 7.5
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 4.375,
+      "title": "OpenAI: GPT-4o",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-05-13T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o",
+        "context_length": 128000,
+        "price_1m_input": 2.5,
+        "price_1m_output": 10,
+        "price_1m_blended": 4.375
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4o-extended:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 9,
+      "title": "OpenAI: GPT-4o (extended)",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-05-13T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4o:extended",
+        "context_length": 128000,
+        "price_1m_input": 6,
+        "price_1m_output": 18,
+        "price_1m_blended": 9
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-70b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.568,
+      "title": "Meta: Llama 3 70B Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-04-18T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3-70b-instruct",
+        "context_length": 8192,
+        "price_1m_input": 0.51,
+        "price_1m_output": 0.74,
+        "price_1m_blended": 0.5675
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-8b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.033,
+      "title": "Meta: Llama 3 8B Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-04-18T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3-8b-instruct",
+        "context_length": 8192,
+        "price_1m_input": 0.03,
+        "price_1m_output": 0.04,
+        "price_1m_blended": 0.0325
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mixtral-8x22b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3,
+      "title": "Mistral: Mixtral 8x22B Instruct",
+      "subtitle": "Mistral AI",
+      "timestamp": "2024-04-17T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mixtral-8x22b-instruct",
+        "context_length": 65536,
+        "price_1m_input": 2,
+        "price_1m_output": 6,
+        "price_1m_blended": 3
+      }
+    },
+    {
+      "id": "microsoft-phi:microsoft-wizardlm-2-8x22b:pricing",
+      "kind": "pricing",
+      "lab": "Microsoft (Phi)",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.62,
+      "title": "WizardLM-2 8x22B",
+      "subtitle": "Microsoft (Phi)",
+      "timestamp": "2024-04-16T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "microsoft/wizardlm-2-8x22b",
+        "context_length": 65535,
+        "price_1m_input": 0.62,
+        "price_1m_output": 0.62,
+        "price_1m_blended": 0.62
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4-turbo:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 15,
+      "title": "OpenAI: GPT-4 Turbo",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-04-09T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4-turbo",
+        "context_length": 128000,
+        "price_1m_input": 10,
+        "price_1m_output": 30,
+        "price_1m_blended": 15
+      }
+    },
+    {
+      "id": "anthropic:anthropic-claude-3-haiku:pricing",
+      "kind": "pricing",
+      "lab": "Anthropic",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.5,
+      "title": "Anthropic: Claude 3 Haiku",
+      "subtitle": "Anthropic",
+      "timestamp": "2024-03-13T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "anthropic/claude-3-haiku",
+        "context_length": 200000,
+        "price_1m_input": 0.25,
+        "price_1m_output": 1.25,
+        "price_1m_blended": 0.5
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-large:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3,
+      "title": "Mistral Large",
+      "subtitle": "Mistral AI",
+      "timestamp": "2024-02-26T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-large",
+        "context_length": 128000,
+        "price_1m_input": 2,
+        "price_1m_output": 6,
+        "price_1m_blended": 3
+      }
+    },
+    {
+      "id": "openai:openai-gpt-3-5-turbo-0613:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.25,
+      "title": "OpenAI: GPT-3.5 Turbo (older v0613)",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-01-25T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-3.5-turbo-0613",
+        "context_length": 4095,
+        "price_1m_input": 1,
+        "price_1m_output": 2,
+        "price_1m_blended": 1.25
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4-turbo-preview:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 15,
+      "title": "OpenAI: GPT-4 Turbo Preview",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-01-25T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4-turbo-preview",
+        "context_length": 128000,
+        "price_1m_input": 10,
+        "price_1m_output": 30,
+        "price_1m_blended": 15
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mixtral-8x7b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.54,
+      "title": "Mistral: Mixtral 8x7B Instruct",
+      "subtitle": "Mistral AI",
+      "timestamp": "2023-12-10T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mixtral-8x7b-instruct",
+        "context_length": 32768,
+        "price_1m_input": 0.54,
+        "price_1m_output": 0.54,
+        "price_1m_blended": 0.54
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4-1106-preview:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 15,
+      "title": "OpenAI: GPT-4 Turbo (older v1106)",
+      "subtitle": "OpenAI",
+      "timestamp": "2023-11-06T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4-1106-preview",
+        "context_length": 128000,
+        "price_1m_input": 10,
+        "price_1m_output": 30,
+        "price_1m_blended": 15
+      }
+    },
+    {
+      "id": "openai:openai-gpt-3-5-turbo-instruct:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.625,
+      "title": "OpenAI: GPT-3.5 Turbo Instruct",
+      "subtitle": "OpenAI",
+      "timestamp": "2023-09-28T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-3.5-turbo-instruct",
+        "context_length": 4095,
+        "price_1m_input": 1.5,
+        "price_1m_output": 2,
+        "price_1m_blended": 1.625
+      }
+    },
+    {
+      "id": "mistral-ai:mistralai-mistral-7b-instruct-v0-1:pricing",
+      "kind": "pricing",
+      "lab": "Mistral AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.13,
+      "title": "Mistral: Mistral 7B Instruct v0.1",
+      "subtitle": "Mistral AI",
+      "timestamp": "2023-09-28T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "mistralai/mistral-7b-instruct-v0.1",
+        "context_length": 2824,
+        "price_1m_input": 0.11,
+        "price_1m_output": 0.19,
+        "price_1m_blended": 0.13
+      }
+    },
+    {
+      "id": "openai:openai-gpt-3-5-turbo-16k:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 3.25,
+      "title": "OpenAI: GPT-3.5 Turbo 16k",
+      "subtitle": "OpenAI",
+      "timestamp": "2023-08-28T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-3.5-turbo-16k",
+        "context_length": 16385,
+        "price_1m_input": 3,
+        "price_1m_output": 4,
+        "price_1m_blended": 3.25
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4-0314:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 37.5,
+      "title": "OpenAI: GPT-4 (older v0314)",
+      "subtitle": "OpenAI",
+      "timestamp": "2023-05-28T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4-0314",
+        "context_length": 8191,
+        "price_1m_input": 30,
+        "price_1m_output": 60,
+        "price_1m_blended": 37.5
+      }
+    },
+    {
+      "id": "openai:openai-gpt-4:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 37.5,
+      "title": "OpenAI: GPT-4",
+      "subtitle": "OpenAI",
+      "timestamp": "2023-05-28T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-4",
+        "context_length": 8191,
+        "price_1m_input": 30,
+        "price_1m_output": 60,
+        "price_1m_blended": 37.5
+      }
+    },
+    {
+      "id": "openai:openai-gpt-3-5-turbo:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.75,
+      "title": "OpenAI: GPT-3.5 Turbo",
+      "subtitle": "OpenAI",
+      "timestamp": "2023-05-28T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "payload": {
+        "model_id": "openai/gpt-3.5-turbo",
+        "context_length": 16385,
+        "price_1m_input": 0.5,
+        "price_1m_output": 1.5,
+        "price_1m_blended": 0.75
+      }
+    }
+  ],
+  "error": null
+}

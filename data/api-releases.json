@@ -1,0 +1,52 @@
+{
+  "route": "releases",
+  "source": "hf_hub",
+  "generated_at": "2026-03-24T11:08:11.734Z",
+  "last_success_at": "2026-03-24T11:08:11.734Z",
+  "stale": false,
+  "data": [
+    {
+      "id": "nvidia-nemotron:nvidia-nemotron-cascade-2-30b-a3b:release",
+      "kind": "release",
+      "lab": "NVIDIA (Nemotron)",
+      "source": "hf_hub",
+      "value": "2026-03-18T20:57:41.000Z",
+      "title": "Nemotron-Cascade-2-30B-A3B",
+      "subtitle": "NVIDIA (Nemotron)",
+      "url": "https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B",
+      "timestamp": "2026-03-18T20:57:41.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-24T11:08:11.734Z",
+      "payload": {
+        "model_id": "nvidia/Nemotron-Cascade-2-30B-A3B",
+        "release_date": "2026-03-18T20:57:41.000Z",
+        "summary": null,
+        "tags": [
+          "transformers",
+          "safetensors",
+          "nemotron_h",
+          "text-generation",
+          "nvidia",
+          "nemotron-cascade-2",
+          "reasoning",
+          "general-purpose",
+          "SFT",
+          "RL",
+          "conversational",
+          "custom_code",
+          "en",
+          "arxiv:2603.19220",
+          "license:other",
+          "eval-results",
+          "endpoints_compatible",
+          "deploy:azure",
+          "region:us"
+        ],
+        "likes": 236,
+        "downloads": 19722,
+        "pipeline_tag": "text-generation"
+      }
+    }
+  ],
+  "error": null
+}

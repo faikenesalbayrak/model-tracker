@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchJsonWithRetry, toApiErrorMeta } from "@/lib/fetcher";
+import { isStale, readSnapshot, refreshSnapshot, startAutoRefresh } from "@/lib/local-snapshot";
 import { DEFAULT_ROUTE_LIMITS } from "@/lib/sources";
 import {
   buildCrossrefEnvelope,
-  buildCrossrefFallbackEnvelope,
   normalizeCrossrefWorks,
   type CrossrefEnvelope,
   type CrossrefResponse,
@@ -12,7 +12,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const cache = new Map<string, CrossrefEnvelope>();
+const REFRESH_MS = 12 * 60 * 60 * 1000;
 
 function clampLimit(value: string | null | undefined, fallback: number, max = 25): number {
   const parsed = Number(value);
@@ -25,7 +25,7 @@ function clampLimit(value: string | null | undefined, fallback: number, max = 25
 
 function cacheKey(request: NextRequest): string {
   const search = request.nextUrl.searchParams.toString();
-  return search || "default";
+  return `api-crossref-${Buffer.from(search || "default").toString("base64url")}`;
 }
 
 function buildCrossrefUrl(query: string, limit: number): string {
@@ -63,15 +63,14 @@ function normalizeQuery(value: string | null | undefined): string {
 export async function GET(request: NextRequest) {
   const generatedAt = new Date().toISOString();
   const key = cacheKey(request);
-  const cached = cache.get(key);
   const query = normalizeQuery(request.nextUrl.searchParams.get("q"));
   const limit = clampLimit(
     request.nextUrl.searchParams.get("limit"),
     DEFAULT_ROUTE_LIMITS.releases,
     25,
   );
-
-  try {
+  const buildFreshSnapshot = async (): Promise<CrossrefEnvelope> => {
+    const fetchedAt = new Date().toISOString();
     const { data } = await fetchJsonWithRetry<CrossrefResponse>(
       buildCrossrefUrl(query, limit),
       {
@@ -90,50 +89,77 @@ export async function GET(request: NextRequest) {
     const records = normalizeCrossrefWorks({
       query,
       works,
-      generatedAt,
-      lastSuccessAt: generatedAt,
+      generatedAt: fetchedAt,
+      lastSuccessAt: fetchedAt,
     }).slice(0, limit);
 
-    const envelope = buildCrossrefEnvelope({
-      generatedAt,
-      lastSuccessAt: generatedAt,
+    return buildCrossrefEnvelope({
+      generatedAt: fetchedAt,
+      lastSuccessAt: fetchedAt,
       data: records,
       error: null,
       stale: false,
       note: works.length === 0 ? `No Crossref results matched "${query}".` : undefined,
     });
+  };
 
-    cache.set(key, envelope);
-    return NextResponse.json(envelope, {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    });
-  } catch (error) {
-    const errorMeta = toApiErrorMeta(error);
+  startAutoRefresh(key, REFRESH_MS, buildFreshSnapshot);
 
-    if (cached) {
-      const envelope: CrossrefEnvelope = {
-        ...cached,
-        generated_at: generatedAt,
-        stale: true,
-        error: errorMeta,
-      };
+  try {
+    let snapshot = await readSnapshot<CrossrefEnvelope>(key);
+    if (!snapshot) {
+      snapshot = await refreshSnapshot(key, buildFreshSnapshot);
+    }
 
-      return NextResponse.json(envelope, {
-        headers: {
-          "Cache-Control": "no-store",
-        },
+    const stale = isStale(snapshot.last_success_at, REFRESH_MS);
+    if (stale) {
+      void refreshSnapshot(key, buildFreshSnapshot).catch(() => {
+        // keep last good snapshot
       });
     }
 
     return NextResponse.json(
-      buildCrossrefFallbackEnvelope({
+      {
+        ...snapshot,
+        generated_at: generatedAt,
+        stale,
+      } satisfies CrossrefEnvelope,
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
+    );
+  } catch (error) {
+    const errorMeta = toApiErrorMeta(error);
+    const cached = await readSnapshot<CrossrefEnvelope>(key);
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          generated_at: generatedAt,
+          stale: true,
+          error: errorMeta,
+        } satisfies CrossrefEnvelope,
+        {
+          headers: {
+            "Cache-Control": "no-store",
+          },
+        },
+      );
+    }
+
+    return NextResponse.json(
+      buildCrossrefEnvelope({
         generatedAt,
+        lastSuccessAt: generatedAt,
+        data: [],
         error: errorMeta,
+        stale: true,
         note: `No cached Crossref data available for "${query}".`,
       }),
       {
+        status: 503,
         headers: {
           "Cache-Control": "no-store",
         },

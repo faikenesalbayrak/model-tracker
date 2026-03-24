@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildEnvelope } from "@/lib/normalize/common";
 import {
-  offlineSemanticScholarFallback,
   normalizeSemanticScholarPapers,
   type SemanticScholarSearchResponse,
 } from "@/lib/normalize/semantic-scholar";
+import { isStale, readSnapshot, refreshSnapshot, startAutoRefresh } from "@/lib/local-snapshot";
 import {
   fetchJsonWithRetry,
   toApiErrorMeta,
-  UpstreamFetchError,
 } from "@/lib/fetcher";
 import { DEFAULT_ROUTE_LIMITS } from "@/lib/sources";
 import type { ApiEnvelope } from "@/lib/types";
@@ -16,7 +15,7 @@ import type { ApiEnvelope } from "@/lib/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const cache = new Map<string, ApiEnvelope>();
+const REFRESH_MS = 12 * 60 * 60 * 1000;
 
 function clampLimit(value: string | null | undefined, fallback: number, max = 24): number {
   const parsed = Number(value);
@@ -29,7 +28,7 @@ function clampLimit(value: string | null | undefined, fallback: number, max = 24
 
 function cacheKey(request: NextRequest): string {
   const search = request.nextUrl.searchParams.toString();
-  return search || "default";
+  return `api-semantic-scholar-${Buffer.from(search || "default").toString("base64url")}`;
 }
 
 function normalizeQuery(value: string | null | undefined): string {
@@ -65,7 +64,6 @@ function buildSearchUrl(query: string, limit: number): string {
 export async function GET(request: NextRequest) {
   const generatedAt = new Date().toISOString();
   const key = cacheKey(request);
-  const cached = cache.get(key);
   const query = normalizeQuery(request.nextUrl.searchParams.get("q"));
   const limit = clampLimit(
     request.nextUrl.searchParams.get("limit"),
@@ -73,8 +71,8 @@ export async function GET(request: NextRequest) {
     24,
   );
   const searchUrl = buildSearchUrl(query, limit);
-
-  try {
+  const buildFreshSnapshot = async (): Promise<ApiEnvelope> => {
+    const fetchedAt = new Date().toISOString();
     const { data } = await fetchJsonWithRetry<SemanticScholarSearchResponse>(
       searchUrl,
       {
@@ -88,50 +86,67 @@ export async function GET(request: NextRequest) {
       },
     );
 
-    const records = normalizeSemanticScholarPapers(data, generatedAt, query, searchUrl).slice(
+    const records = normalizeSemanticScholarPapers(data, fetchedAt, query, searchUrl).slice(
       0,
       limit,
     );
 
-    const envelope = buildEnvelope({
+    return buildEnvelope({
       route: "semantic_scholar",
       source: "semantic_scholar_public",
-      generatedAt,
-      lastSuccessAt: generatedAt,
+      generatedAt: fetchedAt,
+      lastSuccessAt: fetchedAt,
       data: records,
       error: null,
       stale: false,
     });
+  };
 
-    cache.set(key, envelope);
-    return NextResponse.json(envelope, {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    });
-  } catch (error) {
-    const attempts = error instanceof UpstreamFetchError ? error.attempts : undefined;
-    const errorMeta = toApiErrorMeta(error, attempts);
+  startAutoRefresh(key, REFRESH_MS, buildFreshSnapshot);
 
-    if (cached) {
-      const envelope: ApiEnvelope = {
-        ...cached,
-        generated_at: generatedAt,
-        stale: true,
-        error: errorMeta,
-      };
+  try {
+    let snapshot = await readSnapshot<ApiEnvelope>(key);
+    if (!snapshot) {
+      snapshot = await refreshSnapshot(key, buildFreshSnapshot);
+    }
 
-      return NextResponse.json(envelope, {
-        headers: {
-          "Cache-Control": "no-store",
-        },
+    const stale = isStale(snapshot.last_success_at, REFRESH_MS);
+    if (stale) {
+      void refreshSnapshot(key, buildFreshSnapshot).catch(() => {
+        // keep last good snapshot
       });
     }
 
-    const fallbackRecords = offlineSemanticScholarFallback(query, generatedAt, searchUrl).slice(
-      0,
-      limit,
+    return NextResponse.json(
+      {
+        ...snapshot,
+        generated_at: generatedAt,
+        stale,
+      } satisfies ApiEnvelope,
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
     );
+  } catch (error) {
+    const errorMeta = toApiErrorMeta(error);
+    const cached = await readSnapshot<ApiEnvelope>(key);
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          generated_at: generatedAt,
+          stale: true,
+          error: errorMeta,
+        } satisfies ApiEnvelope,
+        {
+          headers: {
+            "Cache-Control": "no-store",
+          },
+        },
+      );
+    }
 
     return NextResponse.json(
       buildEnvelope({
@@ -139,12 +154,13 @@ export async function GET(request: NextRequest) {
         source: "semantic_scholar_public",
         generatedAt,
         lastSuccessAt: generatedAt,
-        data: fallbackRecords,
+        data: [],
         error: errorMeta,
         stale: true,
-        note: "Using offline Semantic Scholar fallback series.",
+        note: `No cached Semantic Scholar data available for "${query}".`,
       }),
       {
+        status: 503,
         headers: {
           "Cache-Control": "no-store",
         },

@@ -41,6 +41,39 @@ export type PricePoint = {
   score: number;
 };
 
+export type AAModelRow = {
+  id: string;
+  model: string;
+  lab: string;
+  intelligenceIndex: number | null;
+  codingIndex: number | null;
+  agenticIndex: number | null;
+  gpqa: number | null;
+  mmluPro: number | null;
+  terminalBenchHard: number | null;
+  pricePer1m: number | null;
+  inputPricePer1m: number | null;
+  outputPricePer1m: number | null;
+  outputTokensPerSecond: number | null;
+  ttftSeconds: number | null;
+  endToEndSeconds: number | null;
+  contextWindowTokens: number | null;
+  openWeights: boolean;
+  reasoning: boolean;
+  releaseDate: string | null;
+  modelUrl: string | null;
+};
+
+export type AiNewsItem = {
+  id: string;
+  title: string;
+  link: string;
+  source: string;
+  publishedAt: string;
+  timeAgo: string | null;
+  imageUrl: string | null;
+};
+
 export type FeedState<T> = {
   data: T;
   error: string | null;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchWithRetry, toApiErrorMeta } from "@/lib/fetcher";
-import { fallbackEnvelope } from "@/lib/normalize/common";
 import { normalizeArxivFeed } from "@/lib/normalize/arxiv";
+import { isStale, readSnapshot, refreshSnapshot, startAutoRefresh } from "@/lib/local-snapshot";
 import type { ApiEnvelope } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -12,9 +12,7 @@ const ARXIV_SOURCE = "arxiv_public";
 const ARXIV_ROUTE = "arxiv";
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 24;
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-
-const cache = new Map<string, ApiEnvelope>();
+const REFRESH_MS = 12 * 60 * 60 * 1000;
 
 function normalizeLimit(value: string | null | undefined): number {
   const parsed = Number(value);
@@ -49,16 +47,8 @@ function buildFeedUrl(query: string, limit: number): string {
 }
 
 function cacheKey(query: string, limit: number): string {
-  return `${query}::${limit}`;
-}
-
-function isStale(lastSuccessAt: string): boolean {
-  const timestamp = Date.parse(lastSuccessAt);
-  if (!Number.isFinite(timestamp)) {
-    return true;
-  }
-
-  return Date.now() - timestamp > CACHE_TTL_MS;
+  const normalizedQuery = query.toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 80);
+  return `api-arxiv-${normalizedQuery || "default"}-${limit}`;
 }
 
 function buildEnvelope(params: {
@@ -74,7 +64,7 @@ function buildEnvelope(params: {
     source: ARXIV_SOURCE as ApiEnvelope["source"],
     generated_at: params.generatedAt,
     last_success_at: params.lastSuccessAt,
-    stale: params.stale ?? isStale(params.lastSuccessAt),
+    stale: params.stale ?? isStale(params.lastSuccessAt, REFRESH_MS),
     data: params.data,
     error: params.error,
     ...(params.note ? { note: params.note } : {}),
@@ -93,10 +83,10 @@ export async function GET(request: NextRequest) {
   const query = normalizeQuery(request.nextUrl.searchParams.get("q"));
   const limit = normalizeLimit(request.nextUrl.searchParams.get("limit"));
   const key = cacheKey(query, limit);
-  const cached = cache.get(key);
   const feedUrl = buildFeedUrl(query, limit);
 
-  try {
+  const buildFreshSnapshot = async (): Promise<ApiEnvelope> => {
+    const fetchedAt = new Date().toISOString();
     const { data: xml } = await fetchWithRetry<string>(
       feedUrl,
       {
@@ -111,52 +101,77 @@ export async function GET(request: NextRequest) {
 
     const records = normalizeArxivFeed({
       xml,
-      generatedAt,
-      lastSuccessAt: generatedAt,
+      generatedAt: fetchedAt,
+      lastSuccessAt: fetchedAt,
     }).slice(0, limit);
 
-    const envelope = buildEnvelope({
-      generatedAt,
-      lastSuccessAt: generatedAt,
+    return buildEnvelope({
+      generatedAt: fetchedAt,
+      lastSuccessAt: fetchedAt,
       data: records,
       error: null,
       stale: false,
       note: `Query: ${query}`,
     });
+  };
 
-    cache.set(key, envelope);
-    return NextResponse.json(envelope, {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    });
-  } catch (error) {
-    const errorMeta = toApiErrorMeta(error);
+  startAutoRefresh(key, REFRESH_MS, buildFreshSnapshot);
 
-    if (cached) {
-      const envelope: ApiEnvelope = {
-        ...cached,
-        generated_at: generatedAt,
-        stale: true,
-        error: errorMeta,
-      };
+  try {
+    let snapshot = await readSnapshot<ApiEnvelope>(key);
+    if (!snapshot) {
+      snapshot = await refreshSnapshot(key, buildFreshSnapshot);
+    }
 
-      return NextResponse.json(envelope, {
-        headers: {
-          "Cache-Control": "no-store",
-        },
+    const stale = isStale(snapshot.last_success_at, REFRESH_MS);
+    if (stale) {
+      void refreshSnapshot(key, buildFreshSnapshot).catch(() => {
+        // keep last good snapshot
       });
     }
 
     return NextResponse.json(
-      fallbackEnvelope({
-        route: ARXIV_ROUTE as ApiEnvelope["route"],
-        source: ARXIV_SOURCE as ApiEnvelope["source"],
+      {
+        ...snapshot,
+        generated_at: generatedAt,
+        stale,
+      } satisfies ApiEnvelope,
+      {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
+    );
+  } catch (error) {
+    const errorMeta = toApiErrorMeta(error);
+    const cached = await readSnapshot<ApiEnvelope>(key);
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          generated_at: generatedAt,
+          stale: true,
+          error: errorMeta,
+        } satisfies ApiEnvelope,
+        {
+          headers: {
+            "Cache-Control": "no-store",
+          },
+        },
+      );
+    }
+
+    return NextResponse.json(
+      buildEnvelope({
         generatedAt,
+        lastSuccessAt: generatedAt,
+        data: [],
         error: errorMeta,
+        stale: true,
         note: "No cached arXiv data available yet.",
       }),
       {
+        status: 503,
         headers: {
           "Cache-Control": "no-store",
         },

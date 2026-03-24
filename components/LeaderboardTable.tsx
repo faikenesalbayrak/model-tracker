@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowUp, ArrowUpDown, Rocket } from "lucide-react";
 import { useMemo, useState } from "react";
+import { ColumnTooltipLabel } from "./ColumnTooltipLabel";
 import type { LeaderboardRow, Locale } from "./dashboard-types";
 import { formatCompactNumber } from "./dashboard-utils";
 import { SectionFrame } from "./SectionFrame";
@@ -42,7 +43,7 @@ const copy = {
     },
   },
   tr: {
-    empty: "Leaderboard verisi henüz hazır değil.",
+    empty: "Sıralama verisi henüz hazır değil.",
     headers: {
       model: "Model",
       lab: "Laboratuvar",
@@ -58,6 +59,33 @@ const copy = {
   },
 } as const;
 
+const headerHints = {
+  en: {
+    model: "Model name and version listed in the benchmark feed.",
+    lab: "Model creator lab or provider.",
+    params: "Approximate parameter size reported by the source.",
+    mmlu: "General knowledge and reasoning benchmark score.",
+    humaneval: "Code generation accuracy benchmark score.",
+    mtBench: "Multi-turn dialogue quality benchmark score.",
+    arc: "Reasoning over challenge questions benchmark score.",
+    hellaswag: "Commonsense completion benchmark score.",
+    releasedAt: "Public release date of the model version.",
+    openSource: "Whether the model weights are publicly available.",
+  },
+  tr: {
+    model: "Benchmark akışında listelenen model adı ve sürümü.",
+    lab: "Modeli geliştiren laboratuvar veya sağlayıcı.",
+    params: "Kaynağın verdiği yaklaşık parametre boyutu.",
+    mmlu: "Genel bilgi ve akıl yürütme benchmark skoru.",
+    humaneval: "Kod üretim doğruluğu benchmark skoru.",
+    mtBench: "Çok turlu diyalog kalitesi benchmark skoru.",
+    arc: "Zorlayıcı soru çözümü benchmark skoru.",
+    hellaswag: "Sağduyu tamamlama benchmark skoru.",
+    releasedAt: "Model sürümünün kamuya açık çıkış tarihi.",
+    openSource: "Model ağırlıklarının herkese açık olup olmadığı.",
+  },
+} as const;
+
 export function LeaderboardTable({
   error,
   items,
@@ -67,6 +95,7 @@ export function LeaderboardTable({
   sourceLabel,
 }: LeaderboardTableProps) {
   const strings = copy[locale];
+  const hints = headerHints[locale];
   const [sortKey, setSortKey] = useState<SortKey>("mmlu");
   const [direction, setDirection] = useState<"asc" | "desc">("desc");
 
@@ -97,16 +126,16 @@ export function LeaderboardTable({
       locale={locale}
       loading={loading}
       sourceLabel={sourceLabel}
-      title={locale === "tr" ? "Leaderboard" : "Leaderboard"}
+      title={locale === "tr" ? "Sıralama" : "Leaderboard"}
     >
       {loading ? (
         <TableSkeleton />
       ) : rows.length === 0 ? (
         <EmptyState message={strings.empty} />
       ) : (
-        <div className="overflow-x-auto rounded-3xl border border-slate-200/70 bg-white/70 dark:border-white/10 dark:bg-white/5">
+        <div className="overflow-x-auto rounded-[1.75rem] border border-slate-200/70 bg-white/80 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
           <table className="min-w-[900px] w-full border-collapse text-left text-sm">
-            <thead className="bg-slate-50/80 text-xs tracking-[0.16em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+            <thead className="sticky top-0 z-10 bg-slate-50/95 text-[0.68rem] tracking-[0.18em] text-slate-500 backdrop-blur dark:bg-slate-950/90 dark:text-slate-400">
               <tr>
                 {[
                   ["model", strings.headers.model],
@@ -120,16 +149,19 @@ export function LeaderboardTable({
                   ["releasedAt", strings.headers.releasedAt],
                   ["openSource", strings.headers.openSource],
                 ].map(([key, label]) => (
-                  <th key={key} className="border-b border-slate-200/70 px-4 py-3 font-medium dark:border-white/10">
+                  <th key={key} className="border-b border-slate-200/70 px-4 py-3 text-[0.68rem] font-semibold dark:border-white/10">
                     {key === "openSource" ? (
-                      label
+                      <ColumnTooltipLabel center description={hints.openSource} label={label} />
                     ) : (
                       <button
                         className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none dark:hover:bg-white/10 dark:hover:text-white"
                         onClick={() => handleSortClick(key as SortKey, sortKey, direction, setSortKey, setDirection)}
                         type="button"
                       >
-                        {label}
+                        <ColumnTooltipLabel
+                          description={hints[key as keyof typeof hints]}
+                          label={label}
+                        />
                         {renderSortIcon(key as SortKey, sortKey, direction)}
                       </button>
                     )}
@@ -145,7 +177,6 @@ export function LeaderboardTable({
                 >
                   <td className="px-4 py-4">
                     <div className="font-semibold text-slate-950 dark:text-white">{row.model}</div>
-                    <div className="mt-1 text-xs tracking-[0.12em] text-slate-400 dark:text-slate-500">{row.lab}</div>
                   </td>
                   <td className="px-4 py-4 text-slate-600 dark:text-slate-300">{row.lab}</td>
                   <td className="px-4 py-4 text-slate-600 tabular-nums dark:text-slate-300">{row.parameters}</td>
@@ -159,7 +190,7 @@ export function LeaderboardTable({
                   </td>
                   <td className="px-4 py-4">
                     <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${
                         row.openSource
                           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200"
                           : "bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300"

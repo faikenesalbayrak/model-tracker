@@ -59,8 +59,8 @@ export function SotaChart({
         <EmptyState message={strings.empty} />
       ) : (
         <div className="space-y-4">
-          <div className="panel-interactive rounded-3xl border border-slate-200/70 bg-white/70 p-4 dark:border-white/10 dark:bg-white/5">
-            <div className="overflow-x-auto">
+          <div className="panel-interactive overflow-x-auto rounded-[1.75rem] border border-slate-200/70 bg-white/80 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
+            <div className="min-w-[860px]">
               <AreaChart data={items} width={860} height={320}>
                 <defs>
                   <linearGradient id="sotaGradient" x1="0" x2="0" y1="0" y2="1">
@@ -87,7 +87,7 @@ export function SotaChart({
               </AreaChart>
             </div>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{strings.subtitle}</p>
+          <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">{strings.subtitle}</p>
         </div>
       )}
     </SectionFrame>
@@ -109,7 +109,7 @@ function ChartTooltip({ active, label, payload, locale }: ChartTooltipProps) {
   const point = payload[0].payload as BenchmarkPoint;
 
   return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-sm shadow-xl dark:border-white/10 dark:bg-slate-950">
+    <div className="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-[0_18px_40px_rgba(15,23,42,0.14)] dark:border-white/10 dark:bg-slate-950">
       <div className="font-semibold text-slate-950 dark:text-white">{point.model}</div>
       <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{point.lab}</div>
       <div className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -122,7 +122,7 @@ function ChartTooltip({ active, label, payload, locale }: ChartTooltipProps) {
 
 function ChartSkeleton() {
   return (
-    <div className="h-[340px] animate-pulse rounded-3xl border border-slate-200/70 bg-slate-100/90 dark:border-white/10 dark:bg-white/5" />
+    <div className="h-[340px] animate-pulse rounded-[1.75rem] border border-slate-200/70 bg-slate-100/90 shadow-[0_14px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/5" />
   );
 }
 

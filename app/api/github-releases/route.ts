@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeGitHubReleases, type GitHubReleaseApiItem } from "@/lib/normalize/github-releases";
+import { isStale, readSnapshot, refreshSnapshot, startAutoRefresh } from "@/lib/local-snapshot";
 import { BACKOFF_BASE_MS, BACKOFF_JITTER_MS, MAX_BACKOFF_MS, MAX_RETRIES, REQUEST_TIMEOUT_MS } from "@/lib/sources";
 import type { ApiErrorMeta, NormalizedRecord } from "@/lib/types";
 
@@ -58,12 +59,11 @@ class GitHubFetchError extends Error {
   }
 }
 
-const cache = new Map<string, GitHubEnvelope>();
-
 const DEFAULT_OWNER = "vercel";
 const DEFAULT_REPO = "next.js";
 const DEFAULT_LIMIT = 6;
 const MAX_LIMIT = 30;
+const REFRESH_MS = 12 * 60 * 60 * 1000;
 
 function clampLimit(value: string | null | undefined, fallback: number, max = MAX_LIMIT): number {
   const parsed = Number(value);
@@ -98,7 +98,9 @@ function normalizeName(value: string | null | undefined, fallback: string, label
 }
 
 function cacheKey(owner: string, repo: string, limit: number): string {
-  return `${owner}/${repo}:${limit}`;
+  const normOwner = owner.toLowerCase().replace(/[^a-z0-9._-]+/g, "_");
+  const normRepo = repo.toLowerCase().replace(/[^a-z0-9._-]+/g, "_");
+  return `api-github-releases-${normOwner}-${normRepo}-${limit}`;
 }
 
 function buildUrl(owner: string, repo: string, limit: number): string {
@@ -371,15 +373,40 @@ function buildEnvelope(params: {
   };
 }
 
+async function buildFreshSnapshot(owner: string, repo: string, limit: number): Promise<GitHubEnvelope> {
+  const fetchedAt = new Date().toISOString();
+  const { data, note, rateLimit } = await fetchGitHubReleases(owner, repo, limit);
+  const records = normalizeGitHubReleases({
+    owner,
+    repo,
+    releases: data,
+    generatedAt: fetchedAt,
+    lastSuccessAt: fetchedAt,
+  }).sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+
+  return buildEnvelope({
+    data: records,
+    error: null,
+    generatedAt: fetchedAt,
+    lastSuccessAt: fetchedAt,
+    stale: false,
+    note:
+      note ??
+      (rateLimit.limit && rateLimit.remaining
+        ? `GitHub public API remaining ${rateLimit.remaining}/${rateLimit.limit}`
+        : undefined),
+  });
+}
+
 export async function GET(request: NextRequest) {
   const generatedAt = new Date().toISOString();
   const ownerResult = normalizeName(request.nextUrl.searchParams.get("owner"), DEFAULT_OWNER, "owner");
   const repoResult = normalizeName(request.nextUrl.searchParams.get("repo"), DEFAULT_REPO, "repo");
   const limit = clampLimit(request.nextUrl.searchParams.get("limit"), DEFAULT_LIMIT, MAX_LIMIT);
   const key = cacheKey(ownerResult.value, repoResult.value, limit);
-  const cached = cache.get(key);
 
   if (ownerResult.error || repoResult.error) {
+    const cached = await readSnapshot<GitHubEnvelope>(key);
     const validationError = ownerResult.error ?? repoResult.error;
     const envelope = cached
       ? buildEnvelope({
@@ -403,61 +430,67 @@ export async function GET(request: NextRequest) {
         });
 
     return NextResponse.json(envelope, {
+      status: cached ? 200 : 400,
       headers: {
         "Cache-Control": "no-store",
       },
     });
   }
 
+  startAutoRefresh(key, REFRESH_MS, () =>
+    buildFreshSnapshot(ownerResult.value, repoResult.value, limit),
+  );
+
   try {
-    const { data, note, rateLimit } = await fetchGitHubReleases(ownerResult.value, repoResult.value, limit);
-    const records = normalizeGitHubReleases({
-      owner: ownerResult.value,
-      repo: repoResult.value,
-      releases: data,
-      generatedAt,
-      lastSuccessAt: generatedAt,
-    }).sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+    let snapshot = await readSnapshot<GitHubEnvelope>(key);
+    if (!snapshot) {
+      snapshot = await refreshSnapshot(key, () =>
+        buildFreshSnapshot(ownerResult.value, repoResult.value, limit),
+      );
+    }
 
-    const envelope = buildEnvelope({
-      data: records,
-      error: null,
-      generatedAt,
-      lastSuccessAt: generatedAt,
-      stale: false,
-      note:
-        note ??
-        (rateLimit.limit && rateLimit.remaining
-          ? `GitHub public API remaining ${rateLimit.remaining}/${rateLimit.limit}`
-          : undefined),
-    });
-
-    cache.set(key, envelope);
-    return NextResponse.json(envelope, {
-      headers: {
-        "Cache-Control": "no-store",
-      },
-    });
-  } catch (error) {
-    const errorMeta = metaFromError(error, buildUrl(ownerResult.value, repoResult.value, limit), MAX_RETRIES + 1);
-
-    if (cached) {
-      const envelope = buildEnvelope({
-        ...cached,
-        generatedAt,
-        lastSuccessAt: cached.last_success_at,
-        stale: true,
-        error: errorMeta,
-        note: errorMeta.kind === "rate_limit"
-          ? `GitHub public API rate limit hit${errorMeta.retryAfterSeconds ? `; retry in ~${errorMeta.retryAfterSeconds}s` : ""}.`
-          : "Returning stale GitHub releases from cache.",
+    const stale = isStale(snapshot.last_success_at, REFRESH_MS);
+    if (stale) {
+      void refreshSnapshot(key, () =>
+        buildFreshSnapshot(ownerResult.value, repoResult.value, limit),
+      ).catch(() => {
+        // keep last good snapshot
       });
+    }
 
-      return NextResponse.json(envelope, {
+    return NextResponse.json(
+      {
+        ...snapshot,
+        generated_at: generatedAt,
+        stale,
+      } satisfies GitHubEnvelope,
+      {
         headers: {
           "Cache-Control": "no-store",
         },
-      });
+      },
+    );
+  } catch (error) {
+    const errorMeta = metaFromError(error, buildUrl(ownerResult.value, repoResult.value, limit), MAX_RETRIES + 1);
+    const cached = await readSnapshot<GitHubEnvelope>(key);
+
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          generated_at: generatedAt,
+          stale: true,
+          error: errorMeta,
+          note: errorMeta.kind === "rate_limit"
+            ? `GitHub public API rate limit hit${errorMeta.retryAfterSeconds ? `; retry in ~${errorMeta.retryAfterSeconds}s` : ""}.`
+            : "Returning stale GitHub releases from local cache.",
+        } satisfies GitHubEnvelope,
+        {
+          headers: {
+            "Cache-Control": "no-store",
+          },
+        },
+      );
     }
 
     const envelope = buildEnvelope({
@@ -472,6 +505,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(envelope, {
+      status: 503,
       headers: {
         "Cache-Control": "no-store",
       },

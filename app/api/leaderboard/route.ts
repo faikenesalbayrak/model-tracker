@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fallbackEnvelope, buildEnvelope } from "@/lib/normalize/common";
+import { buildEnvelope } from "@/lib/normalize/common";
 import {
   buildLeaderboardRecordsV2,
   type LeaderboardV2Response,
 } from "@/lib/normalize/leaderboard";
 import { fetchJsonWithRetry, toApiErrorMeta } from "@/lib/fetcher";
+import { isStale, readSnapshot, refreshSnapshot, startAutoRefresh } from "@/lib/local-snapshot";
 import {
   DEFAULT_ROUTE_LIMITS,
   HF_DATASETS_SEARCH_API,
@@ -16,7 +17,8 @@ import type { ApiEnvelope } from "@/lib/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const cache = new Map<string, ApiEnvelope>();
+const CACHE_KEY = "api-leaderboard";
+const REFRESH_MS = 12 * 60 * 60 * 1000;
 
 // One result per HF org — keeps request count manageable
 const PER_ORG_ROWS = 5;
@@ -25,11 +27,6 @@ function clampLimit(value: string | null | undefined, fallback: number, max = 60
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return fallback;
   return Math.min(max, Math.max(1, Math.floor(parsed)));
-}
-
-function cacheKey(request: NextRequest): string {
-  const search = request.nextUrl.searchParams.toString();
-  return search || "default";
 }
 
 function buildSearchUrl(query: string): string {
@@ -67,10 +64,24 @@ async function fetchAllLabRows() {
     .flatMap((r) => r.value);
 }
 
+async function buildFreshSnapshot(): Promise<ApiEnvelope> {
+  const generatedAt = new Date().toISOString();
+  const rows = await fetchAllLabRows();
+  const records = buildLeaderboardRecordsV2({ rows, lastSuccessAt: generatedAt });
+
+  return buildEnvelope({
+    route: "leaderboard",
+    source: "hf_leaderboard",
+    generatedAt,
+    lastSuccessAt: generatedAt,
+    data: records,
+    error: null,
+    stale: false,
+  });
+}
+
 export async function GET(request: NextRequest) {
   const generatedAt = new Date().toISOString();
-  const key = cacheKey(request);
-  const cached = cache.get(key);
   const limit = clampLimit(
     request.nextUrl.searchParams.get("limit"),
     DEFAULT_ROUTE_LIMITS.leaderboard,
@@ -78,9 +89,22 @@ export async function GET(request: NextRequest) {
   );
   const labFilter = request.nextUrl.searchParams.get("lab")?.toLowerCase().trim();
 
+  startAutoRefresh(CACHE_KEY, REFRESH_MS, buildFreshSnapshot);
+
   try {
-    const rows = await fetchAllLabRows();
-    let records = buildLeaderboardRecordsV2({ rows, lastSuccessAt: generatedAt });
+    let snapshot = await readSnapshot<ApiEnvelope>(CACHE_KEY);
+    if (!snapshot) {
+      snapshot = await refreshSnapshot(CACHE_KEY, buildFreshSnapshot);
+    }
+
+    const stale = isStale(snapshot.last_success_at, REFRESH_MS);
+    if (stale) {
+      void refreshSnapshot(CACHE_KEY, buildFreshSnapshot).catch(() => {
+        // keep last good snapshot
+      });
+    }
+
+    let records = [...snapshot.data];
 
     if (labFilter) {
       records = records.filter((r) => r.lab.toLowerCase().includes(labFilter));
@@ -88,40 +112,47 @@ export async function GET(request: NextRequest) {
 
     records = records.slice(0, limit);
 
-    const envelope = buildEnvelope({
-      route: "leaderboard",
-      source: "hf_leaderboard",
-      generatedAt,
-      lastSuccessAt: generatedAt,
-      data: records,
-      error: null,
-      stale: false,
-    });
-
-    cache.set(key, envelope);
-    return NextResponse.json(envelope, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(
+      {
+        ...snapshot,
+        generated_at: generatedAt,
+        stale,
+        data: records,
+      } satisfies ApiEnvelope,
+      { headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     const errorMeta = toApiErrorMeta(error);
-
+    const cached = await readSnapshot<ApiEnvelope>(CACHE_KEY);
     if (cached) {
-      const envelope: ApiEnvelope = {
-        ...cached,
-        generated_at: generatedAt,
-        stale: true,
-        error: errorMeta,
-      };
-      return NextResponse.json(envelope, { headers: { "Cache-Control": "no-store" } });
+      let records = [...cached.data];
+      if (labFilter) {
+        records = records.filter((r) => r.lab.toLowerCase().includes(labFilter));
+      }
+      return NextResponse.json(
+        {
+          ...cached,
+          generated_at: generatedAt,
+          stale: true,
+          error: errorMeta,
+          data: records.slice(0, limit),
+        } satisfies ApiEnvelope,
+        { headers: { "Cache-Control": "no-store" } },
+      );
     }
 
     return NextResponse.json(
-      fallbackEnvelope({
+      buildEnvelope({
         route: "leaderboard",
         source: "hf_leaderboard",
         generatedAt,
+        lastSuccessAt: generatedAt,
+        data: [],
         error: errorMeta,
+        stale: true,
         note: "No cached leaderboard data available yet.",
       }),
-      { headers: { "Cache-Control": "no-store" } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
 }
