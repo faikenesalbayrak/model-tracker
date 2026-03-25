@@ -15,6 +15,11 @@ export interface ArtificialAnalysisModel {
   gpqa?: number | null;
   mmlu_pro?: number | null;
   terminalbench_hard?: number | null;
+  aime?: number | null;
+  aime25?: number | null;
+  livecodebench?: number | null;
+  math_500?: number | null;
+  ifbench?: number | null;
   price_1m_blended_3_to_1?: number | null;
   price_1m_input_tokens?: number | null;
   price_1m_output_tokens?: number | null;
@@ -22,6 +27,7 @@ export interface ArtificialAnalysisModel {
   is_open_weights?: boolean | null;
   reasoning_model?: boolean | null;
   release_date?: string | null;
+  knowledge_cutoff_date?: string | null;
   model_url?: string | null;
   hosts_url?: string | null;
   input_modality_image?: boolean | null;

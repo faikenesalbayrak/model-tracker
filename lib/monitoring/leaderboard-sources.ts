@@ -21,6 +21,7 @@ type EnrichmentMaps = {
   gpqaByModel: Map<string, number>;
   mmluByModel: Map<string, number>;
   sweByModel: Map<string, number>;
+  sweVerifiedByModel: Map<string, number>;
 };
 
 type LlmStatsTopModel = {
@@ -106,6 +107,12 @@ function normalizePositiveValue(value: number | null | undefined): number | null
   return value > 0 ? value : null;
 }
 
+function resolveArenaScore(conservativeRating: number | null | undefined, winRate: number | null | undefined): number | null {
+  const conservative = normalizePositiveValue(conservativeRating);
+  if (typeof conservative === "number") return conservative;
+  return normalizePositiveValue(winRate);
+}
+
 function decodeEscapedJsonString(value: string): string {
   return value
     .replaceAll('\\"', '"')
@@ -144,19 +151,24 @@ function buildHfSearchUrl(query: string): string {
   return url.toString();
 }
 
-function normalizeBenchRows(raw: unknown): Array<{ model: string; score: number }> {
-  const mapRow = (item: Record<string, unknown>) => {
+type BenchRow = { model: string; score: number; boardName?: string };
+
+function normalizeBenchRows(raw: unknown): BenchRow[] {
+  const mapRow = (item: Record<string, unknown>, boardName?: string): BenchRow | null => {
     const model = String(item.model ?? item.model_name ?? item.name ?? "").trim();
     const scoreRaw = item.score ?? item.value ?? item.resolved;
     const score = typeof scoreRaw === "number" ? scoreRaw : Number(scoreRaw ?? NaN);
     if (!model || !Number.isFinite(score)) return null;
+    if (boardName) {
+      return { model, score, boardName };
+    }
     return { model, score };
   };
 
   if (Array.isArray(raw)) {
     return raw
       .map((x) => (x && typeof x === "object" ? mapRow(x as Record<string, unknown>) : null))
-      .filter((x): x is { model: string; score: number } => Boolean(x));
+      .filter((x): x is BenchRow => x !== null);
   }
 
   if (raw && typeof raw === "object") {
@@ -167,12 +179,17 @@ function normalizeBenchRows(raw: unknown): Array<{ model: string; score: number 
     }
     const leaderboards = record.leaderboards;
     if (Array.isArray(leaderboards)) {
-      const acc: Array<{ model: string; score: number }> = [];
+      const acc: BenchRow[] = [];
       for (const board of leaderboards) {
         if (!board || typeof board !== "object") continue;
+        const boardName = String((board as Record<string, unknown>).name ?? "").trim() || undefined;
         const boardResults = (board as Record<string, unknown>).results;
         if (Array.isArray(boardResults)) {
-          acc.push(...normalizeBenchRows(boardResults));
+          acc.push(
+            ...boardResults
+              .map((row) => (row && typeof row === "object" ? mapRow(row as Record<string, unknown>, boardName) : null))
+              .filter((row): row is BenchRow => row !== null),
+          );
         }
       }
       return acc;
@@ -200,7 +217,7 @@ async function fetchHfRows(): Promise<Array<Record<string, unknown>>> {
     .flatMap((r) => r.value);
 }
 
-async function fetchSweRows(): Promise<Array<{ model: string; score: number }>> {
+async function fetchSweRows(): Promise<Array<{ model: string; score: number; boardName?: string }>> {
   const sweGithubUrls = [
     "https://raw.githubusercontent.com/SWE-bench/swe-bench.github.io/master/data/leaderboards.json",
     "https://raw.githubusercontent.com/swe-bench/swe-bench.github.io/master/data/leaderboards.json",
@@ -250,11 +267,12 @@ async function fetchSweRows(): Promise<Array<{ model: string; score: number }>> 
 
 function buildEnrichmentMaps(
   hfRows: Array<Record<string, unknown>>,
-  sweRows: Array<{ model: string; score: number }>,
+  sweRows: Array<{ model: string; score: number; boardName?: string }>,
 ): EnrichmentMaps {
   const gpqaByModel = new Map<string, number>();
   const mmluByModel = new Map<string, number>();
   const sweByModel = new Map<string, number>();
+  const sweVerifiedByModel = new Map<string, number>();
 
   for (const row of hfRows) {
     const model = String(row.fullname ?? row.eval_name ?? row.model ?? row.name ?? "").trim();
@@ -269,10 +287,15 @@ function buildEnrichmentMaps(
   for (const row of sweRows) {
     const key = canonicalModelOnly(row.model);
     const swe = normalizeBenchmarkScore(row.score);
-    if (typeof swe === "number") sweByModel.set(key, swe);
+    if (typeof swe === "number") {
+      sweByModel.set(key, swe);
+      if ((row.boardName ?? "").toLowerCase().includes("verified")) {
+        sweVerifiedByModel.set(key, swe);
+      }
+    }
   }
 
-  return { gpqaByModel, mmluByModel, sweByModel };
+  return { gpqaByModel, mmluByModel, sweByModel, sweVerifiedByModel };
 }
 
 function lookupEnrichedScore(map: Map<string, number>, modelName: string): number | null {
@@ -474,7 +497,7 @@ function entriesFromMagiaArenaLeaderboard(
       const vendor = String(item.organization ?? "").trim() || undefined;
       if (!modelId || !modelName) return null;
 
-      const score = normalizePositiveValue(item.conservative_rating ?? null);
+      const score = resolveArenaScore(item.conservative_rating ?? null, item.win_rate ?? null);
       return {
         rank: 0,
         sourceModelId: modelId,
@@ -536,7 +559,7 @@ function entriesFromCombinedMagiaArenas(
 
       const vendor = String(item.organization ?? "").trim() || undefined;
       const key = canonicalKey(modelName, vendor);
-      const conservative = normalizePositiveValue(item.conservative_rating ?? null);
+      const conservative = resolveArenaScore(item.conservative_rating ?? null, item.win_rate ?? null);
       const arenaPrice = normalizePriceValue(item.avg_generation_price ?? null);
       const arenaInputPrice = normalizePriceValue(item.input_price ?? null);
       const arenaOutputPrice = normalizePriceValue(item.output_price ?? null);
@@ -712,7 +735,9 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
     const rawRecord = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
     const html = String(rawRecord.aaHtml ?? raw ?? "");
     const hfRows = Array.isArray(rawRecord.hfRows) ? (rawRecord.hfRows as Array<Record<string, unknown>>) : [];
-    const sweRows = Array.isArray(rawRecord.sweRows) ? (rawRecord.sweRows as Array<{ model: string; score: number }>) : [];
+    const sweRows = Array.isArray(rawRecord.sweRows)
+      ? (rawRecord.sweRows as Array<{ model: string; score: number; boardName?: string }>)
+      : [];
     const enrichment = buildEnrichmentMaps(hfRows, sweRows);
     const parsed = extractArtificialAnalysisModels(html);
 
@@ -729,6 +754,7 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
         const gpqaEnriched = lookupEnrichedScore(enrichment.gpqaByModel, modelName);
         const mmluEnriched = lookupEnrichedScore(enrichment.mmluByModel, modelName);
         const sweEnriched = lookupEnrichedScore(enrichment.sweByModel, modelName);
+        const sweVerifiedEnriched = lookupEnrichedScore(enrichment.sweVerifiedByModel, modelName);
         return {
           rank: 0,
           sourceModelId: item.id,
@@ -748,7 +774,17 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
             gpqa: normalizeBenchmarkScore(item.gpqa) ?? normalizeBenchmarkScore(gpqaEnriched),
             mmlu_pro: normalizeBenchmarkScore(item.mmlu_pro) ?? normalizeBenchmarkScore(mmluEnriched),
             terminalbench_hard: normalizeBenchmarkScore(item.terminalbench_hard),
+            aime: normalizeBenchmarkScore(item.aime),
+            aime25: normalizeBenchmarkScore(item.aime25),
+            aime_2024: normalizeBenchmarkScore(item.aime),
+            aime_2025: normalizeBenchmarkScore(item.aime25),
+            livecodebench: normalizeBenchmarkScore(item.livecodebench),
+            live_code_bench: normalizeBenchmarkScore(item.livecodebench),
+            math_500: normalizeBenchmarkScore(item.math_500),
+            ifbench: normalizeBenchmarkScore(item.ifbench),
             release_date: item.release_date,
+            knowledge_cutoff_date: item.knowledge_cutoff_date,
+            knowledge_cutoff: item.knowledge_cutoff_date,
             context_window_tokens: normalizePositiveValue(item.context_window_tokens),
             price_1m_blended_3_to_1: normalizePriceValue(item.price_1m_blended_3_to_1),
             price_1m_input_tokens: normalizePriceValue(item.price_1m_input_tokens),
@@ -757,6 +793,7 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
             ttft_seconds: normalizePositiveValue(item.timescaleData?.median_time_to_first_chunk),
             end_to_end_seconds: normalizePositiveValue(item.end_to_end_response_time_metrics?.total_time),
             swe_bench: normalizeBenchmarkScore(sweEnriched),
+            swe_bench_verified: normalizeBenchmarkScore(sweVerifiedEnriched),
             input_modality_image: item.input_modality_image,
             input_modality_video: item.input_modality_video,
             input_modality_speech: item.input_modality_speech,

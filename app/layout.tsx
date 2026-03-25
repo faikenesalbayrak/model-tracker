@@ -45,9 +45,9 @@ export const metadata: Metadata = {
   description:
     "Turkish Technology için yapay zeka model, benchmark ve fiyat-performans takibi.",
   icons: {
-    icon: "/icon.png",
-    shortcut: "/favicon.ico",
-    apple: "/apple-icon.png",
+    icon: "/icon.png?v=20260325",
+    shortcut: "/favicon.ico?v=20260325",
+    apple: "/apple-icon.png?v=20260325",
   },
 };
 
