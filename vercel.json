@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/monitoring/run?type=scheduled",
-      "schedule": "0 6,18 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/monitoring/run?type=weekly",
