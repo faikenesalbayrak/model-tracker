@@ -52,42 +52,94 @@ export function HeroReleases({
       ) : items.length === 0 ? (
         <EmptyState message={strings.empty} />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {items.map((item, index) => (
             <article
               key={item.id}
-              className="panel-interactive group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-slate-200/70 bg-white/80 p-5 shadow-[0_12px_36px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/[0.08]"
+              className="panel-interactive group relative flex h-full flex-col overflow-hidden rounded-[var(--radius-card)]"
+              style={{
+                border: "1px solid var(--border)",
+                background: "var(--surface-subtle)",
+              }}
             >
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[color:var(--tt-red)] via-[color:var(--tt-blue)] to-transparent opacity-70" />
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="inline-flex rounded-full border border-slate-200/80 bg-slate-50 px-2.5 py-1 text-[0.65rem] font-semibold tracking-[0.18em] text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
-                    {item.lab}
-                  </p>
-                  <h3 className="mt-3 text-[1.35rem] font-semibold tracking-tight text-slate-950 dark:text-white">
-                    {item.model}
-                  </h3>
+              {/* Top accent gradient */}
+              <div
+                className="absolute inset-x-0 top-0 h-px"
+                style={{
+                  background: "linear-gradient(90deg, var(--accent) 0%, var(--tt-blue) 50%, transparent 100%)",
+                  opacity: 0.6,
+                }}
+              />
+              <div className="flex flex-col gap-3 p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="inline-flex rounded-full px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.18em]"
+                      style={{
+                        border: "1px solid var(--border)",
+                        background: "var(--surface-card)",
+                        color: "var(--text-faint)",
+                      }}
+                    >
+                      {item.lab}
+                    </p>
+                    <h3
+                      className="mt-2 text-base font-semibold tracking-tight leading-snug"
+                      style={{ color: "var(--text)" }}
+                    >
+                      {item.model}
+                    </h3>
+                  </div>
+                  <span
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold tabular-nums"
+                    style={{
+                      border: "1px solid var(--border)",
+                      background: "var(--surface-card)",
+                      color: "var(--text-faint)",
+                    }}
+                  >
+                    #{formatCompactNumber(index + 1, locale)}
+                  </span>
                 </div>
-                <span className="rounded-full border border-slate-200/80 bg-white px-2.5 py-1 text-[0.65rem] font-semibold text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
-                  #{formatCompactNumber(index + 1, locale)}
-                </span>
-              </div>
-              <p className="mt-4 line-clamp-3 flex-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                {item.summary}
-              </p>
-              <div className="mt-5 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <span className="rounded-full bg-slate-900 px-3 py-1.5 font-medium text-white dark:bg-white dark:text-slate-950">
-                  {strings.released}: {item.releasedAt.slice(0, 10)}
-                </span>
-                <a
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3 py-1.5 font-medium text-slate-700 shadow-sm transition hover:border-[color:var(--tt-red)]/30 hover:bg-[color:var(--tt-red)]/5 hover:text-slate-950 focus-visible:outline-none dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white"
-                  href={item.url}
-                  rel="noreferrer"
-                  target="_blank"
+                <p
+                  className="line-clamp-3 flex-1 text-xs leading-5"
+                  style={{ color: "var(--text-muted)" }}
                 >
-                  {locale === "tr" ? "Model sayfasına git" : "Open model page"}
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </a>
+                  {item.summary}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className="rounded-full px-2.5 py-1 text-[0.65rem] font-semibold"
+                    style={{
+                      background: "var(--text)",
+                      color: "var(--surface)",
+                    }}
+                  >
+                    {strings.released}: {item.releasedAt.slice(0, 10)}
+                  </span>
+                  <a
+                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.65rem] font-semibold transition-all duration-150"
+                    href={item.url}
+                    rel="noreferrer"
+                    target="_blank"
+                    style={{
+                      border: "1px solid var(--border)",
+                      background: "var(--surface-card)",
+                      color: "var(--text-muted)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
+                      (e.currentTarget as HTMLElement).style.color = "var(--accent)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+                      (e.currentTarget as HTMLElement).style.color = "var(--text-muted)";
+                    }}
+                  >
+                    {locale === "tr" ? "Model sayfası" : "Open page"}
+                    <ArrowUpRight className="h-3 w-3" />
+                  </a>
+                </div>
               </div>
             </article>
           ))}
@@ -99,11 +151,15 @@ export function HeroReleases({
 
 function SkeletonGrid() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 3 }).map((_, index) => (
         <div
           key={index}
-          className="h-64 animate-pulse rounded-3xl border border-slate-200/70 bg-slate-100/90 dark:border-white/10 dark:bg-white/5"
+          className="h-64 animate-pulse rounded-3xl"
+          style={{
+            border: "1px solid var(--border)",
+            background: "var(--surface-subtle)",
+          }}
         />
       ))}
     </div>
@@ -112,7 +168,14 @@ function SkeletonGrid() {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-3xl border border-dashed border-slate-200/70 bg-slate-50 p-8 text-sm text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+    <div
+      className="rounded-3xl border-dashed p-8 text-sm"
+      style={{
+        border: "1px dashed var(--border-strong)",
+        background: "var(--surface-subtle)",
+        color: "var(--text-muted)",
+      }}
+    >
       {message}
     </div>
   );

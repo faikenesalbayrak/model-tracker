@@ -59,7 +59,7 @@ export function SotaChart({
         <EmptyState message={strings.empty} />
       ) : (
         <div className="space-y-4">
-          <div className="panel-interactive overflow-x-auto rounded-[1.75rem] border border-slate-200/70 bg-white/80 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
+          <div className="panel-interactive overflow-x-auto rounded-[var(--radius-card)] border border-slate-200/70 bg-white/80 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
             <div className="min-w-[860px]">
               <AreaChart data={items} width={860} height={320}>
                 <defs>
@@ -122,7 +122,7 @@ function ChartTooltip({ active, label, payload, locale }: ChartTooltipProps) {
 
 function ChartSkeleton() {
   return (
-    <div className="h-[340px] animate-pulse rounded-[1.75rem] border border-slate-200/70 bg-slate-100/90 shadow-[0_14px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/5" />
+    <div className="h-[340px] animate-pulse rounded-[var(--radius-card)] border border-slate-200/70 bg-slate-100/90 shadow-[0_14px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/5" />
   );
 }
 

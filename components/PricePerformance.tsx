@@ -67,7 +67,7 @@ export function PricePerformance({
         <EmptyState message={strings.empty} />
       ) : (
         <div className="space-y-4">
-          <div className="panel-interactive overflow-x-auto rounded-[1.75rem] border border-slate-200/70 bg-white/80 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
+          <div className="panel-interactive overflow-x-auto rounded-[var(--radius-card)] border border-slate-200/70 bg-white/80 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
             <div className="min-w-[860px]">
               <ScatterChart margin={{ top: 12, right: 18, bottom: 12, left: 8 }} width={860} height={340}>
                 <CartesianGrid strokeDasharray="4 6" stroke="rgba(148,163,184,0.25)" />
@@ -127,7 +127,7 @@ function ScatterTooltip({ active, payload, locale }: ScatterTooltipProps) {
 
 function ChartSkeleton() {
   return (
-    <div className="h-[360px] animate-pulse rounded-[1.75rem] border border-slate-200/70 bg-slate-100/90 shadow-[0_14px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/5" />
+    <div className="h-[360px] animate-pulse rounded-[var(--radius-card)] border border-slate-200/70 bg-slate-100/90 shadow-[0_14px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/5" />
   );
 }
 

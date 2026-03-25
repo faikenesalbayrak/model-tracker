@@ -2,17 +2,164 @@
 @import "../style/animations.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ─── TT Brand Token Sistemi ─────────────────────────────────────────────── */
 :root {
-  --background: var(--tt-white);
-  --foreground: var(--tt-black);
-  --surface: rgba(255, 255, 255, 0.92);
-  --surface-strong: var(--tt-white);
-  --border: rgba(0, 0, 0, 0.08);
-  --muted: rgba(0, 0, 0, 0.64);
+  /* Brand renkleri */
+  --tt-red: #C90C0F;
+  --tt-black: #000000;
+  --tt-white: #FFFFFF;
+  --tt-navy: #000C54;
+  --tt-deep-navy: #1C1D52;
+  --tt-blue: #0035D6;
+  --tt-purple: #1E122F;
+  --tt-pink: #CB29AC;
+
+  /* Semantik tokenlar — Light Mode */
+  --accent: #C90C0F;
+  --accent-hover: #A80A0D;
+  --accent-muted: rgba(201, 12, 15, 0.07);
+  --accent-muted-hover: rgba(201, 12, 15, 0.12);
+
+  --surface: #FFFFFF;
+  --surface-2: #F5F6FA;
+  --surface-raised: rgba(255, 255, 255, 0.96);
+  --surface-card: rgba(255, 255, 255, 0.90);
+  --surface-subtle: rgba(247, 248, 252, 0.80);
+
+  --border: rgba(0, 12, 84, 0.10);
+  --border-strong: rgba(0, 12, 84, 0.18);
+
+  --text: #0A0B1E;
+  --text-muted: rgba(10, 11, 30, 0.52);
+  --text-faint: rgba(10, 11, 30, 0.34);
+
+  --navy-tint: rgba(0, 12, 84, 0.04);
+  --blue-tint: rgba(0, 53, 214, 0.05);
+
+  --shadow-sm: 0 2px 8px rgba(0, 12, 84, 0.06);
+  --shadow-md: 0 8px 28px rgba(0, 12, 84, 0.09);
+  --shadow-lg: 0 20px 60px rgba(0, 12, 84, 0.11);
+
+  /* Radius tokens */
+  --radius-panel: clamp(1rem, 2.5vw, 2rem);    /* büyük panel: 16px → 32px */
+  --radius-card: clamp(0.75rem, 2vw, 1.75rem); /* kart: 12px → 28px */
+  --radius-item: 0.75rem;                        /* liste öğesi: 12px sabit */
+
+  /* Legacy compat */
+  --background: var(--surface);
+  --foreground: var(--text);
+  --surface-strong: var(--surface);
+  --muted: var(--text-muted);
   --bg-radial-top: rgba(0, 53, 214, 0.08);
   --bg-radial-bottom: rgba(203, 41, 172, 0.08);
 }
 
+/* ─── Dark Mode ──────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #E8282B;
+    --accent-hover: #FF3F42;
+    --accent-muted: rgba(232, 40, 43, 0.12);
+    --accent-muted-hover: rgba(232, 40, 43, 0.18);
+
+    --surface: #0B1220;
+    --surface-2: #080E1A;
+    --surface-raised: rgba(11, 18, 32, 0.95);
+    --surface-card: rgba(14, 22, 40, 0.88);
+    --surface-subtle: rgba(14, 22, 40, 0.60);
+
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+
+    --text: #F0F4FF;
+    --text-muted: rgba(240, 244, 255, 0.58);
+    --text-faint: rgba(240, 244, 255, 0.34);
+
+    --navy-tint: rgba(0, 53, 214, 0.07);
+    --blue-tint: rgba(0, 53, 214, 0.10);
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.30);
+    --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.38);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.48);
+
+    --background: var(--surface);
+    --foreground: var(--text);
+    --surface-strong: #0B1220;
+    --muted: var(--text-muted);
+    --bg-radial-top: rgba(0, 53, 214, 0.13);
+    --bg-radial-bottom: rgba(28, 29, 82, 0.12);
+
+    color-scheme: dark;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+}
+
+/* ─── Manual class overrides (ThemeToggle kullanır) ──────────────────────── */
+html.light {
+  --accent: #C90C0F;
+  --accent-hover: #A80A0D;
+  --accent-muted: rgba(201, 12, 15, 0.07);
+  --accent-muted-hover: rgba(201, 12, 15, 0.12);
+  --surface: #FFFFFF;
+  --surface-2: #F5F6FA;
+  --surface-raised: rgba(255, 255, 255, 0.96);
+  --surface-card: rgba(255, 255, 255, 0.90);
+  --surface-subtle: rgba(247, 248, 252, 0.80);
+  --border: rgba(0, 12, 84, 0.10);
+  --border-strong: rgba(0, 12, 84, 0.18);
+  --text: #0A0B1E;
+  --text-muted: rgba(10, 11, 30, 0.52);
+  --text-faint: rgba(10, 11, 30, 0.34);
+  --navy-tint: rgba(0, 12, 84, 0.04);
+  --blue-tint: rgba(0, 53, 214, 0.05);
+  --shadow-sm: 0 2px 8px rgba(0, 12, 84, 0.06);
+  --shadow-md: 0 8px 28px rgba(0, 12, 84, 0.09);
+  --shadow-lg: 0 20px 60px rgba(0, 12, 84, 0.11);
+  --background: var(--surface);
+  --foreground: var(--text);
+  --surface-strong: var(--surface);
+  --muted: var(--text-muted);
+  --bg-radial-top: rgba(0, 53, 214, 0.08);
+  --bg-radial-bottom: rgba(203, 41, 172, 0.08);
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  --accent: #E8282B;
+  --accent-hover: #FF3F42;
+  --accent-muted: rgba(232, 40, 43, 0.12);
+  --accent-muted-hover: rgba(232, 40, 43, 0.18);
+  --surface: #0B1220;
+  --surface-2: #080E1A;
+  --surface-raised: rgba(11, 18, 32, 0.95);
+  --surface-card: rgba(14, 22, 40, 0.88);
+  --surface-subtle: rgba(14, 22, 40, 0.60);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #F0F4FF;
+  --text-muted: rgba(240, 244, 255, 0.58);
+  --text-faint: rgba(240, 244, 255, 0.34);
+  --navy-tint: rgba(0, 53, 214, 0.07);
+  --blue-tint: rgba(0, 53, 214, 0.10);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.48);
+  --background: var(--surface);
+  --foreground: var(--text);
+  --surface-strong: #0B1220;
+  --muted: var(--text-muted);
+  --bg-radial-top: rgba(0, 53, 214, 0.13);
+  --bg-radial-bottom: rgba(28, 29, 82, 0.12);
+  color-scheme: dark;
+}
+
+/* ─── @theme (Tailwind v4 alias'ları) ───────────────────────────────────── */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -33,61 +180,20 @@
     "Liberation Mono", "Courier New", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #090f1f;
-    --foreground: var(--tt-white);
-    --surface: rgba(20, 27, 47, 0.84);
-    --surface-strong: #0b1329;
-    --border: rgba(148, 163, 184, 0.2);
-    --muted: rgba(226, 232, 240, 0.75);
-    --bg-radial-top: rgba(9, 76, 255, 0.14);
-    --bg-radial-bottom: rgba(42, 72, 141, 0.14);
-  }
-
-  html {
-    color-scheme: dark;
-  }
-}
-
-html.light {
-  --background: var(--tt-white);
-  --foreground: var(--tt-black);
-  --surface: rgba(255, 255, 255, 0.92);
-  --surface-strong: var(--tt-white);
-  --border: rgba(0, 0, 0, 0.08);
-  --muted: rgba(0, 0, 0, 0.64);
-  --bg-radial-top: rgba(0, 53, 214, 0.08);
-  --bg-radial-bottom: rgba(203, 41, 172, 0.08);
-}
-
-html {
-  color-scheme: light;
-}
-
-html.dark {
-  --background: #090f1f;
-  --foreground: var(--tt-white);
-  --surface: rgba(20, 27, 47, 0.84);
-  --surface-strong: #0b1329;
-  --border: rgba(148, 163, 184, 0.2);
-  --muted: rgba(226, 232, 240, 0.75);
-  --bg-radial-top: rgba(9, 76, 255, 0.14);
-  --bg-radial-bottom: rgba(42, 72, 141, 0.14);
-  color-scheme: dark;
-}
-
+/* ─── Body ───────────────────────────────────────────────────────────────── */
 body {
   min-height: 100vh;
   background:
     radial-gradient(circle at top right, var(--bg-radial-top), transparent 30%),
     radial-gradient(circle at bottom left, var(--bg-radial-bottom), transparent 26%),
-    var(--background);
-  color: var(--foreground);
+    var(--surface-2);
+  color: var(--text);
   font-family: var(--font-gilmer), sans-serif;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ─── Utilities ──────────────────────────────────────────────────────────── */
 .app-sticky-header {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
@@ -105,7 +211,6 @@ html {
   scroll-behavior: auto;
 }
 
-/* Hide page scrollbars while preserving scroll behavior */
 html,
 body {
   -ms-overflow-style: none;
@@ -119,7 +224,6 @@ body::-webkit-scrollbar {
   display: none;
 }
 
-/* Explicit utility for critical scroll containers */
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -138,13 +242,13 @@ a[href],
 }
 
 :focus-visible {
-  outline: 2px solid rgba(201, 12, 15, 0.8);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
 ::selection {
-  background: rgba(200, 12, 15, 0.18);
-  color: var(--foreground);
+  background: var(--accent-muted);
+  color: var(--text);
 }
 
 @media (prefers-reduced-motion: reduce) {

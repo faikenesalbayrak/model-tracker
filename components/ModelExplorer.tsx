@@ -46,6 +46,7 @@ type LlmSortKey =
   | "gpqa"
   | "mmluPro"
   | "terminalBenchHard"
+  | "sweBench"
   | "pricePer1m"
   | "inputPricePer1m"
   | "outputPricePer1m"
@@ -60,6 +61,55 @@ type LlmSortKey =
 type ReleaseWindow = "all" | "30d" | "90d" | "180d";
 type OpenFilter = "all" | "open" | "closed";
 type SectionKey = "general" | "llm" | "image" | "video" | "tts" | "stt" | "embeddings";
+type CategoryKey = Exclude<SectionKey, "general" | "llm">;
+
+type CategoryLeaderboardItem = {
+  rank: number;
+  model: string;
+  lab: string;
+  score: number | null;
+  scoreUnit: string | null;
+  modelUrl: string | null;
+  isOpenSource: boolean | null;
+  releaseDate: string | null;
+  matchesPlayed: number | null;
+  winRate: number | null;
+  coverageBenchmarks: number | null;
+  pricePer1m: number | null;
+  inputPricePer1m: number | null;
+  outputPricePer1m: number | null;
+  contextWindowTokens: number | null;
+  outputTokensPerSecond: number | null;
+  ttftSeconds: number | null;
+  endToEndSeconds: number | null;
+  gpqa: number | null;
+  mmluPro: number | null;
+  terminalBenchHard: number | null;
+  sweBench: number | null;
+};
+
+type CategorySortKey =
+  | "rank"
+  | "model"
+  | "lab"
+  | "score"
+  | "pricePer1m"
+  | "inputPricePer1m"
+  | "outputPricePer1m"
+  | "outputTokensPerSecond"
+  | "matchesPlayed"
+  | "winRate"
+  | "coverageBenchmarks";
+
+type CategoryColumn = {
+  key: CategorySortKey;
+  label: string;
+  hint: {
+    en: string;
+    tr: string;
+  };
+  render: (row: CategoryLeaderboardItem) => string;
+};
 
 const LAB_LOGO_MAP: Array<{ pattern: RegExp; src: string }> = [
   { pattern: /openai/i, src: "/lab-logos/llmstats/openai.svg" },
@@ -146,6 +196,7 @@ const summaryHeaderHints = {
     gpqa: "Graduate-level science QA benchmark score.",
     mmluPro: "Advanced general-knowledge benchmark score.",
     terminalBench: "Terminal task execution benchmark score.",
+    sweBench: "Software engineering benchmark score (if provided by source).",
     blendedPrice: "Estimated blended cost per 1M tokens.",
     inputPrice: "Input token cost per 1M tokens.",
     outputPrice: "Output token cost per 1M tokens.",
@@ -166,6 +217,7 @@ const summaryHeaderHints = {
     gpqa: "Lisansüstü seviye bilim soru-cevap benchmark skoru.",
     mmluPro: "Gelişmiş genel bilgi benchmark skoru.",
     terminalBench: "Terminal görevlerini tamamlama benchmark skoru.",
+    sweBench: "Kaynak sağlıyorsa yazılım mühendisliği benchmark skoru.",
     blendedPrice: "1M token için tahmini birleşik maliyet.",
     inputPrice: "1M giriş token maliyeti.",
     outputPrice: "1M çıktı token maliyeti.",
@@ -177,11 +229,104 @@ const summaryHeaderHints = {
 
 const PAGE_SIZE = 20;
 const CONTEXT_MIN_OPTIONS = [0, 32_000, 128_000, 256_000, 1_000_000] as const;
-const LLM_ROW_LIMIT_OPTIONS = [20, 50, 100, 200] as const;
+const LLM_ROW_LIMIT_OPTIONS = [20, 50, 100, 200, 500] as const;
 const AI_NEWS_LIMIT = 16;
 const COMPARE_DRAWER_ANIMATION_MS = 300;
 const COMPARE_MODAL_ANIMATION_MS = 320;
 const BLOCKED_NEWS_DOMAIN_PATTERN = /^https?:\/\/(?:www\.)?llm-?stats\.com(?:\/|$)/i;
+
+const CATEGORY_TABLE_COLUMNS: Record<CategoryKey, CategoryColumn[]> = {
+  image: [
+    { key: "rank", label: "#", hint: { en: "Leaderboard rank in this category.", tr: "Bu kategorideki sıralama." }, render: (row) => String(row.rank) },
+    { key: "model", label: "Model", hint: { en: "Model name and variant.", tr: "Model adı ve varyantı." }, render: (row) => row.model },
+    { key: "lab", label: "Provider", hint: { en: "Company or lab publishing the model.", tr: "Modeli yayımlayan şirket veya laboratuvar." }, render: (row) => row.lab },
+    { key: "score", label: "Score", hint: { en: "Primary image benchmark score from the source.", tr: "Kaynağın ana görsel benchmark skoru." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "pricePer1m", label: "$/Gen", hint: { en: "Estimated price per generation/image.", tr: "Tahmini üretim/görsel başına fiyat." }, render: (row) => formatUsd(row.pricePer1m) },
+    { key: "inputPricePer1m", label: "Input $/1M", hint: { en: "Input token price per 1M tokens if provided.", tr: "Varsa 1M giriş token fiyatı." }, render: (row) => formatUsd(row.inputPricePer1m) },
+    { key: "outputPricePer1m", label: "Output $/1M", hint: { en: "Output token price per 1M tokens if provided.", tr: "Varsa 1M çıktı token fiyatı." }, render: (row) => formatUsd(row.outputPricePer1m) },
+  ],
+  video: [
+    { key: "rank", label: "#", hint: { en: "Leaderboard rank in this category.", tr: "Bu kategorideki sıralama." }, render: (row) => String(row.rank) },
+    { key: "model", label: "Model", hint: { en: "Model name and variant.", tr: "Model adı ve varyantı." }, render: (row) => row.model },
+    { key: "lab", label: "Provider", hint: { en: "Company or lab publishing the model.", tr: "Modeli yayımlayan şirket veya laboratuvar." }, render: (row) => row.lab },
+    { key: "score", label: "Score", hint: { en: "Primary video benchmark score from the source.", tr: "Kaynağın ana video benchmark skoru." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "pricePer1m", label: "$/Gen", hint: { en: "Estimated price per video generation.", tr: "Tahmini video üretim fiyatı." }, render: (row) => formatUsd(row.pricePer1m) },
+    { key: "inputPricePer1m", label: "Input $/1M", hint: { en: "Input token price per 1M tokens if provided.", tr: "Varsa 1M giriş token fiyatı." }, render: (row) => formatUsd(row.inputPricePer1m) },
+    { key: "outputPricePer1m", label: "Output $/1M", hint: { en: "Output token price per 1M tokens if provided.", tr: "Varsa 1M çıktı token fiyatı." }, render: (row) => formatUsd(row.outputPricePer1m) },
+    { key: "outputTokensPerSecond", label: "Throughput", hint: { en: "Generation throughput metric from source.", tr: "Kaynağın üretim throughput metriği." }, render: (row) => fmtNum(row.outputTokensPerSecond, 1) },
+  ],
+  tts: [
+    { key: "rank", label: "#", hint: { en: "Leaderboard rank in this category.", tr: "Bu kategorideki sıralama." }, render: (row) => String(row.rank) },
+    { key: "model", label: "Model", hint: { en: "Model name and variant.", tr: "Model adı ve varyantı." }, render: (row) => row.model },
+    { key: "lab", label: "Provider", hint: { en: "Company or lab publishing the model.", tr: "Modeli yayımlayan şirket veya laboratuvar." }, render: (row) => row.lab },
+    { key: "score", label: "Arena Score", hint: { en: "Arena Elo-style TTS performance score.", tr: "Arena Elo benzeri TTS performans skoru." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "matchesPlayed", label: "Matches", hint: { en: "Number of arena matchups used in ranking.", tr: "Sıralamada kullanılan arena karşılaşma sayısı." }, render: (row) => fmtNum(row.matchesPlayed, 0) },
+    { key: "winRate", label: "Win Rate %", hint: { en: "Head-to-head win percentage.", tr: "İkili karşılaşmalardaki kazanma yüzdesi." }, render: (row) => fmtNum(row.winRate, 1) },
+  ],
+  stt: [
+    { key: "rank", label: "#", hint: { en: "Leaderboard rank in this category.", tr: "Bu kategorideki sıralama." }, render: (row) => String(row.rank) },
+    { key: "model", label: "Model", hint: { en: "Model name and variant.", tr: "Model adı ve varyantı." }, render: (row) => row.model },
+    { key: "lab", label: "Provider", hint: { en: "Company or lab publishing the model.", tr: "Modeli yayımlayan şirket veya laboratuvar." }, render: (row) => row.lab },
+    { key: "score", label: "Arena Score", hint: { en: "Arena Elo-style STT performance score.", tr: "Arena Elo benzeri STT performans skoru." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "matchesPlayed", label: "Matches", hint: { en: "Number of arena matchups used in ranking.", tr: "Sıralamada kullanılan arena karşılaşma sayısı." }, render: (row) => fmtNum(row.matchesPlayed, 0) },
+    { key: "winRate", label: "Win Rate %", hint: { en: "Head-to-head win percentage.", tr: "İkili karşılaşmalardaki kazanma yüzdesi." }, render: (row) => fmtNum(row.winRate, 1) },
+    { key: "inputPricePer1m", label: "Input $/1M", hint: { en: "Input token price per 1M tokens if provided.", tr: "Varsa 1M giriş token fiyatı." }, render: (row) => formatUsd(row.inputPricePer1m) },
+  ],
+  embeddings: [
+    { key: "rank", label: "#", hint: { en: "Leaderboard rank in this category.", tr: "Bu kategorideki sıralama." }, render: (row) => String(row.rank) },
+    { key: "model", label: "Model", hint: { en: "Model name and variant.", tr: "Model adı ve varyantı." }, render: (row) => row.model },
+    { key: "lab", label: "Provider", hint: { en: "Company or lab publishing the model.", tr: "Modeli yayımlayan şirket veya laboratuvar." }, render: (row) => row.lab },
+    { key: "score", label: "Benchmark Score", hint: { en: "Aggregated embedding benchmark score.", tr: "Birleşik embedding benchmark skoru." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "coverageBenchmarks", label: "Benchmarks", hint: { en: "How many benchmark sets are covered.", tr: "Kapsanan benchmark seti sayısı." }, render: (row) => fmtNum(row.coverageBenchmarks, 0) },
+  ],
+};
+
+function formatSourceDisplayName(sourceName: string | null): string {
+  switch (sourceName) {
+    case "llm_stats_image_generation":
+      return "ZeroEval Magia Arena (image)";
+    case "llm_stats_video_generation":
+      return "ZeroEval Magia Arena (video)";
+    case "llm_stats_text_to_speech":
+      return "ZeroEval Magia Arena (text-to-speech)";
+    case "llm_stats_speech_to_text":
+      return "ZeroEval Magia Arena (speech-to-text)";
+    case "llm_stats_embeddings":
+      return "ZeroEval Category Benchmarks (search/embeddings)";
+    default:
+      return sourceName ?? "source";
+  }
+}
+
+function describeCategoryScore(
+  scoreUnit: string | null,
+  sourceName: string | null,
+  locale: Locale,
+): string {
+  const source = formatSourceDisplayName(sourceName);
+
+  if (scoreUnit?.includes("avg_conservative_rating")) {
+    return locale === "tr"
+      ? `Kaynak: ${source}. Bu skor, ilgili alt arenalardaki conservative rating değerlerinin ortalamasıdır. Yüksek olması daha iyi performans demektir. Yüzde değildir; arena tabanlı göreli bir rating ölçeğidir.`
+      : `Source: ${source}. This score is the average conservative rating across relevant sub-arenas. Higher is better. It is not a percentage; it is an arena-based relative rating scale.`;
+  }
+
+  if (scoreUnit?.includes("conservative_rating")) {
+    return locale === "tr"
+      ? `Kaynak: ${source}. Bu skor, tek bir arena leaderboard'ındaki conservative rating değeridir. Yüksek olması daha iyi performans demektir. Yüzde değildir; göreli bir rating skorudur.`
+      : `Source: ${source}. This score is the conservative rating from a single arena leaderboard. Higher is better. It is not a percentage; it is a relative rating score.`;
+  }
+
+  if (scoreUnit?.includes("avg_normalized_score")) {
+    return locale === "tr"
+      ? `Kaynak: ${source}. Bu skor, birden fazla benchmark setindeki normalize edilmiş puanların ortalamasıdır. Yüksek olması daha iyi performans demektir.`
+      : `Source: ${source}. This score is the average of normalized scores across multiple benchmark sets. Higher is better.`;
+  }
+
+  return locale === "tr"
+    ? `Kaynak: ${source}. Bu kategori için birincil performans skorudur; yüksek değer daha iyi performansı ifade eder.`
+    : `Source: ${source}. This is the primary performance score for this category; higher means better performance.`;
+}
 const MOCK_AI_NEWS: AiNewsItem[] = [
   {
     id: "mock-news-1",
@@ -344,12 +489,22 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
   const [llmReleaseWindow, setLlmReleaseWindow] = useState<ReleaseWindow>("all");
   const [llmContextMin, setLlmContextMin] = useState<number>(0);
   const [llmReasoningOnly, setLlmReasoningOnly] = useState(false);
-  const [llmRowLimit, setLlmRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(20);
+  const [llmRowLimit, setLlmRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(500);
   const [summarySortKey, setSummarySortKey] = useState<SummarySortKey>("intelligenceIndex");
   const [summarySortDirection, setSummarySortDirection] = useState<"asc" | "desc">("desc");
   const [llmSortKey, setLlmSortKey] = useState<LlmSortKey>("intelligenceIndex");
   const [llmSortDirection, setLlmSortDirection] = useState<"asc" | "desc">("desc");
   const [activeSection, setActiveSection] = useState<SectionKey>("general");
+  const [categoryRows, setCategoryRows] = useState<CategoryLeaderboardItem[]>([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [categorySourceName, setCategorySourceName] = useState<string | null>(null);
+  const [categorySnapshotAt, setCategorySnapshotAt] = useState<string | null>(null);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [categoryProviderFilter, setCategoryProviderFilter] = useState("all");
+  const [categoryOpenFilter, setCategoryOpenFilter] = useState<OpenFilter>("all");
+  const [categorySortKey, setCategorySortKey] = useState<CategorySortKey>("rank");
+  const [categorySortDirection, setCategorySortDirection] = useState<"asc" | "desc">("asc");
   const [nowTs, setNowTs] = useState(0);
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
   const [compareModalOpen, setCompareModalOpen] = useState(false);
@@ -361,6 +516,131 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
   useEffect(() => {
     onSectionChange?.(activeSection);
   }, [activeSection, onSectionChange]);
+
+  useEffect(() => {
+    const sectionToCategory: Record<CategoryKey, string> = {
+      image: "image_generation",
+      video: "video_generation",
+      tts: "text_to_speech",
+      stt: "speech_to_text",
+      embeddings: "embeddings",
+    };
+
+    if (activeSection === "general" || activeSection === "llm") {
+      setCategoryRows([]);
+      setCategoryLoading(false);
+      setCategoryError(null);
+      setCategorySourceName(null);
+      setCategorySnapshotAt(null);
+      return;
+    }
+
+    const category = sectionToCategory[activeSection as CategoryKey];
+    let alive = true;
+    setCategoryLoading(true);
+    setCategoryError(null);
+    setCategoryQuery("");
+    setCategoryProviderFilter("all");
+    setCategoryOpenFilter("all");
+    setCategorySortKey("rank");
+    setCategorySortDirection("asc");
+
+    void fetch(`/api/monitoring/leaderboard?category=${encodeURIComponent(category)}`, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json() as Promise<{
+          sourceName?: string | null;
+          snapshotAt?: string | null;
+          data?: Array<Record<string, unknown>>;
+        }>;
+      })
+      .then((payload) => {
+        if (!alive) return;
+        const rows = Array.isArray(payload.data) ? payload.data : [];
+        const normalizePositiveValue = (value: unknown): number | null =>
+          typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+        const normalizeBenchmarkScore = (value: unknown): number | null => {
+          if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
+          if (value <= 1) return value * 100;
+          return value;
+        };
+        const normalized = rows
+          .map((row) => ({
+            rank: typeof row.rank === "number" ? row.rank : Number(row.rank ?? 0),
+            model: typeof row.model === "string" ? row.model : "Unknown model",
+            lab: typeof row.lab === "string" ? row.lab : "Unknown",
+            score: typeof row.score === "number" ? row.score : null,
+            scoreUnit: typeof row.scoreUnit === "string" ? row.scoreUnit : null,
+            modelUrl: typeof row.modelUrl === "string" ? row.modelUrl : null,
+            isOpenSource:
+              typeof row.is_open_source === "boolean"
+                ? row.is_open_source
+                : typeof row.isOpenSource === "boolean"
+                  ? row.isOpenSource
+                  : null,
+            releaseDate: typeof row.release_date === "string" ? row.release_date : null,
+            matchesPlayed: normalizePositiveValue(
+              typeof row.matches_played === "number" ? row.matches_played : row.matchesPlayed,
+            ),
+            winRate: normalizePositiveValue(
+              typeof row.win_rate === "number" ? row.win_rate : row.winRate,
+            ),
+            coverageBenchmarks: normalizePositiveValue(
+              typeof row.coverage_benchmarks === "number" ? row.coverage_benchmarks : row.coverageBenchmarks,
+            ),
+            pricePer1m: normalizePositiveValue(
+              typeof row.price_1m_blended_3_to_1 === "number" ? row.price_1m_blended_3_to_1 : row.pricePer1m,
+            ),
+            inputPricePer1m: normalizePositiveValue(
+              typeof row.price_1m_input_tokens === "number" ? row.price_1m_input_tokens : row.inputPricePer1m,
+            ),
+            outputPricePer1m: normalizePositiveValue(
+              typeof row.price_1m_output_tokens === "number" ? row.price_1m_output_tokens : row.outputPricePer1m,
+            ),
+            contextWindowTokens: normalizePositiveValue(
+              typeof row.context_window_tokens === "number" ? row.context_window_tokens : row.contextWindowTokens,
+            ),
+            outputTokensPerSecond: normalizePositiveValue(
+              typeof row.output_tokens_per_second === "number" ? row.output_tokens_per_second : row.outputTokensPerSecond,
+            ),
+            ttftSeconds: normalizePositiveValue(
+              typeof row.ttft_seconds === "number" ? row.ttft_seconds : row.ttftSeconds,
+            ),
+            endToEndSeconds: normalizePositiveValue(
+              typeof row.end_to_end_seconds === "number" ? row.end_to_end_seconds : row.endToEndSeconds,
+            ),
+            gpqa: normalizeBenchmarkScore(row.gpqa),
+            mmluPro: normalizeBenchmarkScore(typeof row.mmlu_pro === "number" ? row.mmlu_pro : row.mmluPro),
+            terminalBenchHard: normalizeBenchmarkScore(
+              typeof row.terminalbench_hard === "number" ? row.terminalbench_hard : row.terminalBenchHard,
+            ),
+            sweBench: normalizeBenchmarkScore(typeof row.swe_bench === "number" ? row.swe_bench : row.sweBench),
+          }))
+          .filter((row) => Number.isFinite(row.rank) && row.rank > 0)
+          .sort((a, b) => a.rank - b.rank);
+
+        setCategoryRows(normalized);
+        setCategorySourceName(payload.sourceName ?? null);
+        setCategorySnapshotAt(payload.snapshotAt ?? null);
+      })
+      .catch((error) => {
+        if (!alive) return;
+        setCategoryError(error instanceof Error ? error.message : "Category feed unavailable");
+        setCategoryRows([]);
+        setCategorySourceName(null);
+        setCategorySnapshotAt(null);
+      })
+      .finally(() => {
+        if (!alive) return;
+        setCategoryLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [activeSection]);
 
   useEffect(() => {
     const tick = () => setNowTs(Date.now());
@@ -671,6 +951,62 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
     { key: "stt" as const, label: "Speech-to-Text" },
     { key: "embeddings" as const, label: "Embeddings" },
   ];
+  const categorySectionKey = (
+    activeSection === "image" ||
+    activeSection === "video" ||
+    activeSection === "tts" ||
+    activeSection === "stt" ||
+    activeSection === "embeddings"
+  )
+    ? activeSection
+    : null;
+  const categoryProviderOptions = useMemo(
+    () =>
+      Array.from(new Set(categoryRows.map((row) => row.lab)))
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b)),
+    [categoryRows],
+  );
+  const visibleCategoryColumns = categorySectionKey ? CATEGORY_TABLE_COLUMNS[categorySectionKey] : [];
+  const categoryFilteredRows = useMemo(() => {
+    const q = categoryQuery.trim().toLowerCase();
+    return categoryRows.filter((row) => {
+      if (q) {
+        const hay = `${row.model} ${row.lab}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (categoryProviderFilter !== "all" && row.lab !== categoryProviderFilter) {
+        return false;
+      }
+      if (categoryOpenFilter === "open" && row.isOpenSource !== true) {
+        return false;
+      }
+      if (categoryOpenFilter === "closed" && row.isOpenSource !== false) {
+        return false;
+      }
+      return true;
+    });
+  }, [categoryOpenFilter, categoryProviderFilter, categoryQuery, categoryRows]);
+  const categoryVisibleRows = useMemo(() => {
+    return [...categoryFilteredRows].sort((left, right) => {
+      if (categorySortKey === "rank") {
+        const result = left.rank - right.rank;
+        return categorySortDirection === "asc" ? result : -result;
+      }
+      if (categorySortKey === "model" || categorySortKey === "lab") {
+        const result = left[categorySortKey].localeCompare(right[categorySortKey]);
+        return categorySortDirection === "asc" ? result : -result;
+      }
+      const l = numericSortValue(left[categorySortKey] as number | null);
+      const r = numericSortValue(right[categorySortKey] as number | null);
+      const result = l - r;
+      return categorySortDirection === "asc" ? result : -result;
+    });
+  }, [categoryFilteredRows, categorySortDirection, categorySortKey]);
+  const categoryScoreUnit = useMemo(
+    () => categoryRows.find((row) => typeof row.scoreUnit === "string" && row.scoreUnit.length > 0)?.scoreUnit ?? null,
+    [categoryRows],
+  );
   const isLlmSection = activeSection === "llm";
   const activeQuery = isLlmSection ? llmQuery : query;
   const activeProviderFilter = isLlmSection ? llmProviderFilter : providerFilter;
@@ -678,9 +1014,15 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
   const activeReleaseWindow = isLlmSection ? llmReleaseWindow : releaseWindow;
   const activeContextMin = isLlmSection ? llmContextMin : contextMin;
   const filtersPanel = (
-    <div className="mb-4 rounded-2xl border border-slate-200/80 bg-slate-50/75 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+    <div
+      className="mb-2 rounded-2xl p-4"
+      style={{
+        border: "1px solid var(--border)",
+        background: "var(--surface-card)",
+      }}
+    >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-slate-500 dark:text-slate-400">
+        <p className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--text-faint)" }}>
           <SlidersHorizontal className="h-3.5 w-3.5" />
           {locale === "tr" ? "Filtreler" : "Filters"}
         </p>
@@ -705,7 +1047,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           type="button"
         >
           <RotateCcw className="h-3 w-3" />
-          {locale === "tr" ? "Filtreleri Temizle" : "Reset Filters"}
+          {locale === "tr" ? "Sıfırla" : "Reset"}
         </button>
       </div>
 
@@ -715,7 +1057,12 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             {locale === "tr" ? "Ara" : "Search"}
           </span>
           <input
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+            className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-subtle)",
+              color: "var(--text)",
+            }}
             onChange={(event) => (isLlmSection ? setLlmQuery(event.target.value) : setQuery(event.target.value))}
             placeholder={locale === "tr" ? "Model veya sağlayıcı" : "Model or provider"}
             type="text"
@@ -728,7 +1075,12 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             {locale === "tr" ? "Sağlayıcı" : "Provider"}
           </span>
           <select
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+            className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-subtle)",
+              color: "var(--text)",
+            }}
             onChange={(event) => (isLlmSection ? setLlmProviderFilter(event.target.value) : setProviderFilter(event.target.value))}
             value={activeProviderFilter}
           >
@@ -809,6 +1161,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
 
   return (
     <section className="space-y-4">
+      {/* Tab bar */}
       <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-slate-950 p-2 shadow-[0_14px_40px_rgba(15,23,42,0.12)] dark:border-white/10">
         <div className="flex min-w-max items-center gap-1.5">
           {sections.map((section) => {
@@ -834,20 +1187,40 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
         <section className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,2.45fr)_minmax(280px,0.72fr)]">
       <div
         id="summary-table"
-        className="rounded-[2rem] border border-slate-200/70 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1a2248]/80 dark:bg-[linear-gradient(180deg,#0a1024_0%,#070c1d_100%)] dark:shadow-[0_22px_64px_rgba(2,6,23,0.5)]"
+        className="rounded-[var(--radius-panel)] p-5"
+        style={{
+          border: "1px solid var(--border)",
+          background: "var(--surface-card)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          boxShadow: "var(--shadow-md)",
+        }}
       >
         <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{strings.summaryTitle}</h2>
-            <p className="mt-1 text-base text-slate-600 dark:text-slate-400">{strings.summarySubtitle}</p>
+            <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+              {strings.summaryTitle}
+            </h2>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+              {strings.summarySubtitle}
+            </p>
           </div>
-          <div className="text-right text-sm text-slate-600 dark:text-slate-400">
+          <div className="text-right" style={{ color: "var(--text-faint)" }}>
             <div className="text-xs">{strings.top20} • {sortedRows.length}</div>
           </div>
         </div>
 
         {summaryRows.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200/80 bg-slate-50 p-6 text-slate-700 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-300">{strings.noRows}</div>
+          <div
+            className="rounded-2xl p-6 text-sm"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-subtle)",
+              color: "var(--text-muted)",
+            }}
+          >
+            {strings.noRows}
+          </div>
         ) : (
           <>
             {filtersPanel}
@@ -921,7 +1294,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                           </div>
                         </td>
                         <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">{row.model}</td>
-                        <td className="px-4 py-3">{row.lab}</td>
+                        <td className="px-4 py-3" style={{ color: "var(--text-muted)" }}>{row.lab}</td>
                         <td className="px-4 py-3">{fmtNum(row.intelligenceIndex, 2)}</td>
                         <td className="px-4 py-3">{fmtNum(row.codingIndex, 2)}</td>
                         <td className="px-4 py-3">{fmtNum(row.agenticIndex, 2)}</td>
@@ -954,27 +1327,37 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
               </table>
             </div>
 
-            <div className="mt-4 flex items-center justify-end gap-2">
+            <div className="mt-3 flex items-center justify-end gap-2">
               <button
-                className="inline-flex items-center gap-1 rounded-full border border-slate-300/80 bg-white px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+                className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{
+                  border: "1px solid var(--border)",
+                  background: "var(--surface-card)",
+                  color: "var(--text-muted)",
+                }}
                 disabled={clampedPage <= 0}
                 onClick={() => setPage((current) => Math.max(0, current - 1))}
                 type="button"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-3.5 w-3.5" />
                 {locale === "tr" ? "Önceki" : "Prev"}
               </button>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs" style={{ color: "var(--text-faint)" }}>
                 {clampedPage + 1} / {pageCount}
               </span>
               <button
-                className="inline-flex items-center gap-1 rounded-full border border-slate-300/80 bg-white px-3 py-1.5 text-sm text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+                className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{
+                  border: "1px solid var(--border)",
+                  background: "var(--surface-card)",
+                  color: "var(--text-muted)",
+                }}
                 disabled={clampedPage >= pageCount - 1}
                 onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
                 type="button"
               >
                 {locale === "tr" ? "Sonraki" : "Next"}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </div>
           </>
@@ -984,37 +1367,56 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
       <div className="flex min-h-0 self-stretch flex-col gap-6">
         <div
           id="latest-models"
-          className="min-h-[32rem] rounded-[2rem] border border-slate-200/70 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1c2348]/80 dark:bg-[linear-gradient(180deg,#0b1025_0%,#080d1f_100%)] dark:shadow-[0_24px_64px_rgba(2,6,23,0.5)]"
+          className="min-h-[32rem] rounded-[var(--radius-panel)] p-5"
+          style={{
+            border: "1px solid var(--border)",
+            background: "var(--surface-card)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            boxShadow: "var(--shadow-md)",
+          }}
         >
-          <div className="mb-5">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{strings.latestTitle}</h2>
-            <p className="mt-1 text-base text-slate-600 dark:text-slate-400">{strings.latestSubtitle}</p>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+              {strings.latestTitle}
+            </h2>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+              {strings.latestSubtitle}
+            </p>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {latestModels.map((item) => {
               const logoPath = getLabLogoPath(item.lab);
               return (
                 <article
                   key={item.id}
-                  className="flex items-center gap-3 rounded-3xl border border-slate-200/80 bg-slate-50/90 px-5 py-4 dark:border-white/5 dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))]"
+                  className="flex items-center gap-3 rounded-3xl px-5 py-4"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                  }}
                 >
-                  <div className="grid h-8 w-8 place-items-center overflow-hidden">
+                  <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden">
                     {logoPath ? (
                       <Image
                         alt={`${item.lab} logo`}
-                        className="h-6 w-6 object-contain"
-                        height={24}
+                        className="h-5 w-5 object-contain"
+                        height={20}
                         src={logoPath}
-                        width={24}
+                        width={20}
                       />
                     ) : (
-                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{labMonogram(item.lab)}</span>
+                      <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                        {labMonogram(item.lab)}
+                      </span>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-[1.05rem] font-semibold text-slate-900 dark:text-white">{item.model}</p>
-                    <p className="mt-0.5 text-lg text-slate-600 dark:text-slate-400">
-                      {item.lab} <span className="px-1.5">·</span> {shortDate(item.releaseDate, locale)}
+                    <p className="truncate text-sm font-semibold" style={{ color: "var(--text)" }}>
+                      {item.model}
+                    </p>
+                    <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                      {item.lab} <span className="px-1">·</span> {shortDate(item.releaseDate, locale)}
                     </p>
                   </div>
                 </article>
@@ -1025,48 +1427,69 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
 
         <div
           id="ai-news"
-          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1c2348]/80 dark:bg-[linear-gradient(180deg,#0b1025_0%,#080d1f_100%)] dark:shadow-[0_24px_64px_rgba(2,6,23,0.5)]"
+          className="flex flex-col rounded-[var(--radius-panel)] p-5"
+          style={{
+            border: "1px solid var(--border)",
+            background: "var(--surface-card)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            boxShadow: "var(--shadow-md)",
+          }}
         >
-          <div className="mb-5">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">{strings.aiNewsTitle}</h2>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+              {strings.aiNewsTitle}
+            </h2>
             {strings.aiNewsSubtitle ? (
-              <p className="mt-1 text-base text-slate-600 dark:text-slate-400">{strings.aiNewsSubtitle}</p>
+              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                {strings.aiNewsSubtitle}
+              </p>
             ) : null}
           </div>
-          <div className="relative min-h-0 flex-1">
-            <div className="hide-scrollbar h-full max-h-[620px] space-y-3 overflow-y-auto pr-1">
+          <div className="relative">
+            <div className="hide-scrollbar max-h-[600px] space-y-2 overflow-y-auto pr-1">
               {aiNewsPreview.map((item) => (
                 <article
                   key={item.id}
-                  className="rounded-3xl border border-slate-200/80 bg-slate-50/90 px-4 py-3 dark:border-white/5 dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))]"
+                  className="rounded-xl px-3 py-3"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                  }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border border-slate-200/70 dark:border-white/10">
+                    <div
+                      className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg"
+                      style={{ border: "1px solid var(--border)" }}
+                    >
                       <Image
                         alt={item.title}
                         className="h-full w-full object-cover"
-                        height={64}
+                        height={56}
                         src={item.imageUrl || "/mock-news/open-source-copilot.svg"}
-                        width={96}
+                        width={80}
                       />
                     </div>
                     <div className="min-w-0">
                       {item.link && !BLOCKED_NEWS_DOMAIN_PATTERN.test(item.link) ? (
                         <a
-                          className="line-clamp-2 text-sm font-semibold text-slate-900 transition hover:text-[color:var(--tt-blue)] dark:text-white dark:hover:text-sky-300"
+                          className="line-clamp-2 text-xs font-semibold transition-colors duration-150"
                           href={item.link}
                           rel="noreferrer"
                           target="_blank"
+                          style={{ color: "var(--text)" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--accent)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text)"; }}
                         >
                           {item.title}
                         </a>
                       ) : (
-                        <p className="line-clamp-2 text-sm font-semibold text-slate-900 dark:text-white">
+                        <p className="line-clamp-2 text-xs font-semibold" style={{ color: "var(--text)" }}>
                           {item.title}
                         </p>
                       )}
-                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                        {item.source} <span className="px-1.5">·</span> {shortDate(item.publishedAt, locale)}
+                      <p className="mt-0.5 text-[0.65rem]" style={{ color: "var(--text-faint)" }}>
+                        {item.source} <span className="px-1">·</span> {shortDate(item.publishedAt, locale)}
                       </p>
                     </div>
                   </div>
@@ -1075,8 +1498,14 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             </div>
             {showAiNewsScrollHint ? (
               <>
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[rgba(255,255,255,0.05)] via-[rgba(255,255,255,0.02)] to-transparent dark:from-[rgba(11,16,37,0.05)] dark:via-[rgba(11,16,37,0.02)]" />
-                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 text-slate-400/90 dark:text-slate-500/90">
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-12"
+                  style={{ background: "linear-gradient(to top, var(--surface-card), transparent)" }}
+                />
+                <div
+                  className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2"
+                  style={{ color: "var(--text-faint)" }}
+                >
                   <ChevronsDown className="h-5 w-5 animate-bounce" />
                 </div>
               </>
@@ -1084,20 +1513,34 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           </div>
         </div>
       </div>
-        </section>
+      </section>
       ) : activeSection === "llm" ? (
-        <section className="rounded-[2rem] border border-slate-200/70 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1a2248]/80 dark:bg-[linear-gradient(180deg,#0a1024_0%,#070c1d_100%)] dark:shadow-[0_22px_64px_rgba(2,6,23,0.5)]">
+        <section
+          className="rounded-[var(--radius-panel)] p-5"
+          style={{
+            border: "1px solid var(--border)",
+            background: "var(--surface-card)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            boxShadow: "var(--shadow-md)",
+          }}
+        >
           <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-white">
+              <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
                 {locale === "tr" ? "LLM Detaylar" : "LLM Details"}
               </h2>
             </div>
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
                 <span>{locale === "tr" ? "Satır" : "Rows"}</span>
                 <select
-                  className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none transition focus:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                  className="h-7 rounded-lg px-2 text-xs outline-none transition"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                    color: "var(--text)",
+                  }}
                   onChange={(event) => setLlmRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number])}
                   value={llmRowLimit}
                 >
@@ -1108,7 +1551,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                   ))}
                 </select>
               </label>
-              <div className="text-right text-xs text-slate-500 dark:text-slate-400">
+              <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
                 {llmVisibleRows.length} / {llmRows.length}
               </div>
             </div>
@@ -1118,30 +1561,31 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             <table className="min-w-[1800px] w-max text-left text-sm">
               <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
                 <tr>
-                  <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-3" />
-                  <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-3" />
-                  <th className="px-4 py-3">{renderSortableHeader("Model", "model", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.model)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader(locale === "tr" ? "Sağlayıcı" : "Provider", "lab", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.provider)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("Intelligence", "intelligenceIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.intelligence)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("Coding", "codingIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.code)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("Agentic", "agenticIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.agentic)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("GPQA", "gpqa", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.gpqa)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("MMLU-Pro", "mmluPro", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.mmluPro)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("TerminalBench", "terminalBenchHard", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.terminalBench)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("$ / 1M", "pricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.blendedPrice)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader(locale === "tr" ? "Girdi $ / 1M" : "Input $ / 1M", "inputPricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.inputPrice)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader(locale === "tr" ? "Çıktı $ / 1M" : "Output $ / 1M", "outputPricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.outputPrice)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("Tok/s", "outputTokensPerSecond", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.speed)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("TTFT (s)", "ttftSeconds", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.ttft)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader(locale === "tr" ? "Uçtan Uca (s)" : "End-to-End (s)", "endToEndSeconds", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.e2eLatency)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader("Context", "contextWindowTokens", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.context)}</th>
-                  <th className="px-4 py-3">{renderSortableHeader(locale === "tr" ? "Akıl Yürütme" : "Reasoning", "reasoning", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.reasoning)}</th>
-                  <th className="px-4 py-3 text-center">
+                  <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
+                  <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-2" />
+                  <th className="px-4 py-2">{renderSortableHeader("Model", "model", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.model)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Sağlayıcı" : "Provider", "lab", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.provider)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("Intelligence", "intelligenceIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.intelligence)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("Coding", "codingIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.code)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("Agentic", "agenticIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.agentic)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("GPQA", "gpqa", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.gpqa)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("MMLU-Pro", "mmluPro", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.mmluPro)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("TerminalBench", "terminalBenchHard", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.terminalBench)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("SWE-Bench", "sweBench", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.sweBench)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("$ / 1M", "pricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.blendedPrice)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Girdi $ / 1M" : "Input $ / 1M", "inputPricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.inputPrice)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Çıktı $ / 1M" : "Output $ / 1M", "outputPricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.outputPrice)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("Tok/s", "outputTokensPerSecond", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.speed)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("TTFT (s)", "ttftSeconds", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.ttft)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Uçtan Uca (s)" : "End-to-End (s)", "endToEndSeconds", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.e2eLatency)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader("Context", "contextWindowTokens", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.context)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Akıl Yürütme" : "Reasoning", "reasoning", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.reasoning)}</th>
+                  <th className="px-4 py-2 text-center">
                     <div className="flex justify-center">
                       {renderSortableHeader("Open Source", "openWeights", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.openSource)}
                     </div>
                   </th>
-                  <th className="px-4 py-3">{renderSortableHeader(locale === "tr" ? "Yayın" : "Release", "releaseDate", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.release)}</th>
+                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Yayın" : "Release", "releaseDate", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.release)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1150,8 +1594,8 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                   const isSelected = selectedIdSet.has(row.id);
                   const isDisabled = selectionLimitReached && !isSelected;
                   return (
-                    <tr key={row.id} className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]">
-                      <td className="px-3 py-3 align-middle">
+                      <tr key={row.id} className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]">
+                      <td className="px-3 py-2 align-middle">
                         <input
                           aria-label={locale === "tr" ? `${row.model} modelini karşılaştırma için seç` : `Select ${row.model} for comparison`}
                           checked={isSelected}
@@ -1176,7 +1620,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                           type="checkbox"
                         />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2">
                         <div className="grid h-8 w-8 place-items-center overflow-hidden">
                           {logoPath ? (
                             <Image
@@ -1191,23 +1635,24 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">{row.model}</td>
-                      <td className="px-4 py-3">{row.lab}</td>
-                      <td className="px-4 py-3">{fmtNum(row.intelligenceIndex, 2)}</td>
-                      <td className="px-4 py-3">{fmtNum(row.codingIndex, 2)}</td>
-                      <td className="px-4 py-3">{fmtNum(row.agenticIndex, 2)}</td>
-                      <td className="px-4 py-3">{fmtNum(row.gpqa, 2)}</td>
-                      <td className="px-4 py-3">{fmtNum(row.mmluPro, 2)}</td>
-                      <td className="px-4 py-3">{fmtNum(row.terminalBenchHard, 2)}</td>
-                      <td className="px-4 py-3">{formatUsd(row.pricePer1m)}</td>
-                      <td className="px-4 py-3">{formatUsd(row.inputPricePer1m)}</td>
-                      <td className="px-4 py-3">{formatUsd(row.outputPricePer1m)}</td>
-                      <td className="px-4 py-3">{fmtNum(row.outputTokensPerSecond, 1)}</td>
-                      <td className="px-4 py-3">{fmtNum(row.ttftSeconds, 2)}</td>
-                      <td className="px-4 py-3">{fmtNum(row.endToEndSeconds, 2)}</td>
-                      <td className="px-4 py-3">{formatContext(row.contextWindowTokens)}</td>
-                      <td className="px-4 py-3">{row.reasoning ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}</td>
-                      <td className="px-4 py-3 text-center align-middle">
+                      <td className="px-4 py-2 font-semibold text-slate-900 dark:text-white">{row.model}</td>
+                      <td className="px-4 py-2">{row.lab}</td>
+                      <td className="px-4 py-2">{fmtNum(row.intelligenceIndex, 2)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.codingIndex, 2)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.agenticIndex, 2)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.gpqa, 2)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.mmluPro, 2)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.terminalBenchHard, 2)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.sweBench, 2)}</td>
+                      <td className="px-4 py-2">{formatUsd(row.pricePer1m)}</td>
+                      <td className="px-4 py-2">{formatUsd(row.inputPricePer1m)}</td>
+                      <td className="px-4 py-2">{formatUsd(row.outputPricePer1m)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.outputTokensPerSecond, 1)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.ttftSeconds, 2)}</td>
+                      <td className="px-4 py-2">{fmtNum(row.endToEndSeconds, 2)}</td>
+                      <td className="px-4 py-2">{formatContext(row.contextWindowTokens)}</td>
+                      <td className="px-4 py-2">{row.reasoning ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}</td>
+                      <td className="px-4 py-2 text-center align-middle">
                         {row.openWeights ? (
                           <span
                             aria-label={openSourceTooltip}
@@ -1235,26 +1680,247 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           </div>
         </section>
       ) : (
-        <section className="rounded-[2rem] border border-slate-200/70 bg-white/90 p-8 text-sm text-slate-600 shadow-[0_20px_60px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-[#1a2248]/80 dark:bg-[linear-gradient(180deg,#0a1024_0%,#070c1d_100%)] dark:text-slate-300 dark:shadow-[0_22px_64px_rgba(2,6,23,0.5)]">
-          {filtersPanel}
-          {locale === "tr" ? "Bu kategori yakında eklenecek." : "This category will be available soon."}
+        <section
+          id="leaderboard"
+          className="rounded-[var(--radius-panel)] p-5 text-sm"
+          style={{
+            border: "1px solid var(--border)",
+            background: "var(--surface-card)",
+            color: "var(--text-muted)",
+          }}
+        >
+          <div
+            className="mb-2 rounded-2xl p-4"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-card)",
+            }}
+          >
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--text-faint)" }}>
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                {locale === "tr" ? "Kategori Filtreleri" : "Category Filters"}
+              </p>
+              <button
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                onClick={() => {
+                  setCategoryQuery("");
+                  setCategoryProviderFilter("all");
+                  setCategoryOpenFilter("all");
+                  setCategorySortKey("rank");
+                  setCategorySortDirection("asc");
+                }}
+                type="button"
+              >
+                <RotateCcw className="h-3 w-3" />
+                {locale === "tr" ? "Sıfırla" : "Reset"}
+              </button>
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              <label className="flex flex-col">
+                <span className="mb-1 flex h-6 items-end text-xs font-semibold tracking-[0.08em] text-slate-500 dark:text-slate-400">
+                  {locale === "tr" ? "Ara" : "Search"}
+                </span>
+                <input
+                  className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                    color: "var(--text)",
+                  }}
+                  onChange={(event) => setCategoryQuery(event.target.value)}
+                  placeholder={locale === "tr" ? "Model veya sağlayıcı" : "Model or provider"}
+                  type="text"
+                  value={categoryQuery}
+                />
+              </label>
+              <label className="flex flex-col">
+                <span className="mb-1 flex h-6 items-end text-xs font-semibold tracking-[0.08em] text-slate-500 dark:text-slate-400">
+                  {locale === "tr" ? "Sağlayıcı" : "Provider"}
+                </span>
+                <select
+                  className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                    color: "var(--text)",
+                  }}
+                  onChange={(event) => setCategoryProviderFilter(event.target.value)}
+                  value={categoryProviderFilter}
+                >
+                  <option value="all">{locale === "tr" ? "Tümü" : "All"}</option>
+                  {categoryProviderOptions.map((provider) => (
+                    <option key={provider} value={provider}>
+                      {provider}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col">
+                <span className="mb-1 flex h-6 items-end text-xs font-semibold tracking-[0.08em] text-slate-500 dark:text-slate-400">
+                  {locale === "tr" ? "Açık Kaynak" : "Open Source"}
+                </span>
+                <select
+                  className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                    color: "var(--text)",
+                  }}
+                  onChange={(event) => setCategoryOpenFilter(event.target.value as OpenFilter)}
+                  value={categoryOpenFilter}
+                >
+                  <option value="all">{locale === "tr" ? "Tümü" : "All"}</option>
+                  <option value="open">{locale === "tr" ? "Açık" : "Open"}</option>
+                  <option value="closed">{locale === "tr" ? "Kilitli" : "Closed"}</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          {categoryLoading ? (
+            <p>{locale === "tr" ? "Veri yükleniyor..." : "Loading data..."}</p>
+          ) : categoryError ? (
+            <p>{locale === "tr" ? `Hata: ${categoryError}` : `Error: ${categoryError}`}</p>
+          ) : categoryVisibleRows.length === 0 ? (
+            <p>{locale === "tr" ? "Bu kategori için henüz snapshot yok." : "No snapshot yet for this category."}</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs" style={{ color: "var(--text-faint)" }}>
+                <span>
+                  {locale === "tr" ? "Kaynak" : "Source"}: {categorySourceName ?? "-"}
+                </span>
+                <span>
+                  {categoryVisibleRows.length} / {categoryRows.length}
+                </span>
+                <span>
+                  {locale === "tr" ? "Snapshot" : "Snapshot"}: {categorySnapshotAt ? categorySnapshotAt.slice(0, 16).replace("T", " ") : "-"}
+                </span>
+              </div>
+              <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
+                <table className="min-w-[1100px] w-max text-left text-sm">
+                  <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
+                    <tr>
+                      {visibleCategoryColumns.map((column) => {
+                        const active = categorySortKey === column.key;
+                        return (
+                          <th key={column.key} className="px-4 py-2">
+                            <button
+                              className="inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 transition hover:text-slate-700 dark:hover:text-slate-200"
+                              onClick={() => {
+                                if (active) {
+                                  setCategorySortDirection(categorySortDirection === "asc" ? "desc" : "asc");
+                                  return;
+                                }
+                                setCategorySortKey(column.key);
+                                setCategorySortDirection(column.key === "rank" ? "asc" : "desc");
+                              }}
+                              type="button"
+                            >
+                              <ColumnTooltipLabel
+                                description={
+                                  column.key === "score"
+                                    ? describeCategoryScore(categoryScoreUnit, categorySourceName, locale)
+                                    : (locale === "tr" ? column.hint.tr : column.hint.en)
+                                }
+                                label={column.label}
+                              />
+                              {active ? (
+                                categorySortDirection === "asc" ? (
+                                  <ArrowUp className="h-3.5 w-3.5" />
+                                ) : (
+                                  <ArrowDown className="h-3.5 w-3.5" />
+                                )
+                              ) : (
+                                <ArrowUpDown className="h-3.5 w-3.5 opacity-65" />
+                              )}
+                            </button>
+                          </th>
+                        );
+                      })}
+                      <th className="px-4 py-2 text-center">
+                        <div className="flex justify-center">
+                          <ColumnTooltipLabel
+                            description={
+                              locale === "tr"
+                                ? "Model ağırlıklarının herkese açık olup olmadığını gösterir."
+                                : "Shows whether model weights are publicly available."
+                            }
+                            label={locale === "tr" ? "Açık" : "Open"}
+                          />
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categoryVisibleRows.map((row) => (
+                      <tr
+                        key={`${row.rank}-${row.model}`}
+                        className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]"
+                      >
+                        {visibleCategoryColumns.map((column) => (
+                          <td key={`${row.rank}-${row.model}-${column.key}`} className="px-4 py-2">
+                            {column.key === "model" ? (
+                              row.modelUrl ? (
+                                <a href={row.modelUrl} target="_blank" rel="noreferrer" className="font-medium hover:underline" style={{ color: "var(--text)" }}>
+                                  {row.model}
+                                </a>
+                              ) : (
+                                <span className="font-medium" style={{ color: "var(--text)" }}>{row.model}</span>
+                              )
+                            ) : (
+                              column.render(row)
+                            )}
+                          </td>
+                        ))}
+                        <td className="px-4 py-2 text-center align-middle">
+                          {row.isOpenSource === true ? (
+                            <LockOpen className="mx-auto h-4 w-4 text-emerald-500" />
+                          ) : row.isOpenSource === false ? (
+                            <Lock className="mx-auto h-4 w-4 text-red-500" />
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
       {compareDrawerData ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
           <div
-            className={`${isCompareDrawerExiting ? "compare-drawer-exit pointer-events-none" : "compare-drawer-enter pointer-events-auto"} w-full max-w-3xl rounded-2xl border border-[#d8e5fa]/95 bg-[linear-gradient(135deg,rgba(245,250,255,0.97),rgba(239,247,255,0.98))] px-4 py-3 shadow-[0_-12px_34px_rgba(148,163,184,0.26)] backdrop-blur dark:border-[#314676]/65 dark:bg-[linear-gradient(135deg,rgba(17,29,56,0.95),rgba(18,44,72,0.95))]`}
+            className={`${
+              isCompareDrawerExiting
+                ? "compare-drawer-exit pointer-events-none"
+                : "compare-drawer-enter pointer-events-auto"
+            } w-full max-w-3xl rounded-2xl px-4 py-3`}
+            style={{
+              border: "1px solid var(--border-strong)",
+              background: "var(--surface-raised)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              boxShadow: "var(--shadow-lg)",
+            }}
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-slate-700 dark:text-slate-200">
+              <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
                 <span className="font-semibold">{compareDrawerData.leftModel.model}</span>
-                <span className="px-2 text-slate-400">vs</span>
+                <span className="px-2" style={{ color: "var(--text-faint)" }}>vs</span>
                 <span className="font-semibold">{compareDrawerData.rightModel.model}</span>
               </p>
               <div className="flex items-center gap-2">
                 <button
-                  className="rounded-full border border-slate-300/80 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/15 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+                  className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-150"
+                  style={{
+                    border: "1px solid var(--border)",
+                    color: "var(--text-muted)",
+                    background: "transparent",
+                  }}
                   onClick={() => {
                     setSelectedModelIds([]);
                     setCompareModalOpen(false);
@@ -1264,11 +1930,17 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                   {locale === "tr" ? "Seçimi Temizle" : "Clear Selection"}
                 </button>
                 <button
-                  className="rounded-full border border-[#bfd4fb] bg-[linear-gradient(135deg,rgba(206,225,255,0.96),rgba(208,237,255,0.95))] px-4 py-2 text-sm font-semibold text-[#1f2b54] shadow-[0_8px_18px_rgba(148,163,184,0.33)] transition duration-200 hover:brightness-[1.02] hover:shadow-[0_10px_22px_rgba(148,163,184,0.42)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9cc2ff] focus-visible:ring-offset-2 dark:border-[#6f86bf]/70 dark:bg-[linear-gradient(135deg,rgba(50,84,148,0.68),rgba(31,108,152,0.66))] dark:text-slate-100"
+                  className="rounded-full px-4 py-2 text-sm font-semibold transition-all duration-150"
+                  style={{
+                    border: "1px solid var(--accent)",
+                    background: "var(--accent)",
+                    color: "#fff",
+                    boxShadow: "0 4px 12px rgba(201,12,15,0.25)",
+                  }}
                   onClick={() => setCompareModalOpen(true)}
                   type="button"
                 >
-                  {locale === "tr" ? "Karşılaştır" : "Compare"}
+                  {locale === "tr" ? "Kıyasla" : "Compare"}
                 </button>
               </div>
             </div>
@@ -1336,22 +2008,40 @@ function ModelCompareModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-end justify-center p-4 backdrop-blur-sm md:items-center ${
+      className={`fixed inset-0 z-50 flex items-end justify-center p-4 md:items-center ${
         isExiting ? "compare-modal-overlay-exit" : "compare-modal-overlay-enter"
       }`}
+      style={{ backdropFilter: "blur(8px)", background: "rgba(0,0,0,0.45)" }}
     >
       <div
-        className={`w-full max-w-6xl overflow-hidden rounded-3xl border border-[#ccdbf8] bg-[linear-gradient(140deg,rgba(252,254,255,0.99),rgba(239,247,255,0.99))] shadow-[0_28px_72px_rgba(148,163,184,0.3)] dark:border-[#334a7a] dark:bg-[linear-gradient(145deg,rgba(13,23,45,0.97),rgba(14,41,61,0.97))] ${
+        className={`w-full max-w-6xl overflow-hidden rounded-2xl ${
           isExiting ? "compare-modal-panel-exit" : "compare-modal-panel-enter"
         }`}
+        style={{
+          border: "1px solid var(--border-strong)",
+          background: "var(--surface-raised)",
+          boxShadow: "var(--shadow-lg)",
+        }}
       >
-        <div className="flex items-center justify-between border-b border-[#d7e4fb] px-5 py-4 dark:border-[#3d5181]/90">
-          <p className="text-sm font-semibold tracking-[0.08em] text-[#263a71] dark:text-slate-100">
-            {locale === "tr" ? "Model Karşılaştırma" : "Model Comparison"}
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: "1px solid var(--border)" }}
+        >
+          <p
+            className="text-xs font-semibold uppercase tracking-[0.12em]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {locale === "tr" ? "Model Kıyaslama" : "Model Comparison"}
           </p>
           <button
             aria-label={locale === "tr" ? "Kapat" : "Close"}
-            className="rounded-full border border-[#d5e0f7] bg-white/85 p-2 text-slate-600 transition hover:border-[#b8d6ff] hover:bg-[rgba(213,232,255,0.58)] hover:text-[#1f2b54] dark:border-[#4b6396] dark:bg-slate-900/65 dark:text-slate-300 dark:hover:bg-[#2f5779]/55 dark:hover:text-slate-100"
+            className="rounded-full p-2 transition-all duration-150"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-subtle)",
+              color: "var(--text-muted)",
+            }}
             onClick={onClose}
             type="button"
           >
@@ -1360,86 +2050,114 @@ function ModelCompareModal({
         </div>
 
         <div className="max-h-[85vh] overflow-y-auto px-5 py-5 md:px-7">
+          {/* Winner headline */}
           <div className="text-center">
-            <p className="text-5xl font-semibold text-[color:var(--tt-navy)]">{winnerPct}%</p>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="text-5xl font-bold" style={{ color: "var(--accent)" }}>
+              {winnerPct}%
+            </p>
+            <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
               {locale === "tr"
                 ? `${winner}, karşılaştırmalı metriklerde ${loser} modeline göre daha güçlü görünüyor.`
                 : `${winner} appears stronger than ${loser} across comparative metrics.`}
             </p>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-[#dde6fb] bg-[linear-gradient(135deg,rgba(240,247,255,0.92),rgba(233,247,255,0.9))] p-4 dark:border-[#415482]/80 dark:bg-[linear-gradient(135deg,rgba(20,36,70,0.82),rgba(20,60,83,0.84))]">
+          {/* Metric table */}
+          <div
+            className="mt-5 rounded-xl p-4"
+            style={{ border: "1px solid var(--border)", background: "var(--surface-subtle)" }}
+          >
             <div className="grid gap-3 md:grid-cols-3">
-              <div className="hidden text-xs font-semibold tracking-[0.12em] text-slate-500 md:block">
+              <div
+                className="hidden text-xs font-semibold uppercase tracking-[0.16em] md:block"
+                style={{ color: "var(--text-faint)" }}
+              >
                 {locale === "tr" ? "Metrik" : "Metric"}
               </div>
-              <div className="text-xs font-semibold tracking-[0.12em] text-[color:var(--tt-blue)]">{data.leftModel.model}</div>
-              <div className="text-xs font-semibold tracking-[0.12em] text-teal-600 dark:text-teal-300">{data.rightModel.model}</div>
+              <div className="text-xs font-semibold tracking-[0.12em]" style={{ color: "var(--tt-blue)" }}>
+                {data.leftModel.model}
+              </div>
+              <div className="text-xs font-semibold tracking-[0.12em] text-teal-500">
+                {data.rightModel.model}
+              </div>
               {data.detailRows.map((row) => (
                 <Fragment key={row.label}>
-                  <div className="text-sm text-slate-700 dark:text-slate-300">{row.label}</div>
-                  <div className="text-sm font-semibold text-[color:var(--tt-blue)]">{row.left}</div>
-                  <div className="text-sm font-semibold text-teal-600 dark:text-teal-300">{row.right}</div>
+                  <div className="text-sm" style={{ color: "var(--text-muted)" }}>{row.label}</div>
+              <div className="text-sm font-semibold" style={{ color: "var(--tt-blue)", opacity: 0.9 }}>{row.left}</div>
+                  <div className="text-sm font-semibold text-teal-600/90 dark:text-teal-400/80">{row.right}</div>
                 </Fragment>
               ))}
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-[#dde6fb] bg-[linear-gradient(135deg,rgba(240,247,255,0.92),rgba(233,247,255,0.9))] p-4 dark:border-[#415482]/80 dark:bg-[linear-gradient(135deg,rgba(20,36,70,0.82),rgba(20,60,83,0.84))]">
-            <p className="mb-3 text-xs font-semibold tracking-[0.14em] text-slate-500 dark:text-slate-300">
-              {locale === "tr" ? "Kategori Bazlı Dağılım" : "Category Breakdown"}
+          {/* Bar chart */}
+          <div
+            className="mt-4 rounded-xl p-4"
+            style={{ border: "1px solid var(--border)", background: "var(--surface-subtle)" }}
+          >
+            <p
+              className="mb-3 text-xs font-semibold uppercase tracking-[0.14em]"
+              style={{ color: "var(--text-faint)" }}
+            >
+              {locale === "tr" ? "Kategori Bazında" : "Category Breakdown"}
             </p>
-            <div className="h-[360px]">
+            <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.barRows} layout="vertical" margin={{ top: 8, right: 18, left: 10, bottom: 8 }}>
                   <XAxis hide type="number" domain={[0, 100]} />
-                  <YAxis dataKey="category" type="category" width={130} tick={{ fill: "#334155", fontSize: 12 }} />
+                  <YAxis dataKey="category" type="category" width={130} tick={{ fill: "var(--text-muted)", fontSize: 11 }} />
                   <Tooltip
                     formatter={(value) => formatTooltipPercent(value)}
                     contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.98)",
-                      border: "1px solid rgba(148, 163, 184, 0.45)",
-                      borderRadius: 12,
-                      color: "#0f172a",
+                      backgroundColor: "var(--surface-raised)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 10,
+                      color: "var(--text)",
                     }}
                   />
-                  <Bar dataKey="left" stackId="s" fill={leftSeriesColor} radius={[8, 0, 0, 8]} />
-                  <Bar dataKey="right" stackId="s" fill={rightSeriesColor} radius={[0, 8, 8, 0]} />
+                  <Bar dataKey="left" stackId="s" fill={leftSeriesColor} fillOpacity={0.85} radius={[6, 0, 0, 6]} />
+                  <Bar dataKey="right" stackId="s" fill={rightSeriesColor} fillOpacity={0.85} radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-[#dde6fb] bg-[linear-gradient(135deg,rgba(240,247,255,0.92),rgba(233,247,255,0.9))] p-4 dark:border-[#415482]/80 dark:bg-[linear-gradient(135deg,rgba(20,36,70,0.82),rgba(20,60,83,0.84))]">
-            <p className="mb-3 text-xs font-semibold tracking-[0.14em] text-slate-500 dark:text-slate-300">
+          {/* Radar chart */}
+          <div
+            className="mt-4 rounded-xl p-4"
+            style={{ border: "1px solid var(--border)", background: "var(--surface-subtle)" }}
+          >
+            <p
+              className="mb-3 text-xs font-semibold uppercase tracking-[0.14em]"
+              style={{ color: "var(--text-faint)" }}
+            >
               {locale === "tr" ? "Çok Boyutlu Profil" : "Multi-dimensional Profile"}
             </p>
-            <div className="h-[320px]">
+            <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={data.radarRows} outerRadius="75%">
-                  <PolarGrid stroke="rgba(148, 163, 184, 0.5)" />
-                  <PolarAngleAxis dataKey="axis" tick={{ fill: "#334155", fontSize: 12 }} />
-                  <Radar dataKey="left" name={data.leftModel.model} stroke={leftSeriesColor} fill={leftSeriesColor} fillOpacity={0.22} />
-                  <Radar dataKey="right" name={data.rightModel.model} stroke={rightSeriesColor} fill={rightSeriesColor} fillOpacity={0.22} />
+                  <PolarGrid stroke="var(--border)" />
+                  <PolarAngleAxis dataKey="axis" tick={{ fill: "var(--text-muted)", fontSize: 11 }} />
+                  <Radar dataKey="left" name={data.leftModel.model} stroke={leftSeriesColor} fill={leftSeriesColor} fillOpacity={0.15} />
+                  <Radar dataKey="right" name={data.rightModel.model} stroke={rightSeriesColor} fill={rightSeriesColor} fillOpacity={0.15} />
                   <Tooltip
                     formatter={(value) => formatTooltipPercent(value)}
                     contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.98)",
-                      border: "1px solid rgba(148, 163, 184, 0.45)",
-                      borderRadius: 12,
-                      color: "#0f172a",
+                      backgroundColor: "var(--surface-raised)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 10,
+                      color: "var(--text)",
                     }}
                   />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-3 flex flex-wrap gap-4 text-xs">
-              <span className="inline-flex items-center gap-1.5 text-[color:var(--tt-blue)]">
-                <span className="h-2.5 w-2.5 rounded-full bg-[color:var(--tt-blue)]" />
+              <span className="inline-flex items-center gap-1.5" style={{ color: "var(--tt-blue)" }}>
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--tt-blue)" }} />
                 {data.leftModel.model}
               </span>
-              <span className="inline-flex items-center gap-1.5 text-teal-600 dark:text-teal-300">
+              <span className="inline-flex items-center gap-1.5 text-teal-500">
                 <span className="h-2.5 w-2.5 rounded-full bg-teal-500" />
                 {data.rightModel.model}
               </span>
@@ -1763,7 +2481,7 @@ function formatContext(value: number | null) {
 }
 
 function formatUsd(value: number | null) {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
     return "-";
   }
   return `$${value.toFixed(value < 1 ? 3 : 2)}`;
