@@ -1,22 +1,15 @@
-import path from "node:path";
-import { initDatabase, closeDatabase, type MonitoringDatabase } from "@/lib/monitoring/db";
-import { runMigrations } from "@/lib/monitoring/migrate";
-import { MonitoringRepository } from "@/lib/monitoring/repositories";
 import { getActiveLeaderboardSources } from "@/lib/monitoring/leaderboard-sources";
 import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
 import { diffTop10 } from "@/lib/monitoring/leaderboard-diff";
 import { selectWeeklyTopNews } from "@/lib/monitoring/news-selection";
 import { sendTop10AlertEmail, sendWeeklyDigestEmail } from "@/lib/monitoring/notifications";
 import { LEADERBOARD_CATEGORIES, type LeaderboardCategory } from "@/lib/monitoring/contracts";
+import { openMonitoringRuntime, type MonitoringRuntime, type MonitoringRuntimeOptions } from "@/lib/monitoring/runtime";
 import type { RunSummary } from "@/lib/monitoring/run-types";
 
-export interface MonitoringRuntimeOptions {
-  dbPath?: string;
-  schemaPath?: string;
-}
-
 export interface RunCycleOptions {
-  db?: MonitoringDatabase;
+  runtime?: MonitoringRuntime;
+  runtimeOptions?: MonitoringRuntimeOptions;
   nowIso?: string;
   timeoutMs?: number;
 }
@@ -28,14 +21,6 @@ function getRecipients(): string[] {
     .filter(Boolean);
 }
 
-function defaultDbPath(): string {
-  return process.env.MONITORING_DB_PATH?.trim() || path.join(process.cwd(), "data", "monitoring.db");
-}
-
-function defaultSchemaPath(): string {
-  return process.env.MONITORING_SCHEMA_PATH?.trim() || path.join(process.cwd(), "docs", "sqlite_monitoring_schema.sql");
-}
-
 function isoMinusDays(iso: string, days: number): string {
   const ts = Date.parse(iso);
   if (!Number.isFinite(ts)) {
@@ -44,16 +29,14 @@ function isoMinusDays(iso: string, days: number): string {
   return new Date(ts - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
-export function initializeMonitoringRuntime(options: MonitoringRuntimeOptions = {}): MonitoringDatabase {
-  const db = initDatabase(options.dbPath ?? defaultDbPath());
-  runMigrations(options.schemaPath ?? defaultSchemaPath(), db);
-  return db;
+export async function initializeMonitoringRuntime(options: MonitoringRuntimeOptions = {}): Promise<MonitoringRuntime> {
+  return openMonitoringRuntime(options);
 }
 
 export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<{ runId: string; summary: RunSummary }> {
-  const db = options.db ?? initializeMonitoringRuntime();
-  const shouldClose = !options.db;
-  const repository = new MonitoringRepository(db);
+  const runtime = options.runtime ?? (await initializeMonitoringRuntime(options.runtimeOptions));
+  const shouldClose = !options.runtime;
+  const repository = runtime.repository;
   const nowIso = options.nowIso ?? new Date().toISOString();
   const timeoutMs = options.timeoutMs ?? 15_000;
   const summary: RunSummary = {
@@ -66,7 +49,7 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     notificationsFailed: 0,
   };
 
-  const runId = repository.insertRun({
+  const runId = await repository.insertRun({
     runType: "scheduled_12h",
     status: "running",
     startedAt: nowIso,
@@ -79,100 +62,159 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     for (const category of LEADERBOARD_CATEGORIES) {
       const adapters = getActiveLeaderboardSources(category);
       for (const adapter of adapters) {
-        const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
-        summary.leaderboardSourcesChecked += 1;
+        const startedAt = Date.now();
+        try {
+          const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
+          summary.leaderboardSourcesChecked += 1;
 
-        const currentEntries = await adapter.normalizeTop10(raw, category as LeaderboardCategory, nowIso);
-        if (currentEntries.length === 0) {
-          continue;
-        }
+          const currentEntries = await adapter.normalizeTop10(raw, category as LeaderboardCategory, nowIso);
+          if (currentEntries.length === 0) {
+            await repository.upsertSourceHealth({
+              sourceName: adapter.sourceName,
+              sourceType: "leaderboard",
+              enabled: true,
+              success: true,
+              latencyMs: Date.now() - startedAt,
+              lastCheckedAt: nowIso,
+              lastSuccessAt: nowIso,
+            });
+            continue;
+          }
 
-        const previous = repository.getLatestLeaderboardSnapshot(category as LeaderboardCategory, adapter.sourceName);
-        const previousTop10 = (previous?.entries ?? []).slice(0, 10);
-        const currentTop10 = currentEntries.slice(0, 10);
-        const changes = diffTop10(category, adapter.sourceName, previousTop10, currentTop10);
+          const previous = await repository.getLatestLeaderboardSnapshot(
+            category as LeaderboardCategory,
+            adapter.sourceName,
+          );
+          const previousTop10 = (previous?.entries ?? []).slice(0, 10);
+          const currentTop10 = currentEntries.slice(0, 10);
+          const changes = diffTop10(category, adapter.sourceName, previousTop10, currentTop10);
 
-        repository.insertLeaderboardSnapshot(
-          runId,
-          category as LeaderboardCategory,
-          adapter.sourceName,
-          adapter.priority,
-          nowIso,
-          currentEntries,
-          raw,
-        );
-        summary.leaderboardSnapshotsWritten += 1;
+          await repository.insertLeaderboardSnapshot(
+            runId,
+            category as LeaderboardCategory,
+            adapter.sourceName,
+            adapter.priority,
+            nowIso,
+            currentEntries,
+            raw,
+          );
+          summary.leaderboardSnapshotsWritten += 1;
 
-        const insertedChanges = repository.insertLeaderboardChanges(
-          runId,
-          category as LeaderboardCategory,
-          adapter.sourceName,
-          changes,
-        );
-        summary.leaderboardChangesDetected += insertedChanges;
+          const insertedChanges = await repository.insertLeaderboardChanges(
+            runId,
+            category as LeaderboardCategory,
+            adapter.sourceName,
+            changes,
+          );
+          summary.leaderboardChangesDetected += insertedChanges;
 
-        if (changes.length > 0 && recipients.length > 0) {
-          for (const recipient of recipients) {
-            const dedupeKey = `top10:${category}:${adapter.sourceName}:${changes.map((c) => c.eventFingerprint).join(",")}:${recipient}`;
-            try {
-              const sent = await sendTop10AlertEmail({
-                to: [recipient],
-                category,
-                sourceName: adapter.sourceName,
-                runTimeIso: nowIso,
-                changes: changes.map((item) => ({
-                  modelName: item.modelName,
-                  vendor: item.vendor,
-                  changeType: item.changeType,
-                  rankBefore: item.rankBefore,
-                  rankAfter: item.rankAfter,
-                })),
-              });
-              repository.insertNotificationLog({
-                runId,
-                notificationType: "top10_alert",
-                category,
-                sourceName: adapter.sourceName,
-                dedupeKey,
-                recipient,
-                subject: `Top10 alert ${category}`,
-                status: "sent",
-                messageId: sent.messageId,
-                sentAt: nowIso,
-              });
-              summary.notificationsSent += 1;
-            } catch (error) {
-              repository.insertNotificationLog({
-                runId,
-                notificationType: "top10_alert",
-                category,
-                sourceName: adapter.sourceName,
-                dedupeKey,
-                recipient,
-                subject: `Top10 alert ${category}`,
-                status: "failed",
-                errorMessage: error instanceof Error ? error.message : String(error),
-              });
-              summary.notificationsFailed += 1;
+          await repository.upsertSourceHealth({
+            sourceName: adapter.sourceName,
+            sourceType: "leaderboard",
+            enabled: true,
+            success: true,
+            latencyMs: Date.now() - startedAt,
+            lastCheckedAt: nowIso,
+            lastSuccessAt: nowIso,
+          });
+
+          if (changes.length > 0 && recipients.length > 0) {
+            for (const recipient of recipients) {
+              const dedupeKey = `top10:${category}:${adapter.sourceName}:${changes.map((c) => c.eventFingerprint).join(",")}:${recipient}`;
+              try {
+                const sent = await sendTop10AlertEmail({
+                  to: [recipient],
+                  category,
+                  sourceName: adapter.sourceName,
+                  runTimeIso: nowIso,
+                  changes: changes.map((item) => ({
+                    modelName: item.modelName,
+                    vendor: item.vendor,
+                    changeType: item.changeType,
+                    rankBefore: item.rankBefore,
+                    rankAfter: item.rankAfter,
+                  })),
+                });
+                await repository.insertNotificationLog({
+                  runId,
+                  notificationType: "top10_alert",
+                  category,
+                  sourceName: adapter.sourceName,
+                  dedupeKey,
+                  recipient,
+                  subject: `Top10 alert ${category}`,
+                  status: "sent",
+                  messageId: sent.messageId,
+                  sentAt: nowIso,
+                });
+                summary.notificationsSent += 1;
+              } catch (error) {
+                await repository.insertNotificationLog({
+                  runId,
+                  notificationType: "top10_alert",
+                  category,
+                  sourceName: adapter.sourceName,
+                  dedupeKey,
+                  recipient,
+                  subject: `Top10 alert ${category}`,
+                  status: "failed",
+                  errorMessage: error instanceof Error ? error.message : String(error),
+                });
+                summary.notificationsFailed += 1;
+              }
             }
           }
+        } catch (error) {
+          await repository.upsertSourceHealth({
+            sourceName: adapter.sourceName,
+            sourceType: "leaderboard",
+            enabled: true,
+            success: false,
+            latencyMs: Date.now() - startedAt,
+            lastCheckedAt: nowIso,
+            lastErrorMessage: error instanceof Error ? error.message : String(error),
+          });
+          throw error;
         }
       }
     }
 
     for (const adapter of newsAdapters) {
-      summary.newsSourcesChecked += 1;
-      const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
-      const entries = await adapter.normalizeNews(raw, nowIso);
-      repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, entries, raw);
-      summary.newsEntriesWritten += entries.length;
+      const startedAt = Date.now();
+      try {
+        summary.newsSourcesChecked += 1;
+        const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
+        const entries = await adapter.normalizeNews(raw, nowIso);
+        await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, entries, raw);
+        summary.newsEntriesWritten += entries.length;
+        await repository.upsertSourceHealth({
+          sourceName: adapter.sourceName,
+          sourceType: "news",
+          enabled: true,
+          success: true,
+          latencyMs: Date.now() - startedAt,
+          lastCheckedAt: nowIso,
+          lastSuccessAt: nowIso,
+        });
+      } catch (error) {
+        await repository.upsertSourceHealth({
+          sourceName: adapter.sourceName,
+          sourceType: "news",
+          enabled: true,
+          success: false,
+          latencyMs: Date.now() - startedAt,
+          lastCheckedAt: nowIso,
+          lastErrorMessage: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      }
     }
 
     const runStatus = summary.notificationsFailed > 0 ? "partial_success" : "success";
-    repository.updateRun(runId, runStatus, new Date().toISOString(), summary);
+    await repository.updateRun(runId, runStatus, new Date().toISOString(), summary);
     return { runId, summary };
   } catch (error) {
-    repository.updateRun(
+    await repository.updateRun(
       runId,
       "failed",
       new Date().toISOString(),
@@ -182,19 +224,19 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     throw error;
   } finally {
     if (shouldClose) {
-      closeDatabase(db);
+      await runtime.close();
     }
   }
 }
 
 export async function runWeeklyDigestCycle(options: RunCycleOptions = {}): Promise<{ runId: string; digestCount: number }> {
-  const db = options.db ?? initializeMonitoringRuntime();
-  const shouldClose = !options.db;
-  const repository = new MonitoringRepository(db);
+  const runtime = options.runtime ?? (await initializeMonitoringRuntime(options.runtimeOptions));
+  const shouldClose = !options.runtime;
+  const repository = runtime.repository;
   const nowIso = options.nowIso ?? new Date().toISOString();
   const recipients = getRecipients();
 
-  const runId = repository.insertRun({
+  const runId = await repository.insertRun({
     runType: "weekly_digest",
     status: "running",
     startedAt: nowIso,
@@ -203,9 +245,9 @@ export async function runWeeklyDigestCycle(options: RunCycleOptions = {}): Promi
   try {
     const windowEndIso = nowIso;
     const windowStartIso = isoMinusDays(nowIso, 7);
-    const entries = repository.getNewsEntriesInWindow(windowStartIso, windowEndIso);
+    const entries = await repository.getNewsEntriesInWindow(windowStartIso, windowEndIso);
     const items = selectWeeklyTopNews(entries);
-    repository.insertWeeklyDigest(runId, windowStartIso, windowEndIso, nowIso, items);
+    await repository.insertWeeklyDigest(runId, windowStartIso, windowEndIso, nowIso, items);
 
     for (const recipient of recipients) {
       const dedupeKey = `weekly:${windowStartIso}:${windowEndIso}:${recipient}`;
@@ -222,7 +264,7 @@ export async function runWeeklyDigestCycle(options: RunCycleOptions = {}): Promi
             importanceScore: item.importanceScore,
           })),
         });
-        repository.insertNotificationLog({
+        await repository.insertNotificationLog({
           runId,
           notificationType: "weekly_digest",
           dedupeKey,
@@ -233,7 +275,7 @@ export async function runWeeklyDigestCycle(options: RunCycleOptions = {}): Promi
           sentAt: nowIso,
         });
       } catch (error) {
-        repository.insertNotificationLog({
+        await repository.insertNotificationLog({
           runId,
           notificationType: "weekly_digest",
           dedupeKey,
@@ -245,12 +287,12 @@ export async function runWeeklyDigestCycle(options: RunCycleOptions = {}): Promi
       }
     }
 
-    repository.updateRun(runId, "success", new Date().toISOString(), {
+    await repository.updateRun(runId, "success", new Date().toISOString(), {
       weeklyDigestItems: items.length,
     });
     return { runId, digestCount: items.length };
   } catch (error) {
-    repository.updateRun(
+    await repository.updateRun(
       runId,
       "failed",
       new Date().toISOString(),
@@ -260,7 +302,7 @@ export async function runWeeklyDigestCycle(options: RunCycleOptions = {}): Promi
     throw error;
   } finally {
     if (shouldClose) {
-      closeDatabase(db);
+      await runtime.close();
     }
   }
 }

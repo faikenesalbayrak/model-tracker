@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import path from "node:path";
-import { initDatabase, closeDatabase } from "@/lib/monitoring/db";
-import { runMigrations } from "@/lib/monitoring/migrate";
-import { MonitoringRepository } from "@/lib/monitoring/repositories";
+import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 
 export const runtime = "nodejs";
@@ -21,17 +18,11 @@ function toIsoDate(value: unknown): string | null {
 }
 
 export async function GET() {
-  const dbPath = process.env.MONITORING_DB_PATH?.trim() || path.join(process.cwd(), "data", "monitoring.db");
-  const schemaPath =
-    process.env.MONITORING_SCHEMA_PATH?.trim() ||
-    path.join(process.cwd(), "docs", "sqlite_monitoring_schema.sql");
-
-  const db = initDatabase(dbPath);
+  const runtime = await openMonitoringRuntime();
 
   try {
-    runMigrations(schemaPath, db);
-    const repository = new MonitoringRepository(db);
-    const snapshot = repository.getLatestCategorySnapshot("general_llm");
+    const repository = runtime.repository;
+    const snapshot = await repository.getLatestCategorySnapshot("general_llm");
     const nowTs = Date.now();
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
     const entries = snapshot?.entries ?? [];
@@ -65,25 +56,10 @@ export async function GET() {
         .map((item) => item.sourceName),
     );
 
-    const latestCategorySources = db.prepare(`
-      SELECT source_name
-      FROM (
-        SELECT
-          source_name,
-          category,
-          ROW_NUMBER() OVER (
-            PARTITION BY category
-            ORDER BY snapshot_at DESC, source_priority ASC
-          ) AS rn
-        FROM leaderboard_snapshots
-      )
-      WHERE rn = 1
-    `).all() as Array<{ source_name: string }>;
+    const latestCategorySources = await repository.getLatestSourceNamesByCategory();
 
     const sources = new Set(
-      latestCategorySources
-        .map((row) => row.source_name)
-        .filter((name) => enabledLeaderboardSources.has(name)),
+      latestCategorySources.filter((name) => enabledLeaderboardSources.has(name)),
     ).size;
 
     return NextResponse.json(
@@ -97,7 +73,6 @@ export async function GET() {
       { headers: { "Cache-Control": "no-store" } },
     );
   } finally {
-    closeDatabase(db);
+    await runtime.close();
   }
 }
-

@@ -1,24 +1,14 @@
 import { NextResponse } from "next/server";
-import path from "node:path";
-import { initDatabase, closeDatabase } from "@/lib/monitoring/db";
-import { runMigrations } from "@/lib/monitoring/migrate";
-import { MonitoringRepository } from "@/lib/monitoring/repositories";
+import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const dbPath = process.env.MONITORING_DB_PATH?.trim() || path.join(process.cwd(), "data", "monitoring.db");
-  const schemaPath =
-    process.env.MONITORING_SCHEMA_PATH?.trim() ||
-    path.join(process.cwd(), "docs", "sqlite_monitoring_schema.sql");
-
-  const db = initDatabase(dbPath);
+  const runtime = await openMonitoringRuntime();
 
   try {
-    runMigrations(schemaPath, db);
-    const repo = new MonitoringRepository(db);
     const now = new Date();
     const windowEndIso = now.toISOString();
     const windowStartIso = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
@@ -27,7 +17,7 @@ export async function GET() {
         .filter((item) => item.sourceType === "news" && item.status === "enabled")
         .map((item) => item.sourceName),
     );
-    const entries = repo.getNewsEntriesInWindow(windowStartIso, windowEndIso)
+    const entries = (await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso))
       .filter((item) => activeNewsSources.has(item.sourceName))
       .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""))
       .slice(0, 40);
@@ -49,6 +39,6 @@ export async function GET() {
       { headers: { "Cache-Control": "no-store" } },
     );
   } finally {
-    closeDatabase(db);
+    await runtime.close();
   }
 }

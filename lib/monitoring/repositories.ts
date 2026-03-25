@@ -1,7 +1,17 @@
 import { randomUUID } from "node:crypto";
 import type { MonitoringDatabase } from "@/lib/monitoring/db";
-import type { LeaderboardCategory, NormalizedLeaderboardEntry, NormalizedNewsEntry, SourceType } from "@/lib/monitoring/contracts";
-import type { LeaderboardChangeEvent, MonitorRunStatus, MonitorRunType, WeeklyDigestItem } from "@/lib/monitoring/run-types";
+import type {
+  LeaderboardCategory,
+  NormalizedLeaderboardEntry,
+  NormalizedNewsEntry,
+  SourceType,
+} from "@/lib/monitoring/contracts";
+import type {
+  LeaderboardChangeEvent,
+  MonitorRunStatus,
+  MonitorRunType,
+  WeeklyDigestItem,
+} from "@/lib/monitoring/run-types";
 
 export interface InsertRunInput {
   runType: MonitorRunType;
@@ -47,7 +57,13 @@ export class MonitoringRepository {
     return id;
   }
 
-  updateRun(id: string, status: MonitorRunStatus, completedAt: string, summary?: unknown, errorMessage?: string): void {
+  updateRun(
+    id: string,
+    status: MonitorRunStatus,
+    completedAt: string,
+    summary?: unknown,
+    errorMessage?: string,
+  ): void {
     const stmt = this.db.prepare(`
       UPDATE monitor_runs
       SET status = @status,
@@ -65,7 +81,10 @@ export class MonitoringRepository {
     });
   }
 
-  getLatestLeaderboardSnapshot(category: LeaderboardCategory, sourceName: string): SnapshotRef | null {
+  getLatestLeaderboardSnapshot(
+    category: LeaderboardCategory,
+    sourceName: string,
+  ): SnapshotRef | null {
     const snapshot = this.db.prepare(`
       SELECT id
       FROM leaderboard_snapshots
@@ -160,6 +179,25 @@ export class MonitoringRepository {
     };
   }
 
+  getLatestSourceNamesByCategory(): string[] {
+    const rows = this.db.prepare(`
+      SELECT source_name
+      FROM (
+        SELECT
+          source_name,
+          category,
+          ROW_NUMBER() OVER (
+            PARTITION BY category
+            ORDER BY snapshot_at DESC, source_priority ASC
+          ) AS rn
+        FROM leaderboard_snapshots
+      )
+      WHERE rn = 1
+    `).all() as Array<{ source_name: string }>;
+
+    return rows.map((row) => row.source_name);
+  }
+
   insertLeaderboardSnapshot(
     runId: string,
     category: LeaderboardCategory,
@@ -214,7 +252,12 @@ export class MonitoringRepository {
     return snapshotId;
   }
 
-  insertLeaderboardChanges(runId: string, category: LeaderboardCategory, sourceName: string, changes: LeaderboardChangeEvent[]): number {
+  insertLeaderboardChanges(
+    runId: string,
+    category: LeaderboardCategory,
+    sourceName: string,
+    changes: LeaderboardChangeEvent[],
+  ): number {
     const stmt = this.db.prepare(`
       INSERT OR IGNORE INTO leaderboard_changes
       (id, run_id, category, source_name, change_type, canonical_model_key, model_name, vendor, rank_before, rank_after, score_before, score_after, event_fingerprint, details_json)
@@ -245,7 +288,13 @@ export class MonitoringRepository {
     return inserted;
   }
 
-  insertNewsSnapshot(runId: string, sourceName: string, snapshotAt: string, entries: NormalizedNewsEntry[], rawPayload?: unknown): string {
+  insertNewsSnapshot(
+    runId: string,
+    sourceName: string,
+    snapshotAt: string,
+    entries: NormalizedNewsEntry[],
+    rawPayload?: unknown,
+  ): string {
     const snapshotId = randomUUID();
     this.db.prepare(`
       INSERT INTO news_snapshots (id, run_id, source_name, snapshot_at, raw_payload_json)
@@ -439,6 +488,7 @@ export class MonitoringRepository {
       totalSuccesses: params.success ? 1 : 0,
       totalFailures: params.success ? 0 : 1,
       avgLatencyMs: typeof params.latencyMs === "number" ? params.latencyMs : null,
+      latencyMs: typeof params.latencyMs === "number" ? params.latencyMs : null,
       lastErrorMessage: params.success ? null : (params.lastErrorMessage ?? null),
       success: params.success ? 1 : 0,
       updatedAt: now,

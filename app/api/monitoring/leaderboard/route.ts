@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "node:path";
-import { initDatabase, closeDatabase } from "@/lib/monitoring/db";
-import { runMigrations } from "@/lib/monitoring/migrate";
-import { MonitoringRepository } from "@/lib/monitoring/repositories";
+import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { LEADERBOARD_CATEGORIES, type LeaderboardCategory } from "@/lib/monitoring/contracts";
 
 export const runtime = "nodejs";
@@ -17,17 +14,10 @@ function parseCategory(value: string | null): LeaderboardCategory {
 
 export async function GET(request: NextRequest) {
   const category = parseCategory(request.nextUrl.searchParams.get("category"));
-  const dbPath = process.env.MONITORING_DB_PATH?.trim() || path.join(process.cwd(), "data", "monitoring.db");
-  const schemaPath =
-    process.env.MONITORING_SCHEMA_PATH?.trim() ||
-    path.join(process.cwd(), "docs", "sqlite_monitoring_schema.sql");
-
-  const db = initDatabase(dbPath);
+  const runtime = await openMonitoringRuntime();
 
   try {
-    runMigrations(schemaPath, db);
-    const repo = new MonitoringRepository(db);
-    const snapshot = repo.getLatestCategorySnapshot(category);
+    const snapshot = await runtime.repository.getLatestCategorySnapshot(category);
 
     if (!snapshot) {
       return NextResponse.json(
@@ -65,6 +55,6 @@ export async function GET(request: NextRequest) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } finally {
-    closeDatabase(db);
+    await runtime.close();
   }
 }
