@@ -10,6 +10,7 @@ import { handleHorizontalScrollBoundary, handleHorizontalWheelBoundary } from ".
 
 type ModelExplorerProps = {
   aaModels: AAModelRow[];
+  aaModelsLoading?: boolean;
   aiNews: AiNewsItem[];
   last30DaysCount: number;
   locale: Locale;
@@ -554,6 +555,7 @@ const MOCK_AI_NEWS: AiNewsItem[] = [
 
 export function ModelExplorer({
   aaModels,
+  aaModelsLoading = false,
   aiNews,
   last30DaysCount,
   locale,
@@ -1395,7 +1397,23 @@ export function ModelExplorer({
               </div>
             </div>
 
-            {summaryRows.length === 0 ? (
+            {aaModelsLoading ? (
+              <div
+                className="rounded-2xl p-4"
+                style={{
+                  border: "1px solid var(--border)",
+                  background: "var(--surface-subtle)",
+                }}
+              >
+                <div className="animate-pulse space-y-3">
+                  <div className="h-5 w-52 rounded bg-slate-200/80 dark:bg-white/10" />
+                  <div className="h-9 w-full rounded-xl bg-slate-200/70 dark:bg-white/10" />
+                  <div className="h-9 w-full rounded-xl bg-slate-200/70 dark:bg-white/10" />
+                  <div className="h-9 w-full rounded-xl bg-slate-200/70 dark:bg-white/10" />
+                  <div className="h-9 w-full rounded-xl bg-slate-200/70 dark:bg-white/10" />
+                </div>
+              </div>
+            ) : summaryRows.length === 0 ? (
               <div
                 className="rounded-2xl p-6 text-sm"
                 style={{

@@ -218,6 +218,7 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
       <main className="mx-auto flex w-full max-w-none flex-col gap-5 overflow-hidden px-4 pb-4 sm:px-6 lg:px-8">
         <ModelExplorer
           aaModels={feeds.artificialAnalysis.data}
+          aaModelsLoading={feeds.artificialAnalysis.loading}
           aiNews={feeds.aiNews.data}
           last30DaysCount={statCards.last30Days}
           locale={locale}
@@ -568,7 +569,7 @@ function normalizeAAModelItem(value: unknown): AAModelRow | null {
   const endToEnd = isRecord(value.end_to_end_response_time_metrics)
     ? value.end_to_end_response_time_metrics
     : null;
-  const openWeights = pickBoolean(value, ["is_open_weights", "openSource", "open_weights"]);
+  const openWeights = pickBoolean(value, ["is_open_weights", "is_open_source", "openSource", "open_weights"]);
   const reasoning = pickBoolean(value, ["reasoning_model", "reasoning"]);
   const releaseDate = pickString(value, ["release_date", "releasedAt", "date"], "");
   const hostsUrl = pickString(value, ["hosts_url", "model_url", "url"], "");

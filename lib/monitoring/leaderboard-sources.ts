@@ -798,6 +798,8 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
             input_modality_video: item.input_modality_video,
             input_modality_speech: item.input_modality_speech,
             output_modality_speech: item.output_modality_speech,
+            is_open_weights: item.is_open_weights,
+            reasoning_model: item.reasoning_model,
           },
         } satisfies NormalizedLeaderboardEntry;
       });
