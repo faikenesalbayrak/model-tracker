@@ -237,7 +237,6 @@ const summaryHeaderHints = {
   },
 } as const;
 
-const PAGE_SIZE = 20;
 const CONTEXT_MIN_OPTIONS = [0, 32_000, 128_000, 256_000, 1_000_000] as const;
 const LLM_ROW_LIMIT_OPTIONS = [20, 50, 100, 200, 500] as const;
 const AI_NEWS_LIMIT = 16;
@@ -536,7 +535,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
   const [llmReleaseWindow, setLlmReleaseWindow] = useState<ReleaseWindow>("all");
   const [llmContextMin, setLlmContextMin] = useState<number>(0);
   const [llmReasoningOnly, setLlmReasoningOnly] = useState(false);
-  const [llmRowLimit, setLlmRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(500);
+  const [summaryRowLimit, setSummaryRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(20);
+  const [llmRowLimit, setLlmRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(20);
+  const [categoryRowLimit, setCategoryRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(20);
   const [summarySortKey, setSummarySortKey] = useState<SummarySortKey>("intelligenceIndex");
   const [summarySortDirection, setSummarySortDirection] = useState<"asc" | "desc">("desc");
   const [llmSortKey, setLlmSortKey] = useState<LlmSortKey>("intelligenceIndex");
@@ -976,11 +977,11 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
     });
   }, [filteredRows, summarySortDirection, summarySortKey]);
 
-  const pageCount = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(sortedRows.length / summaryRowLimit));
   const clampedPage = Math.min(page, pageCount - 1);
   const visibleRows = sortedRows.slice(
-    clampedPage * PAGE_SIZE,
-    clampedPage * PAGE_SIZE + PAGE_SIZE,
+    clampedPage * summaryRowLimit,
+    clampedPage * summaryRowLimit + summaryRowLimit,
   );
   const openSourceTooltip = locale === "tr" ? "Open Source" : "Open Source";
   const closedSourceTooltip = locale === "tr" ? "Open Source Değil" : "Not Open Source";
@@ -1079,6 +1080,10 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
       return categorySortDirection === "asc" ? result : -result;
     });
   }, [categoryFilteredRows, categorySortDirection, categorySortKey]);
+  const categoryLimitedRows = useMemo(
+    () => categoryVisibleRows.slice(0, categoryRowLimit),
+    [categoryRowLimit, categoryVisibleRows],
+  );
   const categoryScoreUnit = useMemo(
     () => categoryRows.find((row) => typeof row.scoreUnit === "string" && row.scoreUnit.length > 0)?.scoreUnit ?? null,
     [categoryRows],
@@ -1127,7 +1132,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
         </button>
       </div>
 
-      <div className={`grid gap-3 md:grid-cols-2 ${isLlmSection ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
+      <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${isLlmSection ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
         <label className="flex flex-col">
           <span className="mb-1 flex h-6 items-end text-xs font-semibold tracking-[0.08em] text-slate-500 dark:text-slate-400">
             {locale === "tr" ? "Ara" : "Search"}
@@ -1281,8 +1286,32 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
               {strings.summarySubtitle}
             </p>
           </div>
-          <div className="text-right" style={{ color: "var(--text-faint)" }}>
-            <div className="text-xs">{strings.top20} • {sortedRows.length}</div>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+              <span>{locale === "tr" ? "Satır" : "Rows"}</span>
+              <select
+                className="h-7 rounded-lg px-2 text-xs outline-none transition"
+                style={{
+                  border: "1px solid var(--border)",
+                  background: "var(--surface-subtle)",
+                  color: "var(--text)",
+                }}
+                onChange={(event) => {
+                  setSummaryRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number]);
+                  setPage(0);
+                }}
+                value={summaryRowLimit}
+              >
+                {LLM_ROW_LIMIT_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
+              {visibleRows.length} / {sortedRows.length}
+            </div>
           </div>
         </div>
 
@@ -1802,7 +1831,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                 {locale === "tr" ? "Sıfırla" : "Reset"}
               </button>
             </div>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
               <label className="flex flex-col">
                 <span className="mb-1 flex h-6 items-end text-xs font-semibold tracking-[0.08em] text-slate-500 dark:text-slate-400">
                   {locale === "tr" ? "Ara" : "Search"}
@@ -1871,7 +1900,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             <p>{locale === "tr" ? "Bu kategori için henüz snapshot yok." : "No snapshot yet for this category."}</p>
           ) : (
             <div className="space-y-3">
-              <div className="mb-1 flex flex-wrap items-start justify-between gap-4">
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
                     {(() => {
@@ -1883,17 +1912,34 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                     })()}
                   </h2>
                 </div>
-                <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
-                  {categoryVisibleRows.length} / {categoryRows.length}
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+                    <span>{locale === "tr" ? "Satır" : "Rows"}</span>
+                    <select
+                      className="h-7 rounded-lg px-2 text-xs outline-none transition"
+                      style={{
+                        border: "1px solid var(--border)",
+                        background: "var(--surface-subtle)",
+                        color: "var(--text)",
+                      }}
+                      onChange={(event) => setCategoryRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number])}
+                      value={categoryRowLimit}
+                    >
+                      {LLM_ROW_LIMIT_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
+                    {categoryLimitedRows.length} / {categoryRows.length}
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs" style={{ color: "var(--text-faint)" }}>
-                <span>
-                  {locale === "tr" ? "Kaynak" : "Source"}: {categorySourceName ?? "-"}
-                </span>
-                <span>
-                  {locale === "tr" ? "Snapshot" : "Snapshot"}: {categorySnapshotAt ? categorySnapshotAt.slice(0, 16).replace("T", " ") : "-"}
-                </span>
+              <div className="flex flex-wrap items-center gap-5 text-xs" style={{ color: "var(--text-faint)" }}>
+                <span>{locale === "tr" ? "Kaynak" : "Source"}: {categorySourceName ?? "-"}</span>
+                <span>{locale === "tr" ? "Snapshot" : "Snapshot"}: {categorySnapshotAt ? categorySnapshotAt.slice(0, 16).replace("T", " ") : "-"}</span>
               </div>
               <div className="relative">
               <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
@@ -1982,7 +2028,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                     </tr>
                   </thead>
                   <tbody>
-                    {categoryVisibleRows.map((row) => {
+                    {categoryLimitedRows.map((row) => {
                       const logoPath = getLabLogoPath(row.lab);
                       const matchedId = aaIdByModelVendor.get(modelVendorCompareKey(row.model, row.lab)) ?? null;
                       const isSelected = matchedId ? selectedIdSet.has(matchedId) : false;
@@ -2250,7 +2296,7 @@ function ModelCompareModal({
             className="mt-5 rounded-xl p-4"
             style={{ border: "1px solid var(--border)", background: "var(--surface-subtle)" }}
           >
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
               <div
                 className="hidden text-xs font-semibold uppercase tracking-[0.16em] md:block"
                 style={{ color: "var(--text-faint)" }}
