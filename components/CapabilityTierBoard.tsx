@@ -149,13 +149,13 @@ export function CapabilityTierBoard({ items, locale }: CapabilityTierBoardProps)
             return (
               <div key={tier} className="grid grid-cols-[52px_minmax(0,1fr)] gap-2">
                 <div
-                  className="grid min-h-[50px] place-items-center rounded-xl text-2xl font-bold"
+                  className="grid min-h-[3rem] place-items-center rounded-xl text-2xl font-bold"
                   style={{ background: cfg.bg, color: cfg.text }}
                 >
                   {cfg.label}
                 </div>
                 <div
-                  className="min-h-[50px] rounded-xl p-2"
+                  className="min-h-[3rem] rounded-xl p-2"
                   style={{
                     border: "1px solid var(--border)",
                     background: "var(--surface-subtle)",

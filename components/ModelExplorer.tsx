@@ -67,6 +67,8 @@ type CategoryLeaderboardItem = {
   rank: number;
   model: string;
   lab: string;
+  sourceModelId: string | null;
+  canonicalModelKey: string | null;
   score: number | null;
   scoreUnit: string | null;
   modelUrl: string | null;
@@ -296,6 +298,39 @@ function formatSourceDisplayName(sourceName: string | null): string {
     default:
       return sourceName ?? "source";
   }
+}
+
+function normalizeCompareKey(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function modelVendorCompareKey(model: string, vendor: string): string {
+  return `${normalizeCompareKey(vendor)}:${normalizeCompareKey(model)}`;
+}
+
+function formatProviderName(name: string): string {
+  const normalized = name.trim();
+  if (!normalized) return "Unknown";
+  if (/^openai$/i.test(normalized)) return "OpenAI";
+  if (/^xai$/i.test(normalized)) return "xAI";
+  if (/^meta$/i.test(normalized)) return "Meta";
+  if (/^google$/i.test(normalized)) return "Google";
+  if (/^mistral$/i.test(normalized)) return "Mistral";
+  if (/^anthropic$/i.test(normalized)) return "Anthropic";
+  if (/^deepseek$/i.test(normalized)) return "DeepSeek";
+  if (/^qwen$/i.test(normalized)) return "Qwen";
+  if (/^alibaba$/i.test(normalized)) return "Alibaba";
+  if (/^cohere$/i.test(normalized)) return "Cohere";
+  if (/^perplexity$/i.test(normalized)) return "Perplexity";
+  if (/^microsoft$/i.test(normalized)) return "Microsoft";
+  return normalized
+    .split(/\s+/)
+    .map((part) => (part ? `${part[0]!.toUpperCase()}${part.slice(1)}` : part))
+    .join(" ");
 }
 
 function describeCategoryScore(
@@ -571,6 +606,8 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             rank: typeof row.rank === "number" ? row.rank : Number(row.rank ?? 0),
             model: typeof row.model === "string" ? row.model : "Unknown model",
             lab: typeof row.lab === "string" ? row.lab : "Unknown",
+            sourceModelId: typeof row.sourceModelId === "string" ? row.sourceModelId : null,
+            canonicalModelKey: typeof row.canonicalModelKey === "string" ? row.canonicalModelKey : null,
             score: typeof row.score === "number" ? row.score : null,
             scoreUnit: typeof row.scoreUnit === "string" ? row.scoreUnit : null,
             modelUrl: typeof row.modelUrl === "string" ? row.modelUrl : null,
@@ -705,6 +742,10 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
   );
   const aaById = useMemo(
     () => new Map(aaModels.map((item) => [item.id, item])),
+    [aaModels],
+  );
+  const aaIdByModelVendor = useMemo(
+    () => new Map(aaModels.map((item) => [modelVendorCompareKey(item.model, item.lab), item.id])),
     [aaModels],
   );
   const validSelectedModelIds = useMemo(
@@ -1367,7 +1408,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
       <div className="flex min-h-0 self-stretch flex-col gap-6">
         <div
           id="latest-models"
-          className="min-h-[32rem] rounded-[var(--radius-panel)] p-5"
+          className="min-h-[20rem] rounded-[var(--radius-panel)] p-5"
           style={{
             border: "1px solid var(--border)",
             background: "var(--surface-card)",
@@ -1447,7 +1488,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             ) : null}
           </div>
           <div className="relative">
-            <div className="hide-scrollbar max-h-[600px] space-y-2 overflow-y-auto pr-1">
+            <div className="hide-scrollbar max-h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1">
               {aiNewsPreview.map((item) => (
                 <article
                   key={item.id}
@@ -1785,21 +1826,36 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             <p>{locale === "tr" ? "Bu kategori için henüz snapshot yok." : "No snapshot yet for this category."}</p>
           ) : (
             <div className="space-y-3">
+              <div className="mb-1 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+                    {(() => {
+                      if (activeSection === "image") return locale === "tr" ? "Image Generation Detaylar" : "Image Generation Details";
+                      if (activeSection === "video") return locale === "tr" ? "Video Generation Detaylar" : "Video Generation Details";
+                      if (activeSection === "tts") return locale === "tr" ? "Text-to-Speech Detaylar" : "Text-to-Speech Details";
+                      if (activeSection === "stt") return locale === "tr" ? "Speech-to-Text Detaylar" : "Speech-to-Text Details";
+                      return locale === "tr" ? "Embeddings Detaylar" : "Embeddings Details";
+                    })()}
+                  </h2>
+                </div>
+                <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
+                  {categoryVisibleRows.length} / {categoryRows.length}
+                </div>
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs" style={{ color: "var(--text-faint)" }}>
                 <span>
                   {locale === "tr" ? "Kaynak" : "Source"}: {categorySourceName ?? "-"}
-                </span>
-                <span>
-                  {categoryVisibleRows.length} / {categoryRows.length}
                 </span>
                 <span>
                   {locale === "tr" ? "Snapshot" : "Snapshot"}: {categorySnapshotAt ? categorySnapshotAt.slice(0, 16).replace("T", " ") : "-"}
                 </span>
               </div>
               <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
-                <table className="min-w-[1100px] w-max text-left text-sm">
+                <table className="min-w-full text-left text-sm">
                   <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
                     <tr>
+                      <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
+                      <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-2" />
                       {visibleCategoryColumns.map((column) => {
                         const active = categorySortKey === column.key;
                         return (
@@ -1852,37 +1908,86 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                     </tr>
                   </thead>
                   <tbody>
-                    {categoryVisibleRows.map((row) => (
-                      <tr
-                        key={`${row.rank}-${row.model}`}
-                        className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]"
-                      >
-                        {visibleCategoryColumns.map((column) => (
-                          <td key={`${row.rank}-${row.model}-${column.key}`} className="px-4 py-2">
-                            {column.key === "model" ? (
-                              row.modelUrl ? (
-                                <a href={row.modelUrl} target="_blank" rel="noreferrer" className="font-medium hover:underline" style={{ color: "var(--text)" }}>
-                                  {row.model}
-                                </a>
+                    {categoryVisibleRows.map((row) => {
+                      const logoPath = getLabLogoPath(row.lab);
+                      const matchedId = aaIdByModelVendor.get(modelVendorCompareKey(row.model, row.lab)) ?? null;
+                      const isSelected = matchedId ? selectedIdSet.has(matchedId) : false;
+                      const isDisabled = !matchedId || (selectionLimitReached && !isSelected);
+                      return (
+                        <tr
+                          key={`${row.rank}-${row.model}`}
+                          className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]"
+                        >
+                          <td className="px-3 py-2 align-middle">
+                            <input
+                              aria-label={locale === "tr" ? `${row.model} modelini karşılaştırma için seç` : `Select ${row.model} for comparison`}
+                              checked={isSelected}
+                              className="compare-checkbox"
+                              disabled={isDisabled}
+                              onChange={() => {
+                                if (!matchedId) return;
+                                if (isSelected) {
+                                  setCompareModalOpen(false);
+                                }
+                                setSelectedModelIds((current) => {
+                                  const normalized = current.filter((id) => aaById.has(id)).slice(0, 2);
+                                  const exists = normalized.includes(matchedId);
+                                  if (exists) {
+                                    return normalized.filter((id) => id !== matchedId);
+                                  }
+                                  if (normalized.length >= 2) {
+                                    return normalized;
+                                  }
+                                  return [...normalized, matchedId];
+                                });
+                              }}
+                              type="checkbox"
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <div className="grid h-8 w-8 place-items-center overflow-hidden">
+                              {logoPath ? (
+                                <Image
+                                  alt={`${row.lab} logo`}
+                                  className="h-5 w-5 object-contain"
+                                  height={20}
+                                  src={logoPath}
+                                  width={20}
+                                />
                               ) : (
-                                <span className="font-medium" style={{ color: "var(--text)" }}>{row.model}</span>
-                              )
+                                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{labMonogram(row.lab)}</span>
+                              )}
+                            </div>
+                          </td>
+                          {visibleCategoryColumns.map((column) => (
+                            <td key={`${row.rank}-${row.model}-${column.key}`} className="px-4 py-2">
+                              {column.key === "model" ? (
+                                row.modelUrl ? (
+                                  <a href={row.modelUrl} target="_blank" rel="noreferrer" className="font-medium hover:underline" style={{ color: "var(--text)" }}>
+                                    {row.model}
+                                  </a>
+                                ) : (
+                                  <span className="font-medium" style={{ color: "var(--text)" }}>{row.model}</span>
+                                )
+                              ) : column.key === "lab" ? (
+                                formatProviderName(column.render(row))
+                              ) : (
+                                column.render(row)
+                              )}
+                            </td>
+                          ))}
+                          <td className="px-4 py-2 text-center align-middle">
+                            {row.isOpenSource === true ? (
+                              <LockOpen className="mx-auto h-4 w-4 text-emerald-500" />
+                            ) : row.isOpenSource === false ? (
+                              <Lock className="mx-auto h-4 w-4 text-red-500" />
                             ) : (
-                              column.render(row)
+                              "-"
                             )}
                           </td>
-                        ))}
-                        <td className="px-4 py-2 text-center align-middle">
-                          {row.isOpenSource === true ? (
-                            <LockOpen className="mx-auto h-4 w-4 text-emerald-500" />
-                          ) : row.isOpenSource === false ? (
-                            <Lock className="mx-auto h-4 w-4 text-red-500" />
-                          ) : (
-                            "-"
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -2101,7 +2206,7 @@ function ModelCompareModal({
             >
               {locale === "tr" ? "Kategori Bazında" : "Category Breakdown"}
             </p>
-            <div className="h-[320px]">
+            <div className="h-[clamp(180px,35vh,320px)]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.barRows} layout="vertical" margin={{ top: 8, right: 18, left: 10, bottom: 8 }}>
                   <XAxis hide type="number" domain={[0, 100]} />
@@ -2133,7 +2238,7 @@ function ModelCompareModal({
             >
               {locale === "tr" ? "Çok Boyutlu Profil" : "Multi-dimensional Profile"}
             </p>
-            <div className="h-[280px]">
+            <div className="h-[clamp(160px,30vh,280px)]">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={data.radarRows} outerRadius="75%">
                   <PolarGrid stroke="var(--border)" />

@@ -122,7 +122,7 @@ function ChartTooltip({ active, label, payload, locale }: ChartTooltipProps) {
 
 function ChartSkeleton() {
   return (
-    <div className="h-[340px] animate-pulse rounded-[var(--radius-card)] border border-slate-200/70 bg-slate-100/90 shadow-[0_14px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/5" />
+    <div className="h-[clamp(200px,38vh,340px)] animate-pulse rounded-[var(--radius-card)] border border-slate-200/70 bg-slate-100/90 shadow-[0_14px_40px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-white/5" />
   );
 }
 
