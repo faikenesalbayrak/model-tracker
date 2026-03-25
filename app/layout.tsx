@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Link from "next/link";
 import type { CSSProperties } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { brandThemeCssVars } from "@/lib/theme";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -145,6 +146,7 @@ export default function RootLayout({
             </div>
           </footer>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
