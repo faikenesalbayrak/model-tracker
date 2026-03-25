@@ -59,6 +59,7 @@ export function SotaChart({
         <EmptyState message={strings.empty} />
       ) : (
         <div className="space-y-4">
+          <div className="relative">
           <div className="panel-interactive overflow-x-auto rounded-[var(--radius-card)] border border-slate-200/70 bg-white/80 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
             <div className="min-w-[860px]">
               <AreaChart data={items} width={860} height={320}>
@@ -86,6 +87,9 @@ export function SotaChart({
                 />
               </AreaChart>
             </div>
+          </div>
+          {/* Mobile scroll hint */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-[var(--radius-card)] bg-gradient-to-l from-white/60 to-transparent dark:from-slate-950/60 md:hidden" />
           </div>
           <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">{strings.subtitle}</p>
         </div>

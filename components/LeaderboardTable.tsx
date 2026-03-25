@@ -133,6 +133,7 @@ export function LeaderboardTable({
       ) : rows.length === 0 ? (
         <EmptyState message={strings.empty} />
       ) : (
+        <div className="relative">
         <div className="overflow-x-auto rounded-[var(--radius-card)] border border-slate-200/70 bg-white/80 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
           <table className="min-w-[900px] w-full border-collapse text-left text-sm">
             <thead className="sticky top-0 z-10 bg-slate-50/95 text-[0.68rem] tracking-[0.18em] text-slate-500 backdrop-blur dark:bg-slate-950/90 dark:text-slate-400">
@@ -203,6 +204,9 @@ export function LeaderboardTable({
               ))}
             </tbody>
           </table>
+        </div>
+        {/* Mobile scroll hint */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-[var(--radius-card)] bg-gradient-to-l from-white/60 to-transparent dark:from-slate-950/60 md:hidden" />
         </div>
       )}
       <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">

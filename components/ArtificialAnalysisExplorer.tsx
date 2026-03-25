@@ -211,6 +211,7 @@ export function ArtificialAnalysisExplorer({
             </button>
           </div>
 
+          <div className="relative">
           <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-white/80 dark:border-white/10 dark:bg-white/5">
             <table className="min-w-[1280px] w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
@@ -262,6 +263,9 @@ export function ArtificialAnalysisExplorer({
                 ))}
               </tbody>
             </table>
+          </div>
+          {/* Mobile scroll hint */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-950/60 md:hidden" />
           </div>
         </div>
       )}

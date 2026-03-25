@@ -70,6 +70,10 @@ type CategoryLeaderboardItem = {
   sourceModelId: string | null;
   canonicalModelKey: string | null;
   score: number | null;
+  imageGenScore: number | null;
+  imageEditScore: number | null;
+  videoGenScore: number | null;
+  imageToVideoScore: number | null;
   scoreUnit: string | null;
   modelUrl: string | null;
   isOpenSource: boolean | null;
@@ -95,6 +99,10 @@ type CategorySortKey =
   | "model"
   | "lab"
   | "score"
+  | "imageGenScore"
+  | "imageEditScore"
+  | "videoGenScore"
+  | "imageToVideoScore"
   | "pricePer1m"
   | "inputPricePer1m"
   | "outputPricePer1m"
@@ -242,7 +250,9 @@ const CATEGORY_TABLE_COLUMNS: Record<CategoryKey, CategoryColumn[]> = {
     { key: "rank", label: "#", hint: { en: "Leaderboard rank in this category.", tr: "Bu kategorideki sıralama." }, render: (row) => String(row.rank) },
     { key: "model", label: "Model", hint: { en: "Model name and variant.", tr: "Model adı ve varyantı." }, render: (row) => row.model },
     { key: "lab", label: "Provider", hint: { en: "Company or lab publishing the model.", tr: "Modeli yayımlayan şirket veya laboratuvar." }, render: (row) => row.lab },
-    { key: "score", label: "Score", hint: { en: "Primary image benchmark score from the source.", tr: "Kaynağın ana görsel benchmark skoru." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "score", label: "Overall", hint: { en: "Overall image score (combined summary).", tr: "Genel görsel skor (birleşik özet)." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "imageGenScore", label: "Image Gen", hint: { en: "Text-to-image generation score.", tr: "Text-to-image üretim skoru." }, render: (row) => fmtNum(row.imageGenScore, 2) },
+    { key: "imageEditScore", label: "Image Edit", hint: { en: "Image-to-image editing score.", tr: "Image-to-image düzenleme skoru." }, render: (row) => fmtNum(row.imageEditScore, 2) },
     { key: "pricePer1m", label: "$/Gen", hint: { en: "Estimated price per generation/image.", tr: "Tahmini üretim/görsel başına fiyat." }, render: (row) => formatUsd(row.pricePer1m) },
     { key: "inputPricePer1m", label: "Input $/1M", hint: { en: "Input token price per 1M tokens if provided.", tr: "Varsa 1M giriş token fiyatı." }, render: (row) => formatUsd(row.inputPricePer1m) },
     { key: "outputPricePer1m", label: "Output $/1M", hint: { en: "Output token price per 1M tokens if provided.", tr: "Varsa 1M çıktı token fiyatı." }, render: (row) => formatUsd(row.outputPricePer1m) },
@@ -251,11 +261,13 @@ const CATEGORY_TABLE_COLUMNS: Record<CategoryKey, CategoryColumn[]> = {
     { key: "rank", label: "#", hint: { en: "Leaderboard rank in this category.", tr: "Bu kategorideki sıralama." }, render: (row) => String(row.rank) },
     { key: "model", label: "Model", hint: { en: "Model name and variant.", tr: "Model adı ve varyantı." }, render: (row) => row.model },
     { key: "lab", label: "Provider", hint: { en: "Company or lab publishing the model.", tr: "Modeli yayımlayan şirket veya laboratuvar." }, render: (row) => row.lab },
-    { key: "score", label: "Score", hint: { en: "Primary video benchmark score from the source.", tr: "Kaynağın ana video benchmark skoru." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "score", label: "Overall", hint: { en: "Overall video score (combined summary).", tr: "Genel video skoru (birleşik özet)." }, render: (row) => fmtNum(row.score, 2) },
+    { key: "videoGenScore", label: "Text-to-Video", hint: { en: "Text-to-video generation score.", tr: "Text-to-video üretim skoru." }, render: (row) => fmtNum(row.videoGenScore, 2) },
+    { key: "imageToVideoScore", label: "Image-to-Video", hint: { en: "Image-to-video generation score.", tr: "Image-to-video üretim skoru." }, render: (row) => fmtNum(row.imageToVideoScore, 2) },
     { key: "pricePer1m", label: "$/Gen", hint: { en: "Estimated price per video generation.", tr: "Tahmini video üretim fiyatı." }, render: (row) => formatUsd(row.pricePer1m) },
     { key: "inputPricePer1m", label: "Input $/1M", hint: { en: "Input token price per 1M tokens if provided.", tr: "Varsa 1M giriş token fiyatı." }, render: (row) => formatUsd(row.inputPricePer1m) },
     { key: "outputPricePer1m", label: "Output $/1M", hint: { en: "Output token price per 1M tokens if provided.", tr: "Varsa 1M çıktı token fiyatı." }, render: (row) => formatUsd(row.outputPricePer1m) },
-    { key: "outputTokensPerSecond", label: "Throughput", hint: { en: "Generation throughput metric from source.", tr: "Kaynağın üretim throughput metriği." }, render: (row) => fmtNum(row.outputTokensPerSecond, 1) },
+    { key: "outputTokensPerSecond", label: "S/Second", hint: { en: "Generation speed metric from source throughput (higher is better).", tr: "Kaynağın throughput hız metriği (yüksek daha iyi)." }, render: (row) => fmtNum(row.outputTokensPerSecond, 1) },
   ],
   tts: [
     { key: "rank", label: "#", hint: { en: "Leaderboard rank in this category.", tr: "Bu kategorideki sıralama." }, render: (row) => String(row.rank) },
@@ -609,6 +621,18 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             sourceModelId: typeof row.sourceModelId === "string" ? row.sourceModelId : null,
             canonicalModelKey: typeof row.canonicalModelKey === "string" ? row.canonicalModelKey : null,
             score: typeof row.score === "number" ? row.score : null,
+            imageGenScore: normalizeBenchmarkScore(
+              typeof row.image_gen_score === "number" ? row.image_gen_score : row.imageGenScore,
+            ),
+            imageEditScore: normalizeBenchmarkScore(
+              typeof row.image_edit_score === "number" ? row.image_edit_score : row.imageEditScore,
+            ),
+            videoGenScore: normalizeBenchmarkScore(
+              typeof row.video_gen_score === "number" ? row.video_gen_score : row.videoGenScore,
+            ),
+            imageToVideoScore: normalizeBenchmarkScore(
+              typeof row.image_to_video_score === "number" ? row.image_to_video_score : row.imageToVideoScore,
+            ),
             scoreUnit: typeof row.scoreUnit === "string" ? row.scoreUnit : null,
             modelUrl: typeof row.modelUrl === "string" ? row.modelUrl : null,
             isOpenSource:
@@ -982,6 +1006,15 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
         }),
     [aaModels, filteredIdSet, llmSortDirection, llmSortKey],
   );
+  const llmRankById = useMemo(() => {
+    const ranked = [...aaModels].sort((left, right) => {
+      const leftScore = numericSortValue(left.intelligenceIndex);
+      const rightScore = numericSortValue(right.intelligenceIndex);
+      if (rightScore !== leftScore) return rightScore - leftScore;
+      return left.model.localeCompare(right.model);
+    });
+    return new Map(ranked.map((row, index) => [row.id, index + 1]));
+  }, [aaModels]);
   const llmVisibleRows = useMemo(() => llmRows.slice(0, llmRowLimit), [llmRows, llmRowLimit]);
   const sections = [
     { key: "general" as const, label: locale === "tr" ? "Genel" : "General" },
@@ -1008,7 +1041,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
         .sort((a, b) => a.localeCompare(b)),
     [categoryRows],
   );
-  const visibleCategoryColumns = categorySectionKey ? CATEGORY_TABLE_COLUMNS[categorySectionKey] : [];
+  const visibleCategoryColumns = categorySectionKey
+    ? CATEGORY_TABLE_COLUMNS[categorySectionKey].filter((column) => column.key !== "rank")
+    : [];
   const categoryFilteredRows = useMemo(() => {
     const q = categoryQuery.trim().toLowerCase();
     return categoryRows.filter((row) => {
@@ -1266,6 +1301,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           <>
             {filtersPanel}
 
+            <div className="relative">
             <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
               <table className="min-w-[1080px] w-max text-left text-sm">
                 <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
@@ -1366,6 +1402,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                   })}
                 </tbody>
               </table>
+            </div>
+            {/* Mobile scroll hint */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 md:hidden" />
             </div>
 
             <div className="mt-3 flex items-center justify-end gap-2">
@@ -1598,11 +1637,13 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             </div>
           </div>
           {filtersPanel}
+          <div className="relative">
           <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
             <table className="min-w-[1800px] w-max text-left text-sm">
               <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
                 <tr>
                   <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
+                  <th className="px-4 py-2">{locale === "tr" ? "Sıra" : "Rank"}</th>
                   <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-2" />
                   <th className="px-4 py-2">{renderSortableHeader("Model", "model", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.model)}</th>
                   <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Sağlayıcı" : "Provider", "lab", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.provider)}</th>
@@ -1661,6 +1702,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                           type="checkbox"
                         />
                       </td>
+                      <td className="px-4 py-2">{llmRankById.get(row.id) ?? "-"}</td>
                       <td className="px-4 py-2">
                         <div className="grid h-8 w-8 place-items-center overflow-hidden">
                           {logoPath ? (
@@ -1718,6 +1760,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                 })}
               </tbody>
             </table>
+          </div>
+          {/* Mobile scroll hint */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 md:hidden" />
           </div>
         </section>
       ) : (
@@ -1850,11 +1895,40 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                   {locale === "tr" ? "Snapshot" : "Snapshot"}: {categorySnapshotAt ? categorySnapshotAt.slice(0, 16).replace("T", " ") : "-"}
                 </span>
               </div>
+              <div className="relative">
               <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
                 <table className="min-w-full text-left text-sm">
                   <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
                     <tr>
                       <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
+                      <th className="px-4 py-2">
+                        <button
+                          className="inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 transition hover:text-slate-700 dark:hover:text-slate-200"
+                          onClick={() => {
+                            if (categorySortKey === "rank") {
+                              setCategorySortDirection(categorySortDirection === "asc" ? "desc" : "asc");
+                              return;
+                            }
+                            setCategorySortKey("rank");
+                            setCategorySortDirection("asc");
+                          }}
+                          type="button"
+                        >
+                          <ColumnTooltipLabel
+                            description={locale === "tr" ? "Bu kategorideki sıralama." : "Leaderboard rank in this category."}
+                            label={locale === "tr" ? "Sıra" : "Rank"}
+                          />
+                          {categorySortKey === "rank" ? (
+                            categorySortDirection === "asc" ? (
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            ) : (
+                              <ArrowDown className="h-3.5 w-3.5" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="h-3.5 w-3.5 opacity-65" />
+                          )}
+                        </button>
+                      </th>
                       <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-2" />
                       {visibleCategoryColumns.map((column) => {
                         const active = categorySortKey === column.key;
@@ -1944,6 +2018,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                               type="checkbox"
                             />
                           </td>
+                          <td className="px-4 py-2">{row.rank}</td>
                           <td className="px-4 py-2">
                             <div className="grid h-8 w-8 place-items-center overflow-hidden">
                               {logoPath ? (
@@ -1990,6 +2065,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                     })}
                   </tbody>
                 </table>
+              </div>
+              {/* Mobile scroll hint */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 md:hidden" />
               </div>
             </div>
           )}
