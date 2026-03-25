@@ -2,6 +2,52 @@
 
 Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen alanları listeler.
 
+## Monitoring Pipeline (Yeni)
+- Çalışma modu: local-first, uygulama process’i içinde scheduler.
+- Frekans: günde 2 kez (`09:00`, `21:00`, Europe/Istanbul) + haftalık digest (`Pazartesi 09:15`).
+- Persistence: SQLite (`docs/sqlite_monitoring_schema.sql`).
+- Ana tablolar:
+1. `monitor_runs`
+2. `leaderboard_snapshots`
+3. `leaderboard_entries`
+4. `leaderboard_changes`
+5. `news_snapshots`
+6. `news_entries`
+7. `weekly_digests`
+8. `weekly_digest_items`
+9. `notification_log`
+10. `source_health`
+
+## Kategori Bazlı Leaderboard Kaynak Haritası (Planlanan/Active)
+1. `general_llm`
+   - Active: `artificial_analysis_models_page`
+   - Active (enrichment): `hf_open_llm_leaderboard` (`GPQA`, `MMLU-Pro`)
+   - Active (enrichment): `swe_bench_github_leaderboard` (`SWE-Bench`)
+   - Planned: `hf_open_llm_leaderboard`, `lm_arena_leaderboard`
+2. `image_generation`
+   - Active: `llm_stats_image_generation` (`llm-stats best-ai-for-image-generation`)
+3. `video_generation`
+   - Active: `llm_stats_video_generation` (`llm-stats best-ai-for-video-generation`)
+4. `text_to_speech`
+   - Active: `llm_stats_text_to_speech` (`api.zeroeval.com` magia arena: `text-to-speech`)
+5. `speech_to_text`
+   - Active: `llm_stats_speech_to_text` (`api.zeroeval.com` category: `speech_to_text`, top benchmark subset aggregation)
+   - Planned: `open_asr_leaderboard`
+6. `embeddings`
+   - Active: `llm_stats_embeddings` (`api.zeroeval.com` category: `search`, top benchmark subset aggregation)
+   - Planned: `mteb_leaderboard`
+
+## Haber Kaynağı Politikası (Weekly Top-10 Digest)
+- Haber hattı tek kaynaktan beslenir (multi-source yok).
+- Haber kaynağı, leaderboard/metadata gibi veri kaynaklarıyla aynı olamaz.
+- Active: `hn_algolia`
+- Disabled (policy nedeniyle): `llm_stats_ai_news`
+- Planned: `newsapi_everything`, `newscatcher_api`, `gdelt_doc_v2`, `arxiv_feed_news_lane`
+
+## Metadata / Release Enrichment Kaynakları
+1. `openrouter_models_api` (planned)
+2. `github_releases_api` (planned)
+
 ## 1) Artificial Analysis Models
 - Internal endpoint: `/api/artificial-analysis`
 - Upstream: `https://artificialanalysis.ai/models`
@@ -97,6 +143,17 @@ Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen al
 7. `sourceUrl`
 8. Normalize edilmiş payload’da benchmark etiketi ve fallback işareti
 
+## 5.1) SWE-Bench (Open-source Leaderboard JSON)
+- Internal usage: monitoring enrichment (`general_llm` payload `swe_bench`)
+- Upstream: `https://raw.githubusercontent.com/SWE-bench/swe-bench.github.io/master/data/leaderboards.json`
+- Route/Source: `source: swe_bench_github_leaderboard`
+- Çekilebilen alanlar:
+1. `leaderboards[].name`
+2. `leaderboards[].results[].name` (model)
+3. `leaderboards[].results[].resolved` (score)
+4. `leaderboards[].results[].date`
+5. `leaderboards[].results[].site`
+
 ## 6) arXiv Feed
 - Internal endpoint: `/api/arxiv`
 - Upstream: `https://export.arxiv.org/api/query`
@@ -171,3 +228,30 @@ Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen al
 - Snapshot dosyaları `data/` klasörüne yazılır.
 - Otomatik yenileme aralığı: 12 saat.
 - Cache yoksa endpoint boş fallback data üretmez; uygun durumda `503` dönebilir.
+
+## Monitoring İçin Normalize Alan Setleri
+### Leaderboard Entry
+1. `category`
+2. `source_name`
+3. `source_model_id`
+4. `canonical_model_key`
+5. `model_name`
+6. `vendor`
+7. `rank`
+8. `score`
+9. `score_unit`
+10. `model_url`
+11. `snapshot_at`
+12. `raw_payload_json`
+
+### News Entry
+1. `source_name`
+2. `canonical_url`
+3. `title`
+4. `published_at`
+5. `author_or_outlet`
+6. `summary`
+7. `topic_tags`
+8. `importance_score`
+9. `snapshot_at`
+10. `raw_payload_json`

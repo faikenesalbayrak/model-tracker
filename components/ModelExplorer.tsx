@@ -1,20 +1,27 @@
 import Image from "next/image";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpDown, ChevronsDown, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { Lock, LockOpen } from "lucide-react";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Bar, BarChart, PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ColumnTooltipLabel } from "./ColumnTooltipLabel";
+import { CountUpStat } from "./ui/CountUpStat";
 import type { AAModelRow, AiNewsItem, Locale } from "./dashboard-types";
+import { handleHorizontalScrollBoundary, handleHorizontalWheelBoundary } from "./horizontal-scroll";
 
 type ModelExplorerProps = {
   aaModels: AAModelRow[];
   aiNews: AiNewsItem[];
+  last30DaysCount: number;
   locale: Locale;
+  modelCount: number;
+  providerCount: number;
+  sourceCount: number;
   onSectionChange?: (section: SectionKey) => void;
 };
 
 type SummaryRow = {
   id: string;
+  rank: number | null;
   model: string;
   lab: string;
   intelligenceIndex: number | null;
@@ -27,6 +34,7 @@ type SummaryRow = {
 };
 
 type SummarySortKey =
+  | "rank"
   | "model"
   | "lab"
   | "intelligenceIndex"
@@ -38,6 +46,7 @@ type SummarySortKey =
   | "openWeights";
 
 type LlmSortKey =
+  | "rank"
   | "model"
   | "lab"
   | "intelligenceIndex"
@@ -125,17 +134,36 @@ const LAB_LOGO_MAP: Array<{ pattern: RegExp; src: string }> = [
   { pattern: /openai/i, src: "/lab-logos/llmstats/openai.svg" },
   { pattern: /anthropic|claude/i, src: "/lab-logos/llmstats/anthropic.svg" },
   { pattern: /google|deepmind|gemini/i, src: "/lab-logos/llmstats/google.svg" },
+  { pattern: /black.?forest|bfl/i, src: "/lab-logos/llmstats/black-forest-labs.webp" },
   { pattern: /meta|llama/i, src: "/lab-logos/llmstats/meta.svg" },
   { pattern: /mistral/i, src: "/lab-logos/llmstats/mistral.svg" },
   { pattern: /xai|grok/i, src: "/lab-logos/llmstats/xai.svg" },
+  { pattern: /runway/i, src: "/lab-logos/llmstats/runway.svg" },
+  { pattern: /luma/i, src: "/lab-logos/llmstats/luma.webp" },
+  { pattern: /tencent/i, src: "/lab-logos/llmstats/tencent.webp" },
+  { pattern: /recraft/i, src: "/lab-logos/llmstats/recraft.webp" },
+  { pattern: /reve/i, src: "/lab-logos/llmstats/reve.jpg" },
+  { pattern: /kling/i, src: "/lab-logos/llmstats/kling.webp" },
+  { pattern: /wan.?video|wan2\.?1|wan/i, src: "/lab-logos/llmstats/wanvideo.svg" },
+  { pattern: /moonshot|kimi/i, src: "/lab-logos/llmstats/moonshotai.svg" },
   { pattern: /cohere/i, src: "/lab-logos/llmstats/cohere.png" },
+  { pattern: /deepgram/i, src: "/lab-logos/llmstats/deepgram.jpeg" },
+  { pattern: /assemblyai/i, src: "/lab-logos/llmstats/assemblyai.webp" },
+  { pattern: /fireworks/i, src: "/lab-logos/llmstats/fireworks.png" },
+  { pattern: /cartesia/i, src: "/lab-logos/llmstats/cartesia.png" },
+  { pattern: /playai/i, src: "/lab-logos/llmstats/playai.svg" },
+  { pattern: /inworld/i, src: "/lab-logos/llmstats/inworld.jpg" },
+  { pattern: /rime/i, src: "/lab-logos/llmstats/rime.jpg" },
+  { pattern: /elevenlabs/i, src: "/lab-logos/llmstats/elevenlabs.svg" },
   { pattern: /alibaba|qwen/i, src: "/lab-logos/llmstats/qwen.png" },
   { pattern: /deepseek/i, src: "/lab-logos/llmstats/deepseek.webp" },
   { pattern: /baidu|ernie/i, src: "/lab-logos/llmstats/baidu.svg" },
   { pattern: /bytedance|doubao/i, src: "/lab-logos/llmstats/bytedance.webp" },
   { pattern: /zhipu|glm|z ai|zhipu ai/i, src: "/lab-logos/llmstats/zai-org.svg" },
-  { pattern: /moonshot|kimi/i, src: "/lab-logos/llmstats/moonshotai.svg" },
   { pattern: /perplexity|sonar/i, src: "/lab-logos/llmstats/perplexity.png" },
+  { pattern: /xiaomi/i, src: "/lab-logos/llmstats/xiaomi.svg" },
+  { pattern: /\blg\b|lg ai/i, src: "/lab-logos/llmstats/lg.svg" },
+  { pattern: /\bibm\b/i, src: "/lab-logos/llmstats/ibm.svg" },
   { pattern: /nvidia|nemotron/i, src: "/lab-logos/llmstats/nvidia.svg" },
   { pattern: /microsoft|phi/i, src: "/lab-logos/llmstats/microsoft.svg" },
   { pattern: /minimax/i, src: "/lab-logos/llmstats/minimax.webp" },
@@ -155,6 +183,7 @@ const copy = {
     top20: "Top 20",
     noRows: "No model data available.",
     headers: {
+      rank: "Rank",
       model: "Model",
       provider: "Provider",
       intelligence: "Intelligence",
@@ -179,6 +208,7 @@ const copy = {
     top20: "İlk 20",
     noRows: "Model verisi bulunamadı.",
     headers: {
+      rank: "Sıra",
       model: "Model",
       provider: "Sağlayıcı",
       intelligence: "Intelligence",
@@ -194,6 +224,7 @@ const copy = {
 
 const summaryHeaderHints = {
   en: {
+    rank: "Model rank derived from the Intelligence-based overall ordering.",
     model: "Model name and variant in the selected feed.",
     provider: "Company or research lab that publishes the model.",
     intelligence: "Composite capability score across core evaluations.",
@@ -215,6 +246,7 @@ const summaryHeaderHints = {
     reasoning: "Reasoning mode capability flag from source data.",
   },
   tr: {
+    rank: "Modelin Intelligence tabanlı genel sırası.",
     model: "Seçili akıştaki model adı ve varyantı.",
     provider: "Modeli yayınlayan şirket veya araştırma laboratuvarı.",
     intelligence: "Temel değerlendirmelerin birleşik yetenek skoru.",
@@ -520,7 +552,16 @@ const MOCK_AI_NEWS: AiNewsItem[] = [
   },
 ];
 
-export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: ModelExplorerProps) {
+export function ModelExplorer({
+  aaModels,
+  aiNews,
+  last30DaysCount,
+  locale,
+  modelCount,
+  providerCount,
+  sourceCount,
+  onSectionChange,
+}: ModelExplorerProps) {
   const strings = copy[locale];
   const headerHints = summaryHeaderHints[locale];
   const [page, setPage] = useState(0);
@@ -538,6 +579,8 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
   const [summaryRowLimit, setSummaryRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(20);
   const [llmRowLimit, setLlmRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(20);
   const [categoryRowLimit, setCategoryRowLimit] = useState<(typeof LLM_ROW_LIMIT_OPTIONS)[number]>(20);
+  const [llmPage, setLlmPage] = useState(0);
+  const [categoryPage, setCategoryPage] = useState(0);
   const [summarySortKey, setSummarySortKey] = useState<SummarySortKey>("intelligenceIndex");
   const [summarySortDirection, setSummarySortDirection] = useState<"asc" | "desc">("desc");
   const [llmSortKey, setLlmSortKey] = useState<LlmSortKey>("intelligenceIndex");
@@ -575,23 +618,22 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
     };
 
     if (activeSection === "general" || activeSection === "llm") {
-      setCategoryRows([]);
-      setCategoryLoading(false);
-      setCategoryError(null);
-      setCategorySourceName(null);
-      setCategorySnapshotAt(null);
       return;
     }
 
     const category = sectionToCategory[activeSection as CategoryKey];
     let alive = true;
-    setCategoryLoading(true);
-    setCategoryError(null);
-    setCategoryQuery("");
-    setCategoryProviderFilter("all");
-    setCategoryOpenFilter("all");
-    setCategorySortKey("rank");
-    setCategorySortDirection("asc");
+    queueMicrotask(() => {
+      if (!alive) return;
+      setCategoryLoading(true);
+      setCategoryError(null);
+      setCategoryQuery("");
+      setCategoryProviderFilter("all");
+      setCategoryOpenFilter("all");
+      setCategorySortKey("rank");
+      setCategorySortDirection("asc");
+      setCategoryPage(0);
+    });
 
     void fetch(`/api/monitoring/leaderboard?category=${encodeURIComponent(category)}`, { cache: "no-store" })
       .then(async (response) => {
@@ -748,11 +790,21 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
     }));
   }, [aiNews]);
   const showAiNewsScrollHint = aiNewsPreview.length > 4;
+  const overallRankById = useMemo(() => {
+    const ranked = [...aaModels].sort((left, right) => {
+      const leftScore = numericSortValue(left.intelligenceIndex);
+      const rightScore = numericSortValue(right.intelligenceIndex);
+      if (rightScore !== leftScore) return rightScore - leftScore;
+      return left.model.localeCompare(right.model);
+    });
+    return new Map(ranked.map((row, index) => [row.id, index + 1]));
+  }, [aaModels]);
 
   const summaryRows = useMemo<SummaryRow[]>(
     () =>
       [...aaModels].map((row) => ({
         id: row.id,
+        rank: overallRankById.get(row.id) ?? null,
         model: row.model,
         lab: row.lab,
         intelligenceIndex: row.intelligenceIndex,
@@ -763,7 +815,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
         releaseDate: row.releaseDate,
         openWeights: row.openWeights,
       })),
-    [aaModels],
+    [aaModels, overallRankById],
   );
   const aaById = useMemo(
     () => new Map(aaModels.map((item) => [item.id, item])),
@@ -992,7 +1044,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
         .filter((row) => filteredIdSet.has(row.id))
         .sort((a, b) => {
           let result = 0;
-          if (llmSortKey === "model" || llmSortKey === "lab") {
+          if (llmSortKey === "rank") {
+            result = (overallRankById.get(a.id) ?? Number.POSITIVE_INFINITY) - (overallRankById.get(b.id) ?? Number.POSITIVE_INFINITY);
+          } else if (llmSortKey === "model" || llmSortKey === "lab") {
             result = a[llmSortKey].localeCompare(b[llmSortKey]);
           } else if (llmSortKey === "releaseDate") {
             result = toMs(a.releaseDate) - toMs(b.releaseDate);
@@ -1005,18 +1059,18 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           }
           return llmSortDirection === "asc" ? result : -result;
         }),
-    [aaModels, filteredIdSet, llmSortDirection, llmSortKey],
+    [aaModels, filteredIdSet, overallRankById, llmSortDirection, llmSortKey],
   );
-  const llmRankById = useMemo(() => {
-    const ranked = [...aaModels].sort((left, right) => {
-      const leftScore = numericSortValue(left.intelligenceIndex);
-      const rightScore = numericSortValue(right.intelligenceIndex);
-      if (rightScore !== leftScore) return rightScore - leftScore;
-      return left.model.localeCompare(right.model);
-    });
-    return new Map(ranked.map((row, index) => [row.id, index + 1]));
-  }, [aaModels]);
-  const llmVisibleRows = useMemo(() => llmRows.slice(0, llmRowLimit), [llmRows, llmRowLimit]);
+  const llmPageCount = Math.max(1, Math.ceil(llmRows.length / llmRowLimit));
+  const llmClampedPage = Math.min(llmPage, llmPageCount - 1);
+  const llmVisibleRows = useMemo(
+    () =>
+      llmRows.slice(
+        llmClampedPage * llmRowLimit,
+        llmClampedPage * llmRowLimit + llmRowLimit,
+      ),
+    [llmClampedPage, llmRowLimit, llmRows],
+  );
   const sections = [
     { key: "general" as const, label: locale === "tr" ? "Genel" : "General" },
     { key: "llm" as const, label: "LLM" },
@@ -1080,9 +1134,15 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
       return categorySortDirection === "asc" ? result : -result;
     });
   }, [categoryFilteredRows, categorySortDirection, categorySortKey]);
+  const categoryPageCount = Math.max(1, Math.ceil(categoryVisibleRows.length / categoryRowLimit));
+  const categoryClampedPage = Math.min(categoryPage, categoryPageCount - 1);
   const categoryLimitedRows = useMemo(
-    () => categoryVisibleRows.slice(0, categoryRowLimit),
-    [categoryRowLimit, categoryVisibleRows],
+    () =>
+      categoryVisibleRows.slice(
+        categoryClampedPage * categoryRowLimit,
+        categoryClampedPage * categoryRowLimit + categoryRowLimit,
+      ),
+    [categoryClampedPage, categoryRowLimit, categoryVisibleRows],
   );
   const categoryScoreUnit = useMemo(
     () => categoryRows.find((row) => typeof row.scoreUnit === "string" && row.scoreUnit.length > 0)?.scoreUnit ?? null,
@@ -1179,7 +1239,12 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             {locale === "tr" ? "Açık Kaynak" : "Open Source"}
           </span>
           <select
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+            className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-subtle)",
+              color: "var(--text)",
+            }}
             onChange={(event) => (isLlmSection ? setLlmOpenFilter(event.target.value as OpenFilter) : setOpenFilter(event.target.value as OpenFilter))}
             value={activeOpenFilter}
           >
@@ -1194,7 +1259,12 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             {locale === "tr" ? "Yayın" : "Release"}
           </span>
           <select
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+            className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-subtle)",
+              color: "var(--text)",
+            }}
             onChange={(event) => (isLlmSection ? setLlmReleaseWindow(event.target.value as ReleaseWindow) : setReleaseWindow(event.target.value as ReleaseWindow))}
             value={activeReleaseWindow}
           >
@@ -1210,7 +1280,12 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             {locale === "tr" ? "Minimum Bağlam" : "Min Context"}
           </span>
           <select
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+            className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-subtle)",
+              color: "var(--text)",
+            }}
             onChange={(event) => (isLlmSection ? setLlmContextMin(Number(event.target.value)) : setContextMin(Number(event.target.value)))}
             value={activeContextMin}
           >
@@ -1227,7 +1302,12 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
               Reasoning
             </span>
             <select
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+              className="h-11 w-full rounded-xl border px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+              style={{
+                border: "1px solid var(--border)",
+                background: "var(--surface-subtle)",
+                color: "var(--text)",
+              }}
               onChange={(event) => setLlmReasoningOnly(event.target.value === "only")}
               value={llmReasoningOnly ? "only" : "all"}
             >
@@ -1241,9 +1321,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
   );
 
   return (
-    <section className="space-y-4">
+    <section className="min-w-0 space-y-4">
       {/* Tab bar */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-slate-950 p-2 shadow-[0_14px_40px_rgba(15,23,42,0.12)] dark:border-white/10">
+      <div className="overflow-x-auto overscroll-x-none rounded-2xl border border-slate-200/70 bg-slate-950 p-2 shadow-[0_14px_40px_rgba(15,23,42,0.12)] dark:border-white/10">
         <div className="flex min-w-max items-center gap-1.5">
           {sections.map((section) => {
             const active = activeSection === section.key;
@@ -1265,101 +1345,499 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
       </div>
 
       {activeSection === "general" ? (
-        <section className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,2.45fr)_minmax(280px,0.72fr)]">
-      <div
-        id="summary-table"
-        className="rounded-[var(--radius-panel)] p-5"
-        style={{
-          border: "1px solid var(--border)",
-          background: "var(--surface-card)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          boxShadow: "var(--shadow-md)",
-        }}
-      >
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-              {strings.summaryTitle}
-            </h2>
-            <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-              {strings.summarySubtitle}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-              <span>{locale === "tr" ? "Satır" : "Rows"}</span>
-              <select
-                className="h-7 rounded-lg px-2 text-xs outline-none transition"
+        <section className="grid w-full grid-cols-1 items-stretch gap-6 xl:grid-cols-[minmax(0,2.45fr)_minmax(280px,0.72fr)]">
+          <div
+            id="summary-table"
+            className="min-w-0 overflow-hidden rounded-[var(--radius-panel)] p-5"
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface-card)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+              boxShadow: "var(--shadow-md)",
+            }}
+          >
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+                  {strings.summaryTitle}
+                </h2>
+                <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                  {strings.summarySubtitle}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+                  <span>{locale === "tr" ? "Satır" : "Rows"}</span>
+                  <select
+                    className="h-7 rounded-lg px-2 text-xs outline-none transition"
+                    style={{
+                      border: "1px solid var(--border)",
+                      background: "var(--surface-subtle)",
+                      color: "var(--text)",
+                    }}
+                    onChange={(event) => {
+                      setSummaryRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number]);
+                      setPage(0);
+                    }}
+                    value={summaryRowLimit}
+                  >
+                    {LLM_ROW_LIMIT_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
+                  {visibleRows.length} / {sortedRows.length}
+                </div>
+              </div>
+            </div>
+
+            {summaryRows.length === 0 ? (
+              <div
+                className="rounded-2xl p-6 text-sm"
                 style={{
                   border: "1px solid var(--border)",
                   background: "var(--surface-subtle)",
-                  color: "var(--text)",
+                  color: "var(--text-muted)",
                 }}
-                onChange={(event) => {
-                  setSummaryRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number]);
-                  setPage(0);
-                }}
-                value={summaryRowLimit}
               >
-                {LLM_ROW_LIMIT_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
-              {visibleRows.length} / {sortedRows.length}
+                {strings.noRows}
+              </div>
+            ) : (
+              <>
+                {filtersPanel}
+
+                <div className="relative">
+                  <div
+                    className="overflow-x-auto overscroll-x-none rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]"
+                    onScroll={handleHorizontalScrollBoundary}
+                    onWheel={handleHorizontalWheelBoundary}
+                  >
+                    <table className="w-full min-w-[1080px] text-left text-sm">
+                      <thead className="whitespace-nowrap bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
+                        <tr>
+                          <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-3" />
+                          <th className="px-4 py-3">{renderSortableHeader(strings.headers.rank, "rank", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.rank, "asc")}</th>
+                          <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-3" />
+                          <th className="w-full px-4 py-3">{renderSortableHeader(strings.headers.model, "model", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.model)}</th>
+                          <th className="px-4 py-3">{renderSortableHeader(strings.headers.provider, "lab", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.provider)}</th>
+                          <th className="px-4 py-3">{renderSortableHeader(strings.headers.intelligence, "intelligenceIndex", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.intelligence)}</th>
+                          <th className="px-4 py-3">{renderSortableHeader(strings.headers.code, "codingIndex", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.code)}</th>
+                          <th className="px-4 py-3">{renderSortableHeader(strings.headers.agentic, "agenticIndex", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.agentic)}</th>
+                          <th className="px-4 py-3">{renderSortableHeader(strings.headers.context, "contextWindowTokens", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.context)}</th>
+                          <th className="px-4 py-3">{renderSortableHeader(strings.headers.speed, "outputTokensPerSecond", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.speed)}</th>
+                          <th className="px-4 py-3">{renderSortableHeader(strings.headers.release, "releaseDate", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.release)}</th>
+                          <th className="px-4 py-3 text-center">
+                            <div className="flex justify-center">
+                              {renderSortableHeader(strings.headers.openSource, "openWeights", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.openSource)}
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {visibleRows.map((row) => {
+                          const logoPath = getLabLogoPath(row.lab);
+                          const isSelected = selectedIdSet.has(row.id);
+                          const isDisabled = selectionLimitReached && !isSelected;
+                          return (
+                            <tr key={row.id} className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]">
+                              <td className="px-3 py-3 align-middle">
+                                <input
+                                  aria-label={locale === "tr" ? `${row.model} modelini karşılaştırma için seç` : `Select ${row.model} for comparison`}
+                                  checked={isSelected}
+                                  className="compare-checkbox"
+                                  disabled={isDisabled}
+                                  onChange={() => {
+                                    if (isSelected) {
+                                      setCompareModalOpen(false);
+                                    }
+                                    setSelectedModelIds((current) => {
+                                      const normalized = current.filter((id) => aaById.has(id)).slice(0, 2);
+                                      const exists = normalized.includes(row.id);
+                                      if (exists) {
+                                        return normalized.filter((id) => id !== row.id);
+                                      }
+                                      if (normalized.length >= 2) {
+                                        return normalized;
+                                      }
+                                      return [...normalized, row.id];
+                                    });
+                                  }}
+                                  type="checkbox"
+                                />
+                              </td>
+                              <td className="px-4 py-3">
+                                {renderRankBadge(row.rank)}
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="grid h-8 w-8 place-items-center overflow-hidden">
+                                  {logoPath ? (
+                                    <Image
+                                      alt={`${row.lab} logo`}
+                                      className="h-5 w-5 object-contain"
+                                      height={20}
+                                      src={logoPath}
+                                      width={20}
+                                    />
+                                  ) : (
+                                    <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{labMonogram(row.lab)}</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="whitespace-nowrap px-4 py-3 font-semibold text-slate-900 dark:text-white">{row.model}</td>
+                              <td className="px-4 py-3" style={{ color: "var(--text-muted)" }}>{row.lab}</td>
+                              <td className="px-4 py-3">{fmtNum(row.intelligenceIndex, 2)}</td>
+                              <td className="px-4 py-3">{fmtNum(row.codingIndex, 2)}</td>
+                              <td className="px-4 py-3">{fmtNum(row.agenticIndex, 2)}</td>
+                              <td className="px-4 py-3">{formatContext(row.contextWindowTokens)}</td>
+                              <td className="px-4 py-3">{fmtNum(row.outputTokensPerSecond, 1)}</td>
+                              <td className="min-w-[10ch] whitespace-nowrap px-4 py-3 tabular-nums">
+                                {formatReleaseDate(row.releaseDate)}
+                              </td>
+                              <td className="px-4 py-3 text-center align-middle">
+                                {row.openWeights ? (
+                                  <span
+                                    aria-label={openSourceTooltip}
+                                    className="inline-flex items-center justify-center cursor-help"
+                                    title={openSourceTooltip}
+                                  >
+                                    <LockOpen className="h-4 w-4 text-emerald-500" />
+                                  </span>
+                                ) : (
+                                  <span
+                                    aria-label={closedSourceTooltip}
+                                    className="inline-flex items-center justify-center cursor-help"
+                                    title={closedSourceTooltip}
+                                  >
+                                    <Lock className="h-4 w-4 text-red-500" />
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  {/* Mobile scroll hint */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 md:hidden" />
+                </div>
+
+                <div className="mt-3 flex items-center justify-end gap-2">
+                  <button
+                    className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+                    style={{
+                      border: "1px solid var(--border)",
+                      background: "var(--surface-card)",
+                      color: "var(--text-muted)",
+                    }}
+                    disabled={clampedPage <= 0}
+                    onClick={() => setPage((current) => Math.max(0, current - 1))}
+                    type="button"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    {locale === "tr" ? "Önceki" : "Prev"}
+                  </button>
+                  <span className="text-xs" style={{ color: "var(--text-faint)" }}>
+                    {clampedPage + 1} / {pageCount}
+                  </span>
+                  <button
+                    className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+                    style={{
+                      border: "1px solid var(--border)",
+                      background: "var(--surface-card)",
+                      color: "var(--text-muted)",
+                    }}
+                    disabled={clampedPage >= pageCount - 1}
+                    onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
+                    type="button"
+                  >
+                    {locale === "tr" ? "Sonraki" : "Next"}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="order-first xl:order-last flex min-h-0 min-w-0 self-stretch flex-col gap-6">
+            {/* Stat cards — 2×2 grid grows to fill available space above Latest Releases */}
+            <div className="grid flex-1 grid-cols-2 grid-rows-2 gap-3">
+              {([
+                { label: locale === "tr" ? "Toplam Model" : "Total Models", display: <CountUpStat value={modelCount} /> },
+                { label: locale === "tr" ? "Son 30 Gün" : "Last 30 Days", display: <CountUpStat value={last30DaysCount} /> },
+                { label: locale === "tr" ? "Provider" : "Providers", display: <CountUpStat value={providerCount} /> },
+                { label: locale === "tr" ? "Kaynak" : "Sources", display: <CountUpStat value={sourceCount} /> },
+              ] as { label: string; display: ReactNode }[]).map(({ label, display }) => (
+                <div
+                  key={label}
+                  className="panel-interactive flex min-w-0 flex-col rounded-[var(--radius-card)] px-4 py-3 sm:px-5 sm:py-4"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-card)",
+                    boxShadow: "var(--shadow-sm)",
+                  }}
+                >
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.22em]" style={{ color: "var(--text-faint)" }}>
+                    {label}
+                  </div>
+                  <div className="mt-2 text-3xl font-bold sm:text-4xl" style={{ color: "var(--text)" }}>
+                    {display}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              id="latest-models"
+              className="overflow-hidden rounded-[var(--radius-panel)] p-5"
+              style={{
+                border: "1px solid var(--border)",
+                background: "var(--surface-card)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                boxShadow: "var(--shadow-md)",
+              }}
+            >
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+                  {strings.latestTitle}
+                </h2>
+                <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                  {strings.latestSubtitle}
+                </p>
+              </div>
+              <div className="space-y-2">
+                {latestModels.map((item) => {
+                  const logoPath = getLabLogoPath(item.lab);
+                  return (
+                    <article
+                      key={item.id}
+                      className="flex items-center gap-3 rounded-3xl px-5 py-4"
+                      style={{
+                        border: "1px solid var(--border)",
+                        background: "var(--surface-subtle)",
+                      }}
+                    >
+                      <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden">
+                        {logoPath ? (
+                          <Image
+                            alt={`${item.lab} logo`}
+                            className="h-5 w-5 object-contain"
+                            height={20}
+                            src={logoPath}
+                            width={20}
+                          />
+                        ) : (
+                          <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                            {labMonogram(item.lab)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold" style={{ color: "var(--text)" }}>
+                          {item.model}
+                        </p>
+                        <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                          {item.lab} <span className="px-1">·</span> {shortDate(item.releaseDate, locale)}
+                        </p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div
+              id="ai-news"
+              className="flex flex-col overflow-hidden rounded-[var(--radius-panel)] p-5"
+              style={{
+                border: "1px solid var(--border)",
+                background: "var(--surface-card)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                boxShadow: "var(--shadow-md)",
+              }}
+            >
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+                  {strings.aiNewsTitle}
+                </h2>
+                {strings.aiNewsSubtitle ? (
+                  <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                    {strings.aiNewsSubtitle}
+                  </p>
+                ) : null}
+              </div>
+              <div className="relative">
+                <div className="hide-scrollbar max-h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1">
+                  {aiNewsPreview.map((item) => (
+                    <article
+                      key={item.id}
+                      className="rounded-xl px-3 py-3"
+                      style={{
+                        border: "1px solid var(--border)",
+                        background: "var(--surface-subtle)",
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div
+                          className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg"
+                          style={{ border: "1px solid var(--border)" }}
+                        >
+                          <Image
+                            alt={item.title}
+                            className="h-full w-full object-cover"
+                            height={56}
+                            src={item.imageUrl || "/mock-news/open-source-copilot.svg"}
+                            width={80}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          {item.link && !BLOCKED_NEWS_DOMAIN_PATTERN.test(item.link) ? (
+                            <a
+                              className="line-clamp-2 text-xs font-semibold transition-colors duration-150"
+                              href={item.link}
+                              rel="noreferrer"
+                              target="_blank"
+                              style={{ color: "var(--text)" }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--accent)"; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text)"; }}
+                            >
+                              {item.title}
+                            </a>
+                          ) : (
+                            <p className="line-clamp-2 text-xs font-semibold" style={{ color: "var(--text)" }}>
+                              {item.title}
+                            </p>
+                          )}
+                          <p className="mt-0.5 text-[10px] sm:text-xs" style={{ color: "var(--text-faint)" }}>
+                            {item.source} <span className="px-1">·</span> {shortDate(item.publishedAt, locale)}
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                {showAiNewsScrollHint ? (
+                  <>
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 h-12"
+                      style={{ background: "linear-gradient(to top, var(--surface-card), transparent)" }}
+                    />
+                    <div
+                      className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2"
+                      style={{ color: "var(--text-faint)" }}
+                    >
+                      <ChevronsDown className="h-5 w-5 animate-bounce" />
+                    </div>
+                  </>
+                ) : null}
+              </div>
             </div>
           </div>
-        </div>
-
-        {summaryRows.length === 0 ? (
-          <div
-            className="rounded-2xl p-6 text-sm"
-            style={{
-              border: "1px solid var(--border)",
-              background: "var(--surface-subtle)",
-              color: "var(--text-muted)",
-            }}
-          >
-            {strings.noRows}
+        </section>
+      ) : activeSection === "llm" ? (
+        <section
+          className="w-full overflow-hidden rounded-[var(--radius-panel)] p-5"
+          style={{
+            border: "1px solid var(--border)",
+            background: "var(--surface-card)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            boxShadow: "var(--shadow-md)",
+          }}
+        >
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+                {locale === "tr" ? "LLM Detaylar" : "LLM Details"}
+              </h2>
+              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                {locale === "tr"
+                  ? "Genişletilmiş sıralama görünümü: benchmark derinliği, gecikme, fiyatlama, bağlam, akıl yürütme ve açıklık metrikleri."
+                  : "Expanded leaderboard view: benchmark depth, latency, pricing, context, reasoning, and openness metrics."}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+                <span>{locale === "tr" ? "Satır" : "Rows"}</span>
+                <select
+                  className="h-7 rounded-lg px-2 text-xs outline-none transition"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                    color: "var(--text)",
+                  }}
+                  onChange={(event) => {
+                    setLlmRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number]);
+                    setLlmPage(0);
+                  }}
+                  value={llmRowLimit}
+                >
+                  {LLM_ROW_LIMIT_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
+                {llmVisibleRows.length} / {llmRows.length}
+              </div>
+            </div>
           </div>
-        ) : (
-          <>
-            {filtersPanel}
-
-            <div className="relative">
-            <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
-              <table className="min-w-[1080px] w-max text-left text-sm">
-                <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
+          {filtersPanel}
+          <div className="relative">
+            <div
+              className="overflow-x-auto overscroll-x-none rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]"
+              onScroll={handleHorizontalScrollBoundary}
+              onWheel={handleHorizontalWheelBoundary}
+            >
+              <table className="w-full min-w-[1800px] text-left text-sm">
+                <thead className="whitespace-nowrap bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
                   <tr>
-                    <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-3" />
-                    <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-3" />
-                    <th className="px-4 py-3">{renderSortableHeader(strings.headers.model, "model", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.model)}</th>
-                    <th className="px-4 py-3">{renderSortableHeader(strings.headers.provider, "lab", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.provider)}</th>
-                    <th className="px-4 py-3">{renderSortableHeader(strings.headers.intelligence, "intelligenceIndex", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.intelligence)}</th>
-                    <th className="px-4 py-3">{renderSortableHeader(strings.headers.code, "codingIndex", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.code)}</th>
-                    <th className="px-4 py-3">{renderSortableHeader(strings.headers.agentic, "agenticIndex", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.agentic)}</th>
-                    <th className="px-4 py-3">{renderSortableHeader(strings.headers.context, "contextWindowTokens", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.context)}</th>
-                    <th className="px-4 py-3">{renderSortableHeader(strings.headers.speed, "outputTokensPerSecond", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.speed)}</th>
-                    <th className="px-4 py-3">{renderSortableHeader(strings.headers.release, "releaseDate", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.release)}</th>
-                    <th className="px-4 py-3 text-center">
+                    <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
+                    <th className="px-4 py-2">
+                      {renderSortableHeader(locale === "tr" ? "Sıra" : "Rank", "rank", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, locale === "tr" ? "Modelin Intelligence tabanlı genel sırası." : "Model rank derived from the Intelligence-based overall ordering.", "asc")}
+                    </th>
+                    <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-2" />
+                    <th className="w-full px-4 py-2">{renderSortableHeader("Model", "model", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.model)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Sağlayıcı" : "Provider", "lab", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.provider)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("Intelligence", "intelligenceIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.intelligence)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("Coding", "codingIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.code)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("Agentic", "agenticIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.agentic)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("GPQA", "gpqa", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.gpqa)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("MMLU-Pro", "mmluPro", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.mmluPro)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("TerminalBench", "terminalBenchHard", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.terminalBench)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("SWE-Bench", "sweBench", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.sweBench)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("$ / 1M", "pricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.blendedPrice)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Girdi $ / 1M" : "Input $ / 1M", "inputPricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.inputPrice)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Çıktı $ / 1M" : "Output $ / 1M", "outputPricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.outputPrice)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("Tok/s", "outputTokensPerSecond", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.speed)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("TTFT (s)", "ttftSeconds", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.ttft)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Uçtan Uca (s)" : "End-to-End (s)", "endToEndSeconds", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.e2eLatency)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader("Context", "contextWindowTokens", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.context)}</th>
+                    <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Akıl Yürütme" : "Reasoning", "reasoning", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.reasoning)}</th>
+                    <th className="px-4 py-2 text-center">
                       <div className="flex justify-center">
-                        {renderSortableHeader(strings.headers.openSource, "openWeights", summarySortKey, summarySortDirection, setSummarySortKey, setSummarySortDirection, headerHints.openSource)}
+                        {renderSortableHeader("Open Source", "openWeights", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.openSource)}
                       </div>
                     </th>
+                    <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Yayın" : "Release", "releaseDate", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.release)}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleRows.map((row) => {
+                  {llmVisibleRows.map((row) => {
                     const logoPath = getLabLogoPath(row.lab);
                     const isSelected = selectedIdSet.has(row.id);
                     const isDisabled = selectionLimitReached && !isSelected;
                     return (
                       <tr key={row.id} className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]">
-                        <td className="px-3 py-3 align-middle">
+                        <td className="px-3 py-2 align-middle">
                           <input
                             aria-label={locale === "tr" ? `${row.model} modelini karşılaştırma için seç` : `Select ${row.model} for comparison`}
                             checked={isSelected}
@@ -1384,7 +1862,10 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                             type="checkbox"
                           />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-2">
+                          {renderRankBadge(overallRankById.get(row.id) ?? null)}
+                        </td>
+                        <td className="px-4 py-2">
                           <div className="grid h-8 w-8 place-items-center overflow-hidden">
                             {logoPath ? (
                               <Image
@@ -1399,15 +1880,24 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">{row.model}</td>
-                        <td className="px-4 py-3" style={{ color: "var(--text-muted)" }}>{row.lab}</td>
-                        <td className="px-4 py-3">{fmtNum(row.intelligenceIndex, 2)}</td>
-                        <td className="px-4 py-3">{fmtNum(row.codingIndex, 2)}</td>
-                        <td className="px-4 py-3">{fmtNum(row.agenticIndex, 2)}</td>
-                        <td className="px-4 py-3">{formatContext(row.contextWindowTokens)}</td>
-                        <td className="px-4 py-3">{fmtNum(row.outputTokensPerSecond, 1)}</td>
-                        <td className="px-4 py-3">{row.releaseDate ? row.releaseDate.slice(0, 10) : "-"}</td>
-                        <td className="px-4 py-3 text-center align-middle">
+                        <td className="whitespace-nowrap px-4 py-2 font-semibold text-slate-900 dark:text-white">{row.model}</td>
+                        <td className="px-4 py-2">{row.lab}</td>
+                        <td className="px-4 py-2">{fmtNum(row.intelligenceIndex, 2)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.codingIndex, 2)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.agenticIndex, 2)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.gpqa, 2)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.mmluPro, 2)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.terminalBenchHard, 2)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.sweBench, 2)}</td>
+                        <td className="px-4 py-2">{formatUsd(row.pricePer1m)}</td>
+                        <td className="px-4 py-2">{formatUsd(row.inputPricePer1m)}</td>
+                        <td className="px-4 py-2">{formatUsd(row.outputPricePer1m)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.outputTokensPerSecond, 1)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.ttftSeconds, 2)}</td>
+                        <td className="px-4 py-2">{fmtNum(row.endToEndSeconds, 2)}</td>
+                        <td className="px-4 py-2">{formatContext(row.contextWindowTokens)}</td>
+                        <td className="px-4 py-2">{row.reasoning ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}</td>
+                        <td className="px-4 py-2 text-center align-middle">
                           {row.openWeights ? (
                             <span
                               aria-label={openSourceTooltip}
@@ -1426,6 +1916,9 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                             </span>
                           )}
                         </td>
+                        <td className="min-w-[10ch] whitespace-nowrap px-4 py-3 tabular-nums">
+                          {formatReleaseDate(row.releaseDate)}
+                        </td>
                       </tr>
                     );
                   })}
@@ -1434,370 +1927,45 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             </div>
             {/* Mobile scroll hint */}
             <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 md:hidden" />
-            </div>
-
-            <div className="mt-3 flex items-center justify-end gap-2">
-              <button
-                className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
-                style={{
-                  border: "1px solid var(--border)",
-                  background: "var(--surface-card)",
-                  color: "var(--text-muted)",
-                }}
-                disabled={clampedPage <= 0}
-                onClick={() => setPage((current) => Math.max(0, current - 1))}
-                type="button"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                {locale === "tr" ? "Önceki" : "Prev"}
-              </button>
-              <span className="text-xs" style={{ color: "var(--text-faint)" }}>
-                {clampedPage + 1} / {pageCount}
-              </span>
-              <button
-                className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
-                style={{
-                  border: "1px solid var(--border)",
-                  background: "var(--surface-card)",
-                  color: "var(--text-muted)",
-                }}
-                disabled={clampedPage >= pageCount - 1}
-                onClick={() => setPage((current) => Math.min(pageCount - 1, current + 1))}
-                type="button"
-              >
-                {locale === "tr" ? "Sonraki" : "Next"}
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="flex min-h-0 self-stretch flex-col gap-6">
-        <div
-          id="latest-models"
-          className="min-h-[20rem] rounded-[var(--radius-panel)] p-5"
-          style={{
-            border: "1px solid var(--border)",
-            background: "var(--surface-card)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            boxShadow: "var(--shadow-md)",
-          }}
-        >
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-              {strings.latestTitle}
-            </h2>
-            <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-              {strings.latestSubtitle}
-            </p>
           </div>
-          <div className="space-y-2">
-            {latestModels.map((item) => {
-              const logoPath = getLabLogoPath(item.lab);
-              return (
-                <article
-                  key={item.id}
-                  className="flex items-center gap-3 rounded-3xl px-5 py-4"
-                  style={{
-                    border: "1px solid var(--border)",
-                    background: "var(--surface-subtle)",
-                  }}
-                >
-                  <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden">
-                    {logoPath ? (
-                      <Image
-                        alt={`${item.lab} logo`}
-                        className="h-5 w-5 object-contain"
-                        height={20}
-                        src={logoPath}
-                        width={20}
-                      />
-                    ) : (
-                      <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-                        {labMonogram(item.lab)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold" style={{ color: "var(--text)" }}>
-                      {item.model}
-                    </p>
-                    <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                      {item.lab} <span className="px-1">·</span> {shortDate(item.releaseDate, locale)}
-                    </p>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-
-        <div
-          id="ai-news"
-          className="flex flex-col rounded-[var(--radius-panel)] p-5"
-          style={{
-            border: "1px solid var(--border)",
-            background: "var(--surface-card)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            boxShadow: "var(--shadow-md)",
-          }}
-        >
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-              {strings.aiNewsTitle}
-            </h2>
-            {strings.aiNewsSubtitle ? (
-              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                {strings.aiNewsSubtitle}
-              </p>
-            ) : null}
-          </div>
-          <div className="relative">
-            <div className="hide-scrollbar max-h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1">
-              {aiNewsPreview.map((item) => (
-                <article
-                  key={item.id}
-                  className="rounded-xl px-3 py-3"
-                  style={{
-                    border: "1px solid var(--border)",
-                    background: "var(--surface-subtle)",
-                  }}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg"
-                      style={{ border: "1px solid var(--border)" }}
-                    >
-                      <Image
-                        alt={item.title}
-                        className="h-full w-full object-cover"
-                        height={56}
-                        src={item.imageUrl || "/mock-news/open-source-copilot.svg"}
-                        width={80}
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      {item.link && !BLOCKED_NEWS_DOMAIN_PATTERN.test(item.link) ? (
-                        <a
-                          className="line-clamp-2 text-xs font-semibold transition-colors duration-150"
-                          href={item.link}
-                          rel="noreferrer"
-                          target="_blank"
-                          style={{ color: "var(--text)" }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--accent)"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text)"; }}
-                        >
-                          {item.title}
-                        </a>
-                      ) : (
-                        <p className="line-clamp-2 text-xs font-semibold" style={{ color: "var(--text)" }}>
-                          {item.title}
-                        </p>
-                      )}
-                      <p className="mt-0.5 text-[10px] sm:text-xs" style={{ color: "var(--text-faint)" }}>
-                        {item.source} <span className="px-1">·</span> {shortDate(item.publishedAt, locale)}
-                      </p>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-            {showAiNewsScrollHint ? (
-              <>
-                <div
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-12"
-                  style={{ background: "linear-gradient(to top, var(--surface-card), transparent)" }}
-                />
-                <div
-                  className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2"
-                  style={{ color: "var(--text-faint)" }}
-                >
-                  <ChevronsDown className="h-5 w-5 animate-bounce" />
-                </div>
-              </>
-            ) : null}
-          </div>
-        </div>
-      </div>
-      </section>
-      ) : activeSection === "llm" ? (
-        <section
-          className="rounded-[var(--radius-panel)] p-5"
-          style={{
-            border: "1px solid var(--border)",
-            background: "var(--surface-card)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            boxShadow: "var(--shadow-md)",
-          }}
-        >
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-                {locale === "tr" ? "LLM Detaylar" : "LLM Details"}
-              </h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-                <span>{locale === "tr" ? "Satır" : "Rows"}</span>
-                <select
-                  className="h-7 rounded-lg px-2 text-xs outline-none transition"
-                  style={{
-                    border: "1px solid var(--border)",
-                    background: "var(--surface-subtle)",
-                    color: "var(--text)",
-                  }}
-                  onChange={(event) => setLlmRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number])}
-                  value={llmRowLimit}
-                >
-                  {LLM_ROW_LIMIT_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
-                {llmVisibleRows.length} / {llmRows.length}
-              </div>
-            </div>
-          </div>
-          {filtersPanel}
-          <div className="relative">
-          <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
-            <table className="min-w-[1800px] w-max text-left text-sm">
-              <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
-                <tr>
-                  <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
-                  <th className="px-4 py-2">{locale === "tr" ? "Sıra" : "Rank"}</th>
-                  <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-2" />
-                  <th className="px-4 py-2">{renderSortableHeader("Model", "model", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.model)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Sağlayıcı" : "Provider", "lab", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.provider)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("Intelligence", "intelligenceIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.intelligence)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("Coding", "codingIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.code)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("Agentic", "agenticIndex", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.agentic)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("GPQA", "gpqa", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.gpqa)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("MMLU-Pro", "mmluPro", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.mmluPro)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("TerminalBench", "terminalBenchHard", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.terminalBench)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("SWE-Bench", "sweBench", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.sweBench)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("$ / 1M", "pricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.blendedPrice)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Girdi $ / 1M" : "Input $ / 1M", "inputPricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.inputPrice)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Çıktı $ / 1M" : "Output $ / 1M", "outputPricePer1m", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.outputPrice)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("Tok/s", "outputTokensPerSecond", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.speed)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("TTFT (s)", "ttftSeconds", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.ttft)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Uçtan Uca (s)" : "End-to-End (s)", "endToEndSeconds", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.e2eLatency)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader("Context", "contextWindowTokens", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.context)}</th>
-                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Akıl Yürütme" : "Reasoning", "reasoning", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.reasoning)}</th>
-                  <th className="px-4 py-2 text-center">
-                    <div className="flex justify-center">
-                      {renderSortableHeader("Open Source", "openWeights", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.openSource)}
-                    </div>
-                  </th>
-                  <th className="px-4 py-2">{renderSortableHeader(locale === "tr" ? "Yayın" : "Release", "releaseDate", llmSortKey, llmSortDirection, setLlmSortKey, setLlmSortDirection, headerHints.release)}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {llmVisibleRows.map((row) => {
-                  const logoPath = getLabLogoPath(row.lab);
-                  const isSelected = selectedIdSet.has(row.id);
-                  const isDisabled = selectionLimitReached && !isSelected;
-                  return (
-                      <tr key={row.id} className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]">
-                      <td className="px-3 py-2 align-middle">
-                        <input
-                          aria-label={locale === "tr" ? `${row.model} modelini karşılaştırma için seç` : `Select ${row.model} for comparison`}
-                          checked={isSelected}
-                          className="compare-checkbox"
-                          disabled={isDisabled}
-                          onChange={() => {
-                            if (isSelected) {
-                              setCompareModalOpen(false);
-                            }
-                            setSelectedModelIds((current) => {
-                              const normalized = current.filter((id) => aaById.has(id)).slice(0, 2);
-                              const exists = normalized.includes(row.id);
-                              if (exists) {
-                                return normalized.filter((id) => id !== row.id);
-                              }
-                              if (normalized.length >= 2) {
-                                return normalized;
-                              }
-                              return [...normalized, row.id];
-                            });
-                          }}
-                          type="checkbox"
-                        />
-                      </td>
-                      <td className="px-4 py-2">{llmRankById.get(row.id) ?? "-"}</td>
-                      <td className="px-4 py-2">
-                        <div className="grid h-8 w-8 place-items-center overflow-hidden">
-                          {logoPath ? (
-                            <Image
-                              alt={`${row.lab} logo`}
-                              className="h-5 w-5 object-contain"
-                              height={20}
-                              src={logoPath}
-                              width={20}
-                            />
-                          ) : (
-                            <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{labMonogram(row.lab)}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 font-semibold text-slate-900 dark:text-white">{row.model}</td>
-                      <td className="px-4 py-2">{row.lab}</td>
-                      <td className="px-4 py-2">{fmtNum(row.intelligenceIndex, 2)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.codingIndex, 2)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.agenticIndex, 2)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.gpqa, 2)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.mmluPro, 2)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.terminalBenchHard, 2)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.sweBench, 2)}</td>
-                      <td className="px-4 py-2">{formatUsd(row.pricePer1m)}</td>
-                      <td className="px-4 py-2">{formatUsd(row.inputPricePer1m)}</td>
-                      <td className="px-4 py-2">{formatUsd(row.outputPricePer1m)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.outputTokensPerSecond, 1)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.ttftSeconds, 2)}</td>
-                      <td className="px-4 py-2">{fmtNum(row.endToEndSeconds, 2)}</td>
-                      <td className="px-4 py-2">{formatContext(row.contextWindowTokens)}</td>
-                      <td className="px-4 py-2">{row.reasoning ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}</td>
-                      <td className="px-4 py-2 text-center align-middle">
-                        {row.openWeights ? (
-                          <span
-                            aria-label={openSourceTooltip}
-                            className="inline-flex items-center justify-center cursor-help"
-                            title={openSourceTooltip}
-                          >
-                            <LockOpen className="h-4 w-4 text-emerald-500" />
-                          </span>
-                        ) : (
-                          <span
-                            aria-label={closedSourceTooltip}
-                            className="inline-flex items-center justify-center cursor-help"
-                            title={closedSourceTooltip}
-                          >
-                            <Lock className="h-4 w-4 text-red-500" />
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">{row.releaseDate ? row.releaseDate.slice(0, 10) : "-"}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {/* Mobile scroll hint */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 md:hidden" />
+          <div className="mt-3 flex items-center justify-end gap-2">
+            <button
+              className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+              style={{
+                border: "1px solid var(--border)",
+                background: "var(--surface-card)",
+                color: "var(--text-muted)",
+              }}
+              disabled={llmClampedPage <= 0}
+              onClick={() => setLlmPage((current) => Math.max(0, current - 1))}
+              type="button"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {locale === "tr" ? "Önceki" : "Prev"}
+            </button>
+            <span className="text-xs" style={{ color: "var(--text-faint)" }}>
+              {llmClampedPage + 1} / {llmPageCount}
+            </span>
+            <button
+              className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+              style={{
+                border: "1px solid var(--border)",
+                background: "var(--surface-card)",
+                color: "var(--text-muted)",
+              }}
+              disabled={llmClampedPage >= llmPageCount - 1}
+              onClick={() => setLlmPage((current) => Math.min(llmPageCount - 1, current + 1))}
+              type="button"
+            >
+              {locale === "tr" ? "Sonraki" : "Next"}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </div>
         </section>
       ) : (
         <section
           id="leaderboard"
-          className="rounded-[var(--radius-panel)] p-5 text-sm"
+          className="w-full overflow-hidden rounded-[var(--radius-panel)] p-5 text-sm"
           style={{
             border: "1px solid var(--border)",
             background: "var(--surface-card)",
@@ -1815,6 +1983,39 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                   return locale === "tr" ? "Embeddings Detaylar" : "Embeddings Details";
                 })()}
               </h2>
+              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                {(() => {
+                  if (locale === "tr") {
+                    if (activeSection === "image") {
+                      return "Image board anlık görünümü: kaynağa göre sıralı modeller, görsel benchmark skoru, sağlayıcı, yayın tarihi ve açıklık sinyalleri.";
+                    }
+                    if (activeSection === "video") {
+                      return "Video board anlık görünümü: kaynağa göre sıralı modeller, video benchmark skoru, sağlayıcı, yayın tarihi ve açıklık sinyalleri.";
+                    }
+                    if (activeSection === "tts") {
+                      return "TTS board anlık görünümü: kaynağa göre sıralı modeller, konuşma kalitesi benchmark skoru, sağlayıcı, yayın tarihi ve açıklık sinyalleri.";
+                    }
+                    if (activeSection === "stt") {
+                      return "STT board anlık görünümü: kaynağa göre sıralı modeller, transkripsiyon benchmark skoru, sağlayıcı, yayın tarihi ve açıklık sinyalleri.";
+                    }
+                    return "Embeddings board anlık görünümü: kaynağa göre sıralı modeller, embedding benchmark skoru, sağlayıcı, yayın tarihi ve açıklık sinyalleri.";
+                  }
+
+                  if (activeSection === "image") {
+                    return "Image board snapshot: source-ranked models with image benchmark score, provider, release timing, and openness signals.";
+                  }
+                  if (activeSection === "video") {
+                    return "Video board snapshot: source-ranked models with video benchmark score, provider, release timing, and openness signals.";
+                  }
+                  if (activeSection === "tts") {
+                    return "TTS board snapshot: source-ranked models with speech quality benchmark score, provider, release timing, and openness signals.";
+                  }
+                  if (activeSection === "stt") {
+                    return "STT board snapshot: source-ranked models with transcription benchmark score, provider, release timing, and openness signals.";
+                  }
+                  return "Embeddings board snapshot: source-ranked models with embedding benchmark score, provider, release timing, and openness signals.";
+                })()}
+              </p>
             </div>
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
@@ -1826,7 +2027,10 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                     background: "var(--surface-subtle)",
                     color: "var(--text)",
                   }}
-                  onChange={(event) => setCategoryRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number])}
+                  onChange={(event) => {
+                    setCategoryRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number]);
+                    setCategoryPage(0);
+                  }}
                   value={categoryRowLimit}
                 >
                   {LLM_ROW_LIMIT_OPTIONS.map((option) => (
@@ -1938,178 +2142,215 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           ) : (
             <div className="space-y-3">
               <div className="relative">
-              <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
-                    <tr>
-                      <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
-                      <th className="px-4 py-2">
-                        <button
-                          className="inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 transition hover:text-slate-700 dark:hover:text-slate-200"
-                          onClick={() => {
-                            if (categorySortKey === "rank") {
-                              setCategorySortDirection(categorySortDirection === "asc" ? "desc" : "asc");
-                              return;
-                            }
-                            setCategorySortKey("rank");
-                            setCategorySortDirection("asc");
-                          }}
-                          type="button"
-                        >
-                          <ColumnTooltipLabel
-                            description={locale === "tr" ? "Bu kategorideki sıralama." : "Leaderboard rank in this category."}
-                            label={locale === "tr" ? "Sıra" : "Rank"}
-                          />
-                          {categorySortKey === "rank" ? (
-                            categorySortDirection === "asc" ? (
-                              <ArrowUp className="h-3.5 w-3.5" />
-                            ) : (
-                              <ArrowDown className="h-3.5 w-3.5" />
-                            )
-                          ) : (
-                            <ArrowUpDown className="h-3.5 w-3.5 opacity-65" />
-                          )}
-                        </button>
-                      </th>
-                      <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-2" />
-                      {visibleCategoryColumns.map((column) => {
-                        const active = categorySortKey === column.key;
-                        return (
-                          <th key={column.key} className="px-4 py-2">
-                            <button
-                              className="inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 transition hover:text-slate-700 dark:hover:text-slate-200"
-                              onClick={() => {
-                                if (active) {
-                                  setCategorySortDirection(categorySortDirection === "asc" ? "desc" : "asc");
-                                  return;
-                                }
-                                setCategorySortKey(column.key);
-                                setCategorySortDirection(column.key === "rank" ? "asc" : "desc");
-                              }}
-                              type="button"
-                            >
-                              <ColumnTooltipLabel
-                                description={
-                                  column.key === "score"
-                                    ? describeCategoryScore(categoryScoreUnit, categorySourceName, locale)
-                                    : (locale === "tr" ? column.hint.tr : column.hint.en)
-                                }
-                                label={column.label}
-                              />
-                              {active ? (
-                                categorySortDirection === "asc" ? (
-                                  <ArrowUp className="h-3.5 w-3.5" />
-                                ) : (
-                                  <ArrowDown className="h-3.5 w-3.5" />
-                                )
-                              ) : (
-                                <ArrowUpDown className="h-3.5 w-3.5 opacity-65" />
-                              )}
-                            </button>
-                          </th>
-                        );
-                      })}
-                      <th className="px-4 py-2 text-center">
-                        <div className="flex justify-center">
-                          <ColumnTooltipLabel
-                            description={
-                              locale === "tr"
-                                ? "Model ağırlıklarının herkese açık olup olmadığını gösterir."
-                                : "Shows whether model weights are publicly available."
-                            }
-                            label={locale === "tr" ? "Açık" : "Open"}
-                          />
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categoryLimitedRows.map((row) => {
-                      const logoPath = getLabLogoPath(row.lab);
-                      const matchedId = aaIdByModelVendor.get(modelVendorCompareKey(row.model, row.lab)) ?? null;
-                      const isSelected = matchedId ? selectedIdSet.has(matchedId) : false;
-                      const isDisabled = !matchedId || (selectionLimitReached && !isSelected);
-                      return (
-                        <tr
-                          key={`${row.rank}-${row.model}`}
-                          className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]"
-                        >
-                          <td className="px-3 py-2 align-middle">
-                            <input
-                              aria-label={locale === "tr" ? `${row.model} modelini karşılaştırma için seç` : `Select ${row.model} for comparison`}
-                              checked={isSelected}
-                              className="compare-checkbox"
-                              disabled={isDisabled}
-                              onChange={() => {
-                                if (!matchedId) return;
-                                if (isSelected) {
-                                  setCompareModalOpen(false);
-                                }
-                                setSelectedModelIds((current) => {
-                                  const normalized = current.filter((id) => aaById.has(id)).slice(0, 2);
-                                  const exists = normalized.includes(matchedId);
-                                  if (exists) {
-                                    return normalized.filter((id) => id !== matchedId);
-                                  }
-                                  if (normalized.length >= 2) {
-                                    return normalized;
-                                  }
-                                  return [...normalized, matchedId];
-                                });
-                              }}
-                              type="checkbox"
+                <div
+                  className="overflow-x-auto overscroll-x-none rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]"
+                  onScroll={handleHorizontalScrollBoundary}
+                  onWheel={handleHorizontalWheelBoundary}
+                >
+                  <table className="w-full min-w-[1080px] text-left text-sm">
+                    <thead className="whitespace-nowrap bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
+                      <tr>
+                        <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
+                        <th className="px-4 py-2">
+                          <button
+                            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1 py-0.5 transition hover:text-slate-700 dark:hover:text-slate-200"
+                            onClick={() => {
+                              if (categorySortKey === "rank") {
+                                setCategorySortDirection(categorySortDirection === "asc" ? "desc" : "asc");
+                                return;
+                              }
+                              setCategorySortKey("rank");
+                              setCategorySortDirection("asc");
+                            }}
+                            type="button"
+                          >
+                            <ColumnTooltipLabel
+                              description={locale === "tr" ? "Bu kategorideki sıralama." : "Leaderboard rank in this category."}
+                              label={locale === "tr" ? "Sıra" : "Rank"}
                             />
-                          </td>
-                          <td className="px-4 py-2">{row.rank}</td>
-                          <td className="px-4 py-2">
-                            <div className="grid h-8 w-8 place-items-center overflow-hidden">
-                              {logoPath ? (
-                                <Image
-                                  alt={`${row.lab} logo`}
-                                  className="h-5 w-5 object-contain"
-                                  height={20}
-                                  src={logoPath}
-                                  width={20}
+                            {categorySortKey === "rank" ? (
+                              categorySortDirection === "asc" ? (
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              ) : (
+                                <ArrowDown className="h-3.5 w-3.5" />
+                              )
+                            ) : (
+                              <ArrowUpDown className="h-3.5 w-3.5 opacity-65" />
+                            )}
+                          </button>
+                        </th>
+                        <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-2" />
+                        {visibleCategoryColumns.map((column) => {
+                          const active = categorySortKey === column.key;
+                          return (
+                            <th key={column.key} className={`${column.key === "model" ? "w-full " : ""}px-4 py-2`}>
+                              <button
+                                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1 py-0.5 transition hover:text-slate-700 dark:hover:text-slate-200"
+                                onClick={() => {
+                                  if (active) {
+                                    setCategorySortDirection(categorySortDirection === "asc" ? "desc" : "asc");
+                                    return;
+                                  }
+                                  setCategorySortKey(column.key);
+                                  setCategorySortDirection(column.key === "rank" ? "asc" : "desc");
+                                }}
+                                type="button"
+                              >
+                                <ColumnTooltipLabel
+                                  description={
+                                    column.key === "score"
+                                      ? describeCategoryScore(categoryScoreUnit, categorySourceName, locale)
+                                      : (locale === "tr" ? column.hint.tr : column.hint.en)
+                                  }
+                                  label={column.label}
                                 />
-                              ) : (
-                                <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{labMonogram(row.lab)}</span>
-                              )}
-                            </div>
-                          </td>
-                          {visibleCategoryColumns.map((column) => (
-                            <td key={`${row.rank}-${row.model}-${column.key}`} className="px-4 py-2">
-                              {column.key === "model" ? (
-                                row.modelUrl ? (
-                                  <a href={row.modelUrl} target="_blank" rel="noreferrer" className="font-medium hover:underline" style={{ color: "var(--text)" }}>
-                                    {row.model}
-                                  </a>
+                                {active ? (
+                                  categorySortDirection === "asc" ? (
+                                    <ArrowUp className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <ArrowDown className="h-3.5 w-3.5" />
+                                  )
                                 ) : (
-                                  <span className="font-medium" style={{ color: "var(--text)" }}>{row.model}</span>
-                                )
-                              ) : column.key === "lab" ? (
-                                formatProviderName(column.render(row))
+                                  <ArrowUpDown className="h-3.5 w-3.5 opacity-65" />
+                                )}
+                              </button>
+                            </th>
+                          );
+                        })}
+                        <th className="px-4 py-2 text-center">
+                          <div className="flex justify-center">
+                            <ColumnTooltipLabel
+                              description={
+                                locale === "tr"
+                                  ? "Model ağırlıklarının herkese açık olup olmadığını gösterir."
+                                  : "Shows whether model weights are publicly available."
+                              }
+                              label={locale === "tr" ? "Açık" : "Open"}
+                            />
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {categoryLimitedRows.map((row) => {
+                        const logoPath = getLabLogoPath(row.lab);
+                        const matchedId = aaIdByModelVendor.get(modelVendorCompareKey(row.model, row.lab)) ?? null;
+                        const isSelected = matchedId ? selectedIdSet.has(matchedId) : false;
+                        const isDisabled = !matchedId || (selectionLimitReached && !isSelected);
+                        return (
+                          <tr
+                            key={`${row.rank}-${row.model}`}
+                            className="border-t border-slate-200/70 text-slate-700 hover:bg-slate-50 dark:border-white/8 dark:text-slate-300 dark:hover:bg-white/[0.03]"
+                          >
+                            <td className="px-3 py-2 align-middle">
+                              <input
+                                aria-label={locale === "tr" ? `${row.model} modelini karşılaştırma için seç` : `Select ${row.model} for comparison`}
+                                checked={isSelected}
+                                className="compare-checkbox"
+                                disabled={isDisabled}
+                                onChange={() => {
+                                  if (!matchedId) return;
+                                  if (isSelected) {
+                                    setCompareModalOpen(false);
+                                  }
+                                  setSelectedModelIds((current) => {
+                                    const normalized = current.filter((id) => aaById.has(id)).slice(0, 2);
+                                    const exists = normalized.includes(matchedId);
+                                    if (exists) {
+                                      return normalized.filter((id) => id !== matchedId);
+                                    }
+                                    if (normalized.length >= 2) {
+                                      return normalized;
+                                    }
+                                    return [...normalized, matchedId];
+                                  });
+                                }}
+                                type="checkbox"
+                              />
+                            </td>
+                            <td className="px-4 py-2">{renderRankBadge(row.rank)}</td>
+                            <td className="px-4 py-2">
+                              <div className="grid h-8 w-8 place-items-center overflow-hidden">
+                                {logoPath ? (
+                                  <Image
+                                    alt={`${row.lab} logo`}
+                                    className="h-5 w-5 object-contain"
+                                    height={20}
+                                    src={logoPath}
+                                    width={20}
+                                  />
+                                ) : (
+                                  <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{labMonogram(row.lab)}</span>
+                                )}
+                              </div>
+                            </td>
+                            {visibleCategoryColumns.map((column) => (
+                              <td key={`${row.rank}-${row.model}-${column.key}`} className={`${column.key === "model" ? "whitespace-nowrap" : ""} px-4 py-2`}>
+                                {column.key === "model" ? (
+                                  row.modelUrl ? (
+                                    <a href={row.modelUrl} target="_blank" rel="noreferrer" className="font-semibold text-slate-900 hover:underline dark:text-white">
+                                      {row.model}
+                                    </a>
+                                  ) : (
+                                    <span className="font-semibold text-slate-900 dark:text-white">{row.model}</span>
+                                  )
+                                ) : column.key === "lab" ? (
+                                  formatProviderName(column.render(row))
+                                ) : (
+                                  column.render(row)
+                                )}
+                              </td>
+                            ))}
+                            <td className="px-4 py-2 text-center align-middle">
+                              {row.isOpenSource === true ? (
+                                <LockOpen className="mx-auto h-4 w-4 text-emerald-500" />
+                              ) : row.isOpenSource === false ? (
+                                <Lock className="mx-auto h-4 w-4 text-red-500" />
                               ) : (
-                                column.render(row)
+                                "-"
                               )}
                             </td>
-                          ))}
-                          <td className="px-4 py-2 text-center align-middle">
-                            {row.isOpenSource === true ? (
-                              <LockOpen className="mx-auto h-4 w-4 text-emerald-500" />
-                            ) : row.isOpenSource === false ? (
-                              <Lock className="mx-auto h-4 w-4 text-red-500" />
-                            ) : (
-                              "-"
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Mobile scroll hint */}
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 md:hidden" />
               </div>
-              {/* Mobile scroll hint */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 md:hidden" />
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button
+                  className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-card)",
+                    color: "var(--text-muted)",
+                  }}
+                  disabled={categoryClampedPage <= 0}
+                  onClick={() => setCategoryPage((current) => Math.max(0, current - 1))}
+                  type="button"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  {locale === "tr" ? "Önceki" : "Prev"}
+                </button>
+                <span className="text-xs" style={{ color: "var(--text-faint)" }}>
+                  {categoryClampedPage + 1} / {categoryPageCount}
+                </span>
+                <button
+                  className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-card)",
+                    color: "var(--text-muted)",
+                  }}
+                  disabled={categoryClampedPage >= categoryPageCount - 1}
+                  onClick={() => setCategoryPage((current) => Math.min(categoryPageCount - 1, current + 1))}
+                  type="button"
+                >
+                  {locale === "tr" ? "Sonraki" : "Next"}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
           )}
@@ -2119,11 +2360,10 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
       {compareDrawerData ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
           <div
-            className={`${
-              isCompareDrawerExiting
-                ? "compare-drawer-exit pointer-events-none"
-                : "compare-drawer-enter pointer-events-auto"
-            } w-full max-w-3xl rounded-2xl px-4 py-3`}
+            className={`${isCompareDrawerExiting
+              ? "compare-drawer-exit pointer-events-none"
+              : "compare-drawer-enter pointer-events-auto"
+              } w-full max-w-3xl rounded-2xl px-4 py-3`}
             style={{
               border: "1px solid var(--border-strong)",
               background: "var(--surface-raised)",
@@ -2233,15 +2473,13 @@ function ModelCompareModal({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-end justify-center p-4 md:items-center ${
-        isExiting ? "compare-modal-overlay-exit" : "compare-modal-overlay-enter"
-      }`}
+      className={`fixed inset-0 z-50 flex items-end justify-center p-4 md:items-center ${isExiting ? "compare-modal-overlay-exit" : "compare-modal-overlay-enter"
+        }`}
       style={{ backdropFilter: "blur(8px)", background: "rgba(0,0,0,0.45)" }}
     >
       <div
-        className={`w-full max-w-6xl overflow-hidden rounded-2xl ${
-          isExiting ? "compare-modal-panel-exit" : "compare-modal-panel-enter"
-        }`}
+        className={`w-full max-w-6xl overflow-hidden rounded-2xl ${isExiting ? "compare-modal-panel-exit" : "compare-modal-panel-enter"
+          }`}
         style={{
           border: "1px solid var(--border-strong)",
           background: "var(--surface-raised)",
@@ -2308,7 +2546,7 @@ function ModelCompareModal({
               {data.detailRows.map((row) => (
                 <Fragment key={row.label}>
                   <div className="text-sm" style={{ color: "var(--text-muted)" }}>{row.label}</div>
-              <div className="text-sm font-semibold" style={{ color: "var(--tt-blue)", opacity: 0.9 }}>{row.left}</div>
+                  <div className="text-sm font-semibold" style={{ color: "var(--tt-blue)", opacity: 0.9 }}>{row.left}</div>
                   <div className="text-sm font-semibold text-teal-600/90 dark:text-teal-400/80">{row.right}</div>
                 </Fragment>
               ))}
@@ -2654,18 +2892,19 @@ function renderSortableHeader<TSortKey extends string>(
   setSortKey: (key: TSortKey) => void,
   setSortDirection: (value: "asc" | "desc") => void,
   hint: string,
+  defaultDirection: "asc" | "desc" = "desc",
 ) {
   const isActive = key === activeKey;
   return (
     <button
-      className="inline-flex items-center gap-1.5 rounded-md px-1 py-0.5 transition hover:text-slate-700 dark:hover:text-slate-200"
+      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1 py-0.5 transition hover:text-slate-700 dark:hover:text-slate-200"
       onClick={() => {
         if (isActive) {
           setSortDirection(direction === "asc" ? "desc" : "asc");
           return;
         }
         setSortKey(key);
-        setSortDirection("desc");
+        setSortDirection(defaultDirection);
       }}
       type="button"
     >
@@ -2680,6 +2919,28 @@ function renderSortableHeader<TSortKey extends string>(
         <ArrowUpDown className="h-3.5 w-3.5 opacity-65" />
       )}
     </button>
+  );
+}
+
+function rankToneClass(rank: number) {
+  if (rank <= 3) return "border-emerald-300/80 bg-emerald-50 text-emerald-700 dark:border-emerald-400/40 dark:bg-emerald-500/12 dark:text-emerald-200";
+  if (rank <= 10) return "border-blue-300/80 bg-blue-50 text-blue-700 dark:border-blue-400/40 dark:bg-blue-500/12 dark:text-blue-200";
+  if (rank <= 25) return "border-amber-300/80 bg-amber-50 text-amber-700 dark:border-amber-400/40 dark:bg-amber-500/12 dark:text-amber-200";
+  return "border-slate-300/80 bg-slate-100 text-slate-700 dark:border-slate-500/40 dark:bg-slate-500/10 dark:text-slate-200";
+}
+
+function renderRankBadge(rank: number | null) {
+  if (typeof rank !== "number" || !Number.isFinite(rank) || rank <= 0) {
+    return "-";
+  }
+
+  return (
+    <span
+      className={`inline-flex min-w-11 justify-center rounded-full border px-2 py-0.5 text-xs font-semibold tabular-nums ${rankToneClass(rank)}`}
+      title={`Rank ${rank}`}
+    >
+      {rank}
+    </span>
   );
 }
 
@@ -2719,6 +2980,15 @@ function toMs(dateLike: string | null) {
 
   const parsed = Date.parse(dateLike);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatReleaseDate(dateLike: string | null) {
+  if (!dateLike) {
+    return "-";
+  }
+
+  // Use non-breaking hyphen so ISO dates never wrap inside table cells.
+  return dateLike.slice(0, 10).replaceAll("-", "\u2011");
 }
 
 function shortDate(dateLike: string | null, locale: Locale) {

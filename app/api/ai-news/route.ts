@@ -1,13 +1,30 @@
 import { NextResponse } from "next/server";
-import { fetchWithRetry, toApiErrorMeta } from "@/lib/fetcher";
+import { fetchJsonWithRetry, toApiErrorMeta } from "@/lib/fetcher";
 import { isStale, readSnapshot, refreshSnapshot, startAutoRefresh } from "@/lib/local-snapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SOURCE_URL = "https://llm-stats.com/ai-news";
-const CACHE_KEY = "api-ai-news";
+const SOURCE_URL =
+  "https://hn.algolia.com/api/v1/search_by_date?tags=story&hitsPerPage=24&query=%28ai%20OR%20llm%20OR%20openai%20OR%20anthropic%20OR%20gemini%20OR%20claude%29";
+const CACHE_KEY = "api-ai-news-hn";
 const REFRESH_MS = 12 * 60 * 60 * 1000;
+
+type HnHit = {
+  objectID?: string;
+  created_at?: string;
+  title?: string | null;
+  story_title?: string | null;
+  url?: string | null;
+  story_url?: string | null;
+  author?: string | null;
+  points?: number | null;
+  num_comments?: number | null;
+};
+
+type HnResponse = {
+  hits?: HnHit[];
+};
 
 type AiNewsItem = {
   id: string;
@@ -21,7 +38,7 @@ type AiNewsItem = {
 
 type Snapshot = {
   last_success_at: string;
-  source: "llm_stats_ai_news";
+  source: "hn_algolia";
   data: AiNewsItem[];
 };
 
@@ -32,54 +49,47 @@ type Payload = Snapshot & {
   note?: string;
 };
 
-function normalizeText(value: string): string {
-  return value
-    .replaceAll("\\u0026", "&")
-    .replaceAll("\\u003c", "<")
-    .replaceAll("\\u003e", ">")
-    .replaceAll("\\n", " ")
-    .replaceAll('\\"', '"')
-    .replaceAll("\\/", "/")
-    .replaceAll("\\\\", "\\")
-    .trim();
+function canonicalizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.hash = "";
+    return parsed.toString();
+  } catch {
+    return url.trim();
+  }
 }
 
-function parseAiNews(html: string): AiNewsItem[] {
-  const pattern =
-    /\{\\\"id\\\":\\\"([^\\\"]+)\\\",\\\"title\\\":\\\"([^\\\"]+)\\\",\\\"description\\\":\\\"([^\\\"]*)\\\",\\\"link\\\":\\\"([^\\\"]+)\\\",\\\"source\\\":\\\"([^\\\"]+)\\\",\\\"pubDate\\\":\\\"([^\\\"]+)\\\"(?:,\\\"timeAgo\\\":\\\"([^\\\"]*)\\\")?(?:,\\\"image\\\":\\\"([^\\\"]*)\\\")?/g;
+function parseAiNews(payload: HnResponse): AiNewsItem[] {
   const items: AiNewsItem[] = [];
   const seen = new Set<string>();
+  const hits = Array.isArray(payload.hits) ? payload.hits : [];
 
-  for (const match of html.matchAll(pattern)) {
-    const id = normalizeText(match[1] ?? "");
-    const title = normalizeText(match[2] ?? "");
-    const link = normalizeText(match[4] ?? "");
-    const source = normalizeText(match[5] ?? "");
-    const publishedAtRaw = normalizeText(match[6] ?? "");
-    const timeAgoRaw = normalizeText(match[7] ?? "");
-    const imageRaw = normalizeText(match[8] ?? "");
+  for (const hit of hits) {
+    const title = (hit.title ?? hit.story_title ?? "").trim();
+    const rawLink = (hit.url ?? hit.story_url ?? "").trim();
+    if (!title || !rawLink) continue;
 
-    if (!title || !link) {
-      continue;
-    }
-    if (seen.has(link)) {
-      continue;
-    }
+    const link = canonicalizeUrl(rawLink);
+    if (seen.has(link)) continue;
     seen.add(link);
 
-    const publishedAtTs = Date.parse(publishedAtRaw);
+    const publishedAtTs = Date.parse(hit.created_at ?? "");
     const publishedAt = Number.isFinite(publishedAtTs)
       ? new Date(publishedAtTs).toISOString()
-      : publishedAtRaw;
+      : new Date().toISOString();
+
+    const points = typeof hit.points === "number" && Number.isFinite(hit.points) ? hit.points : 0;
+    const comments =
+      typeof hit.num_comments === "number" && Number.isFinite(hit.num_comments) ? hit.num_comments : 0;
 
     items.push({
-      id: id || link,
+      id: (hit.objectID ?? link).trim(),
       title,
       link,
-      source: source || "LLM Stats",
+      source: (hit.author ?? "").trim() || "Hacker News",
       publishedAt,
-      timeAgo: timeAgoRaw || null,
-      imageUrl: imageRaw.startsWith("http") ? imageRaw : null,
+      timeAgo: `${points} points / ${comments} comments`,
+      imageUrl: null,
     });
   }
 
@@ -89,29 +99,28 @@ function parseAiNews(html: string): AiNewsItem[] {
 }
 
 async function buildFreshSnapshot(): Promise<Snapshot> {
-  const { data: html } = await fetchWithRetry<string>(
+  const { data } = await fetchJsonWithRetry<HnResponse>(
     SOURCE_URL,
     {
       method: "GET",
       headers: {
-        Accept: "text/html,application/xhtml+xml",
+        Accept: "application/json",
         "User-Agent": "model-tracker/1.0 (+https://localhost:4000)",
       },
     },
-    async (response) => response.text(),
     {
-      allowedHosts: ["llm-stats.com"],
+      allowedHosts: ["hn.algolia.com"],
     },
   );
 
-  const items = parseAiNews(html);
+  const items = parseAiNews(data);
   if (items.length === 0) {
-    throw new Error("Could not parse ai-news items from llm-stats.com");
+    throw new Error("Could not parse ai-news items from hn.algolia.com");
   }
 
   return {
     last_success_at: new Date().toISOString(),
-    source: "llm_stats_ai_news",
+    source: "hn_algolia",
     data: items,
   };
 }
@@ -162,7 +171,7 @@ export async function GET() {
       {
         generated_at: generatedAt,
         last_success_at: generatedAt,
-        source: "llm_stats_ai_news",
+        source: "hn_algolia",
         stale: true,
         error: errorMeta,
         data: [],

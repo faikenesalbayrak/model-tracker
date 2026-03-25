@@ -1,0 +1,39 @@
+[     272ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <LoadingBoundary name="/" loading={null}>
+      <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+        <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} unauthorized={undefined} ...>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+                <SegmentViewNode type="page" pagePath="page.tsx">
+                  <SegmentTrieNode>
+                  <Home>
+                    <DashboardApp showCapabilityTiers={true}>
+                      <DashboardShell showCapabilityTiers={true}>
+                        <div className="min-h-scre..." style={{color:"var..."}}>
+                          <HeaderControlsPortal>
+                          <header>
+                          <main className="mx-auto fl...">
+                            <ModelExplorer aaModels={[...]} aiNews={[...]} locale="en" ...>
+                              <section className="min-w-0 sp...">
+                                <div
++                                 className="overflow-x-auto overscroll-x-none rounded-2xl border border-slate-200/70 ..."
+-                                 className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-slate-950 p-2 s..."
+                                >
+                                ...
+                            ...
+                ...
+              ...
+ @ http://localhost:4000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272

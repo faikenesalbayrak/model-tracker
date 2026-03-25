@@ -1,8 +1,8 @@
 {
   "route": "pricing",
   "source": "pricing_feed",
-  "generated_at": "2026-03-24T11:08:21.977Z",
-  "last_success_at": "2026-03-24T11:08:21.977Z",
+  "generated_at": "2026-03-25T06:41:24.563Z",
+  "last_success_at": "2026-03-25T06:41:24.563Z",
   "stale": false,
   "data": [
     {
@@ -16,7 +16,7 @@
       "subtitle": "Minimax",
       "timestamp": "2026-03-18T12:24:57.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "minimax/minimax-m2.7",
         "context_length": 204800,
@@ -36,7 +36,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-03-17T11:49:47.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.4-nano",
         "context_length": 400000,
@@ -56,7 +56,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-03-17T11:49:38.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.4-mini",
         "context_length": 400000,
@@ -76,7 +76,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2026-03-16T21:14:45.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-small-2603",
         "context_length": 262144,
@@ -96,7 +96,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2026-03-12T14:22:47.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-4.20-multi-agent-beta",
         "context_length": 2000000,
@@ -116,7 +116,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2026-03-12T14:22:34.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-4.20-beta",
         "context_length": 2000000,
@@ -136,7 +136,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2026-03-11T16:07:19.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/nemotron-3-super-120b-a12b:free",
         "context_length": 262144,
@@ -156,7 +156,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2026-03-11T16:07:19.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/nemotron-3-super-120b-a12b",
         "context_length": 262144,
@@ -176,7 +176,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-03-10T14:19:56.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3.5-9b",
         "context_length": 256000,
@@ -196,7 +196,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-03-05T18:12:46.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.4-pro",
         "context_length": 1050000,
@@ -216,7 +216,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-03-05T18:12:32.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.4",
         "context_length": 1050000,
@@ -236,7 +236,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-03-03T18:54:21.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.3-chat",
         "context_length": 128000,
@@ -256,7 +256,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2026-03-03T04:37:53.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-3.1-flash-lite-preview",
         "context_length": 1048576,
@@ -276,7 +276,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2026-02-26T15:25:58.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-3.1-flash-image-preview",
         "context_length": 65536,
@@ -296,7 +296,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-02-25T21:10:22.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3.5-35b-a3b",
         "context_length": 262144,
@@ -316,7 +316,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-02-25T21:10:10.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3.5-27b",
         "context_length": 262144,
@@ -336,7 +336,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-02-25T21:09:49.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3.5-122b-a10b",
         "context_length": 262144,
@@ -356,7 +356,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-02-25T21:09:36.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3.5-flash-02-23",
         "context_length": 1000000,
@@ -376,7 +376,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2026-02-25T18:58:43.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-3.1-pro-preview-customtools",
         "context_length": 1048576,
@@ -396,7 +396,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-02-24T18:52:44.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.3-codex",
         "context_length": 400000,
@@ -416,7 +416,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2026-02-19T14:00:27.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-3.1-pro-preview",
         "context_length": 1048576,
@@ -436,7 +436,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2026-02-17T15:43:10.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-sonnet-4.6",
         "context_length": 1000000,
@@ -456,7 +456,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-02-16T08:10:16.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3.5-plus-02-15",
         "context_length": 1000000,
@@ -476,7 +476,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-02-16T06:23:38.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3.5-397b-a17b",
         "context_length": 262144,
@@ -496,7 +496,7 @@
       "subtitle": "Minimax",
       "timestamp": "2026-02-12T15:01:42.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "minimax/minimax-m2.5:free",
         "context_length": 196608,
@@ -516,7 +516,7 @@
       "subtitle": "Minimax",
       "timestamp": "2026-02-12T15:01:42.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "minimax/minimax-m2.5",
         "context_length": 196608,
@@ -536,7 +536,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-02-09T21:18:21.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-max-thinking",
         "context_length": 262144,
@@ -556,7 +556,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2026-02-04T15:30:50.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-opus-4.6",
         "context_length": 1000000,
@@ -576,7 +576,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2026-02-04T00:15:01.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-coder-next",
         "context_length": 262144,
@@ -596,7 +596,7 @@
       "subtitle": "Minimax",
       "timestamp": "2026-01-23T14:07:19.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "minimax/minimax-m2-her",
         "context_length": 65536,
@@ -616,7 +616,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-01-19T22:42:49.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-audio",
         "context_length": 128000,
@@ -636,7 +636,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-01-19T21:50:19.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-audio-mini",
         "context_length": 128000,
@@ -656,7 +656,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2026-01-14T16:48:35.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.2-codex",
         "context_length": 400000,
@@ -676,7 +676,7 @@
       "subtitle": "Minimax",
       "timestamp": "2025-12-23T01:56:37.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "minimax/minimax-m2.1",
         "context_length": 196608,
@@ -696,7 +696,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-12-17T15:57:58.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-3-flash-preview",
         "context_length": 1048576,
@@ -716,7 +716,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-12-16T18:10:53.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-small-creative",
         "context_length": 32768,
@@ -736,7 +736,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2025-12-14T16:54:35.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/nemotron-3-nano-30b-a3b:free",
         "context_length": 256000,
@@ -756,7 +756,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2025-12-14T16:54:35.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/nemotron-3-nano-30b-a3b",
         "context_length": 262144,
@@ -776,7 +776,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-12-10T18:03:03.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.2-chat",
         "context_length": 128000,
@@ -796,7 +796,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-12-10T18:03:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.2-pro",
         "context_length": 400000,
@@ -816,7 +816,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-12-10T18:02:55.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.2",
         "context_length": 400000,
@@ -836,7 +836,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-12-09T13:03:39.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/devstral-2512",
         "context_length": 262144,
@@ -856,7 +856,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-12-04T20:08:54.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.1-codex-max",
         "context_length": 400000,
@@ -876,7 +876,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-12-02T13:22:15.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/ministral-14b-2512",
         "context_length": 262144,
@@ -896,7 +896,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-12-02T13:20:54.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/ministral-8b-2512",
         "context_length": 262144,
@@ -916,7 +916,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-12-02T13:19:20.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/ministral-3b-2512",
         "context_length": 131072,
@@ -936,7 +936,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-12-01T21:27:52.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-large-2512",
         "context_length": 262144,
@@ -956,7 +956,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-12-01T13:13:57.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-v3.2-speciale",
         "context_length": 163840,
@@ -976,7 +976,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-12-01T13:10:42.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-v3.2",
         "context_length": 163840,
@@ -996,7 +996,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2025-11-24T18:56:20.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-opus-4.5",
         "context_length": 200000,
@@ -1016,7 +1016,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-11-20T15:49:57.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-3-pro-image-preview",
         "context_length": 65536,
@@ -1036,7 +1036,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2025-11-19T21:25:02.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-4.1-fast",
         "context_length": 2000000,
@@ -1056,7 +1056,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-11-18T14:04:28.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-3-pro-preview",
         "context_length": 1048576,
@@ -1076,7 +1076,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-11-13T18:58:25.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.1",
         "context_length": 400000,
@@ -1096,7 +1096,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-11-13T18:58:22.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.1-chat",
         "context_length": 128000,
@@ -1116,7 +1116,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-11-13T18:58:18.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.1-codex",
         "context_length": 400000,
@@ -1136,7 +1136,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-11-13T18:17:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5.1-codex-mini",
         "context_length": 400000,
@@ -1156,7 +1156,7 @@
       "subtitle": "Perplexity (Sonar)",
       "timestamp": "2025-10-30T19:59:26.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "perplexity/sonar-pro-search",
         "context_length": 200000,
@@ -1176,7 +1176,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-10-30T14:39:04.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/voxtral-small-24b-2507",
         "context_length": 32000,
@@ -1196,7 +1196,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-10-29T15:47:16.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-oss-safeguard-20b",
         "context_length": 131072,
@@ -1216,7 +1216,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2025-10-28T18:19:25.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/nemotron-nano-12b-v2-vl:free",
         "context_length": 128000,
@@ -1236,7 +1236,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2025-10-28T18:19:25.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/nemotron-nano-12b-v2-vl",
         "context_length": 131072,
@@ -1256,7 +1256,7 @@
       "subtitle": "Minimax",
       "timestamp": "2025-10-23T20:41:33.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "minimax/minimax-m2",
         "context_length": 196608,
@@ -1276,7 +1276,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-10-23T14:55:32.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-vl-32b-instruct",
         "context_length": 131072,
@@ -1296,7 +1296,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-10-16T14:23:03.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5-image-mini",
         "context_length": 400000,
@@ -1316,7 +1316,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2025-10-15T17:00:38.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-haiku-4.5",
         "context_length": 200000,
@@ -1336,7 +1336,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-10-14T17:42:26.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-vl-8b-thinking",
         "context_length": 131072,
@@ -1356,7 +1356,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-10-14T17:35:08.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-vl-8b-instruct",
         "context_length": 131072,
@@ -1376,7 +1376,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-10-14T13:19:46.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5-image",
         "context_length": 400000,
@@ -1396,7 +1396,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-10-10T20:54:21.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o3-deep-research",
         "context_length": 200000,
@@ -1416,7 +1416,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-10-10T20:54:02.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o4-mini-deep-research",
         "context_length": 200000,
@@ -1436,7 +1436,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2025-10-10T13:03:15.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
         "context_length": 131072,
@@ -1456,7 +1456,7 @@
       "subtitle": "Baidu (ERNIE)",
       "timestamp": "2025-10-09T22:28:07.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "baidu/ernie-4.5-21b-a3b-thinking",
         "context_length": 131072,
@@ -1476,7 +1476,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-10-07T20:53:51.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.5-flash-image",
         "context_length": 32768,
@@ -1496,7 +1496,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-10-06T23:47:59.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-vl-30b-a3b-thinking",
         "context_length": 131072,
@@ -1516,7 +1516,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-10-06T23:47:56.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-vl-30b-a3b-instruct",
         "context_length": 131072,
@@ -1536,7 +1536,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-10-06T18:51:03.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5-pro",
         "context_length": 400000,
@@ -1556,7 +1556,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2025-09-29T16:01:16.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-sonnet-4.5",
         "context_length": 1000000,
@@ -1576,7 +1576,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-09-29T12:54:41.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-v3.2-exp",
         "context_length": 163840,
@@ -1596,7 +1596,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-09-25T17:01:26.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.5-flash-lite-preview-09-2025",
         "context_length": 1048576,
@@ -1616,7 +1616,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-23T23:04:50.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-vl-235b-a22b-thinking",
         "context_length": 131072,
@@ -1636,7 +1636,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-23T23:04:47.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-vl-235b-a22b-instruct",
         "context_length": 262144,
@@ -1656,7 +1656,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-23T21:26:48.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-max",
         "context_length": 262144,
@@ -1676,7 +1676,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-23T21:25:07.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-coder-plus",
         "context_length": 1000000,
@@ -1696,7 +1696,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-09-23T16:03:23.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5-codex",
         "context_length": 400000,
@@ -1716,7 +1716,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-09-22T13:37:55.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-v3.1-terminus",
         "context_length": 163840,
@@ -1736,7 +1736,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2025-09-19T00:01:30.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-4-fast",
         "context_length": 2000000,
@@ -1756,7 +1756,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-18T15:53:24.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "alibaba/tongyi-deepresearch-30b-a3b",
         "context_length": 131072,
@@ -1776,7 +1776,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-17T13:25:36.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-coder-flash",
         "context_length": 1000000,
@@ -1796,7 +1796,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-11T17:38:04.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-next-80b-a3b-thinking",
         "context_length": 131072,
@@ -1816,7 +1816,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-11T17:36:53.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-next-80b-a3b-instruct:free",
         "context_length": 262144,
@@ -1836,7 +1836,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-11T17:36:53.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-next-80b-a3b-instruct",
         "context_length": 262144,
@@ -1856,7 +1856,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-08T16:06:39.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-plus-2025-07-28:thinking",
         "context_length": 1000000,
@@ -1876,7 +1876,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-09-08T16:06:39.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-plus-2025-07-28",
         "context_length": 1000000,
@@ -1896,7 +1896,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2025-09-05T21:13:27.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/nemotron-nano-9b-v2:free",
         "context_length": 128000,
@@ -1916,7 +1916,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2025-09-05T21:13:27.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/nemotron-nano-9b-v2",
         "context_length": 131072,
@@ -1936,7 +1936,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-08-28T16:39:52.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-30b-a3b-thinking-2507",
         "context_length": 131072,
@@ -1956,7 +1956,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2025-08-26T20:08:47.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-code-fast-1",
         "context_length": 256000,
@@ -1976,7 +1976,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-08-21T12:33:48.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-chat-v3.1",
         "context_length": 32768,
@@ -1996,7 +1996,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-15T04:44:21.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o-audio-preview",
         "context_length": 128000,
@@ -2016,7 +2016,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-08-13T14:33:59.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-medium-3.1",
         "context_length": 131072,
@@ -2036,7 +2036,7 @@
       "subtitle": "Baidu (ERNIE)",
       "timestamp": "2025-08-12T21:29:27.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "baidu/ernie-4.5-21b-a3b",
         "context_length": 120000,
@@ -2056,7 +2056,7 @@
       "subtitle": "Baidu (ERNIE)",
       "timestamp": "2025-08-12T21:07:16.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "baidu/ernie-4.5-vl-28b-a3b",
         "context_length": 30000,
@@ -2076,7 +2076,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-07T17:30:37.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5-chat",
         "context_length": 128000,
@@ -2096,7 +2096,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-07T17:23:33.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5",
         "context_length": 400000,
@@ -2116,7 +2116,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-07T17:23:27.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5-mini",
         "context_length": 400000,
@@ -2136,7 +2136,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-07T17:23:22.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-5-nano",
         "context_length": 400000,
@@ -2156,7 +2156,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-05T17:17:11.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-oss-120b:free",
         "context_length": 131072,
@@ -2176,7 +2176,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-05T17:17:11.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-oss-120b",
         "context_length": 131072,
@@ -2196,7 +2196,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-05T17:17:09.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-oss-20b:free",
         "context_length": 131072,
@@ -2216,7 +2216,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-08-05T17:17:09.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-oss-20b",
         "context_length": 131072,
@@ -2236,7 +2236,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2025-08-05T16:33:11.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-opus-4.1",
         "context_length": 200000,
@@ -2256,7 +2256,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-08-01T20:20:30.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/codestral-2508",
         "context_length": 256000,
@@ -2276,7 +2276,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-07-31T14:32:59.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-coder-30b-a3b-instruct",
         "context_length": 160000,
@@ -2296,7 +2296,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-07-29T16:36:05.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-30b-a3b-instruct-2507",
         "context_length": 262144,
@@ -2316,7 +2316,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-07-25T13:19:17.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-235b-a22b-thinking-2507",
         "context_length": 131072,
@@ -2336,7 +2336,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-07-23T00:29:06.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-coder:free",
         "context_length": 262000,
@@ -2356,7 +2356,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-07-23T00:29:06.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-coder",
         "context_length": 262144,
@@ -2376,7 +2376,7 @@
       "subtitle": "ByteDance (Doubao)",
       "timestamp": "2025-07-22T17:24:16.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "bytedance/ui-tars-1.5-7b",
         "context_length": 128000,
@@ -2396,7 +2396,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-07-22T16:04:36.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.5-flash-lite",
         "context_length": 1048576,
@@ -2416,7 +2416,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-07-21T17:39:15.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-235b-a22b-2507",
         "context_length": 262144,
@@ -2436,7 +2436,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-07-10T15:28:41.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/devstral-medium",
         "context_length": 131072,
@@ -2456,7 +2456,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-07-10T15:19:11.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/devstral-small",
         "context_length": 131072,
@@ -2476,7 +2476,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2025-07-09T19:01:29.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-4",
         "context_length": 256000,
@@ -2496,7 +2496,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-07-09T15:28:24.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3n-e2b-it:free",
         "context_length": 8192,
@@ -2516,7 +2516,7 @@
       "subtitle": "Baidu (ERNIE)",
       "timestamp": "2025-06-30T16:28:23.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "baidu/ernie-4.5-vl-424b-a47b",
         "context_length": 123000,
@@ -2536,7 +2536,7 @@
       "subtitle": "Baidu (ERNIE)",
       "timestamp": "2025-06-30T16:15:39.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "baidu/ernie-4.5-300b-a47b",
         "context_length": 123000,
@@ -2556,7 +2556,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-06-20T18:10:16.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-small-3.2-24b-instruct",
         "context_length": 128000,
@@ -2576,7 +2576,7 @@
       "subtitle": "Minimax",
       "timestamp": "2025-06-17T22:46:54.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "minimax/minimax-m1",
         "context_length": 1000000,
@@ -2596,7 +2596,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-06-17T15:01:28.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.5-flash",
         "context_length": 1048576,
@@ -2616,7 +2616,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-06-17T14:12:24.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.5-pro",
         "context_length": 1048576,
@@ -2636,7 +2636,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-06-10T23:32:32.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o3-pro",
         "context_length": 200000,
@@ -2656,7 +2656,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2025-06-10T19:20:45.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-3-mini",
         "context_length": 131072,
@@ -2676,7 +2676,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2025-06-10T19:15:08.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-3",
         "context_length": 131072,
@@ -2696,7 +2696,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-06-05T15:27:37.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.5-pro-preview",
         "context_length": 1048576,
@@ -2716,7 +2716,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-05-28T17:59:30.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-r1-0528",
         "context_length": 163840,
@@ -2736,7 +2736,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2025-05-22T16:27:25.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-opus-4",
         "context_length": 200000,
@@ -2756,7 +2756,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2025-05-22T16:12:51.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-sonnet-4",
         "context_length": 200000,
@@ -2776,7 +2776,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-05-20T21:33:44.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3n-e4b-it:free",
         "context_length": 8192,
@@ -2796,7 +2796,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-05-20T21:33:44.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3n-e4b-it",
         "context_length": 32768,
@@ -2816,7 +2816,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-05-07T14:15:41.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-medium-3",
         "context_length": 131072,
@@ -2836,7 +2836,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-05-07T00:41:53.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.5-pro-preview-05-06",
         "context_length": 1048576,
@@ -2856,7 +2856,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-04-30T16:38:24.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-4b:free",
         "context_length": 40960,
@@ -2876,7 +2876,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2025-04-30T01:06:33.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-guard-4-12b",
         "context_length": 163840,
@@ -2896,7 +2896,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-04-28T22:16:44.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-30b-a3b",
         "context_length": 40960,
@@ -2916,7 +2916,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-04-28T21:43:52.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-8b",
         "context_length": 40960,
@@ -2936,7 +2936,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-04-28T21:41:18.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-14b",
         "context_length": 40960,
@@ -2956,7 +2956,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-04-28T21:32:25.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-32b",
         "context_length": 40960,
@@ -2976,7 +2976,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-04-28T21:29:17.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen3-235b-a22b",
         "context_length": 131072,
@@ -2996,7 +2996,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-04-16T17:23:32.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o4-mini-high",
         "context_length": 200000,
@@ -3016,7 +3016,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-04-16T17:10:57.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o3",
         "context_length": 200000,
@@ -3036,7 +3036,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-04-16T16:29:02.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o4-mini",
         "context_length": 200000,
@@ -3056,7 +3056,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-04-15T16:34:47.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen2.5-coder-7b-instruct",
         "context_length": 32768,
@@ -3076,7 +3076,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-04-14T17:23:05.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4.1",
         "context_length": 1047576,
@@ -3096,7 +3096,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-04-14T17:23:01.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4.1-mini",
         "context_length": 1047576,
@@ -3116,7 +3116,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-04-14T17:22:49.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4.1-nano",
         "context_length": 1047576,
@@ -3136,7 +3136,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2025-04-09T23:09:55.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-3-mini-beta",
         "context_length": 131072,
@@ -3156,7 +3156,7 @@
       "subtitle": "xAI (Grok)",
       "timestamp": "2025-04-09T23:07:48.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "x-ai/grok-3-beta",
         "context_length": 131072,
@@ -3176,7 +3176,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2025-04-08T12:24:19.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
         "context_length": 131072,
@@ -3196,7 +3196,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2025-04-05T19:37:02.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-4-maverick",
         "context_length": 1048576,
@@ -3216,7 +3216,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2025-04-05T19:31:59.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-4-scout",
         "context_length": 327680,
@@ -3236,7 +3236,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-03-24T18:10:38.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen2.5-vl-32b-instruct",
         "context_length": 128000,
@@ -3256,7 +3256,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-03-24T13:59:15.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-chat-v3-0324",
         "context_length": 163840,
@@ -3276,7 +3276,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-03-19T22:26:51.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o1-pro",
         "context_length": 200000,
@@ -3296,7 +3296,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-03-17T19:15:37.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-small-3.1-24b-instruct:free",
         "context_length": 128000,
@@ -3316,7 +3316,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-03-17T19:15:37.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-small-3.1-24b-instruct",
         "context_length": 131072,
@@ -3336,7 +3336,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-03-13T22:38:30.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3-4b-it:free",
         "context_length": 32768,
@@ -3356,7 +3356,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-03-13T22:38:30.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3-4b-it",
         "context_length": 131072,
@@ -3376,7 +3376,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-03-13T21:50:25.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3-12b-it:free",
         "context_length": 32768,
@@ -3396,7 +3396,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-03-13T21:50:25.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3-12b-it",
         "context_length": 131072,
@@ -3416,7 +3416,7 @@
       "subtitle": "Cohere",
       "timestamp": "2025-03-13T19:32:22.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "cohere/command-a",
         "context_length": 256000,
@@ -3436,7 +3436,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-03-12T22:22:02.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o-mini-search-preview",
         "context_length": 128000,
@@ -3456,7 +3456,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-03-12T22:19:09.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o-search-preview",
         "context_length": 128000,
@@ -3476,7 +3476,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-03-12T05:12:39.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3-27b-it:free",
         "context_length": 131072,
@@ -3496,7 +3496,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-03-12T05:12:39.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-3-27b-it",
         "context_length": 131072,
@@ -3516,7 +3516,7 @@
       "subtitle": "Perplexity (Sonar)",
       "timestamp": "2025-03-07T02:08:28.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "perplexity/sonar-reasoning-pro",
         "context_length": 128000,
@@ -3536,7 +3536,7 @@
       "subtitle": "Perplexity (Sonar)",
       "timestamp": "2025-03-07T01:53:43.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "perplexity/sonar-pro",
         "context_length": 200000,
@@ -3556,7 +3556,7 @@
       "subtitle": "Perplexity (Sonar)",
       "timestamp": "2025-03-07T01:34:06.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "perplexity/sonar-deep-research",
         "context_length": 128000,
@@ -3576,7 +3576,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-03-05T21:06:54.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwq-32b",
         "context_length": 131072,
@@ -3596,7 +3596,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-02-25T17:56:52.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.0-flash-lite-001",
         "context_length": 1048576,
@@ -3616,7 +3616,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2025-02-24T18:35:10.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-3.7-sonnet",
         "context_length": 200000,
@@ -3636,7 +3636,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2025-02-24T18:35:10.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-3.7-sonnet:thinking",
         "context_length": 200000,
@@ -3656,7 +3656,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-02-17T14:40:39.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-saba",
         "context_length": 32768,
@@ -3676,7 +3676,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2025-02-12T23:01:58.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-guard-3-8b",
         "context_length": 131072,
@@ -3696,7 +3696,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-02-12T15:03:31.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o3-mini-high",
         "context_length": 200000,
@@ -3716,7 +3716,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2025-02-05T15:30:13.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemini-2.0-flash-001",
         "context_length": 1048576,
@@ -3736,7 +3736,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-02-05T04:54:15.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-vl-plus",
         "context_length": 131072,
@@ -3756,7 +3756,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-02-01T18:25:04.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-vl-max",
         "context_length": 131072,
@@ -3776,7 +3776,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-02-01T11:56:14.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-turbo",
         "context_length": 131072,
@@ -3796,7 +3796,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-02-01T11:45:11.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen2.5-vl-72b-instruct",
         "context_length": 32768,
@@ -3816,7 +3816,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-02-01T11:37:20.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-plus",
         "context_length": 1000000,
@@ -3836,7 +3836,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2025-02-01T09:31:29.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-max",
         "context_length": 32768,
@@ -3856,7 +3856,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2025-01-31T19:28:41.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o3-mini",
         "context_length": 200000,
@@ -3876,7 +3876,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2025-01-30T16:43:29.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-small-24b-instruct-2501",
         "context_length": 32768,
@@ -3896,7 +3896,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-01-29T23:53:50.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-r1-distill-qwen-32b",
         "context_length": 32768,
@@ -3916,7 +3916,7 @@
       "subtitle": "Perplexity (Sonar)",
       "timestamp": "2025-01-27T21:36:48.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "perplexity/sonar",
         "context_length": 127072,
@@ -3936,7 +3936,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-01-23T20:12:49.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-r1-distill-llama-70b",
         "context_length": 131072,
@@ -3956,7 +3956,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2025-01-20T13:51:35.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-r1",
         "context_length": 64000,
@@ -3976,7 +3976,7 @@
       "subtitle": "Minimax",
       "timestamp": "2025-01-15T04:31:02.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "minimax/minimax-01",
         "context_length": 1000192,
@@ -3996,7 +3996,7 @@
       "subtitle": "Microsoft (Phi)",
       "timestamp": "2025-01-10T06:17:52.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "microsoft/phi-4",
         "context_length": 16384,
@@ -4016,7 +4016,7 @@
       "subtitle": "DeepSeek",
       "timestamp": "2024-12-26T19:28:40.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "deepseek/deepseek-chat",
         "context_length": 163840,
@@ -4036,7 +4036,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-12-17T18:26:39.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/o1",
         "context_length": 200000,
@@ -4056,7 +4056,7 @@
       "subtitle": "Cohere",
       "timestamp": "2024-12-14T06:35:52.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "cohere/command-r7b-12-2024",
         "context_length": 128000,
@@ -4076,7 +4076,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-12-06T17:28:57.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3.3-70b-instruct:free",
         "context_length": 65536,
@@ -4096,7 +4096,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-12-06T17:28:57.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3.3-70b-instruct",
         "context_length": 131072,
@@ -4116,7 +4116,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-11-20T18:33:14.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o-2024-11-20",
         "context_length": 128000,
@@ -4136,7 +4136,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2024-11-19T01:11:25.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-large-2411",
         "context_length": 131072,
@@ -4156,7 +4156,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2024-11-19T01:06:55.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-large-2407",
         "context_length": 131072,
@@ -4176,7 +4176,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2024-11-19T00:49:48.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/pixtral-large-2411",
         "context_length": 131072,
@@ -4196,7 +4196,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2024-11-11T23:40:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-2.5-coder-32b-instruct",
         "context_length": 32768,
@@ -4216,7 +4216,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2024-11-04T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-3.5-haiku",
         "context_length": 200000,
@@ -4236,7 +4236,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2024-10-22T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-3.5-sonnet",
         "context_length": 200000,
@@ -4256,7 +4256,7 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2024-10-16T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-2.5-7b-instruct",
         "context_length": 32768,
@@ -4276,7 +4276,7 @@
       "subtitle": "NVIDIA (Nemotron)",
       "timestamp": "2024-10-15T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "nvidia/llama-3.1-nemotron-70b-instruct",
         "context_length": 131072,
@@ -4296,7 +4296,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-09-25T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3.2-3b-instruct:free",
         "context_length": 131072,
@@ -4316,7 +4316,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-09-25T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3.2-3b-instruct",
         "context_length": 80000,
@@ -4336,7 +4336,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-09-25T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3.2-1b-instruct",
         "context_length": 60000,
@@ -4356,7 +4356,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-09-25T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3.2-11b-vision-instruct",
         "context_length": 131072,
@@ -4376,53 +4376,13 @@
       "subtitle": "Alibaba (Qwen)",
       "timestamp": "2024-09-19T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "qwen/qwen-2.5-72b-instruct",
         "context_length": 32768,
         "price_1m_input": 0.12,
         "price_1m_output": 0.39,
         "price_1m_blended": 0.1875
-      }
-    },
-    {
-      "id": "mistral-ai:mistralai-pixtral-12b:pricing",
-      "kind": "pricing",
-      "lab": "Mistral AI",
-      "source": "pricing_feed",
-      "metric": "price_per_1m",
-      "value": 0.1,
-      "title": "Mistral: Pixtral 12B",
-      "subtitle": "Mistral AI",
-      "timestamp": "2024-09-10T00:00:00.000Z",
-      "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
-      "payload": {
-        "model_id": "mistralai/pixtral-12b",
-        "context_length": 32768,
-        "price_1m_input": 0.1,
-        "price_1m_output": 0.1,
-        "price_1m_blended": 0.1
-      }
-    },
-    {
-      "id": "cohere:cohere-command-r-08-2024:pricing",
-      "kind": "pricing",
-      "lab": "Cohere",
-      "source": "pricing_feed",
-      "metric": "price_per_1m",
-      "value": 0.262,
-      "title": "Cohere: Command R (08-2024)",
-      "subtitle": "Cohere",
-      "timestamp": "2024-08-30T00:00:00.000Z",
-      "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
-      "payload": {
-        "model_id": "cohere/command-r-08-2024",
-        "context_length": 128000,
-        "price_1m_input": 0.15,
-        "price_1m_output": 0.6,
-        "price_1m_blended": 0.26249999999999996
       }
     },
     {
@@ -4436,7 +4396,7 @@
       "subtitle": "Cohere",
       "timestamp": "2024-08-30T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "cohere/command-r-plus-08-2024",
         "context_length": 128000,
@@ -4446,23 +4406,23 @@
       }
     },
     {
-      "id": "alibaba-qwen:qwen-qwen-2-5-vl-7b-instruct:pricing",
+      "id": "cohere:cohere-command-r-08-2024:pricing",
       "kind": "pricing",
-      "lab": "Alibaba (Qwen)",
+      "lab": "Cohere",
       "source": "pricing_feed",
       "metric": "price_per_1m",
-      "value": 0.2,
-      "title": "Qwen: Qwen2.5-VL 7B Instruct",
-      "subtitle": "Alibaba (Qwen)",
-      "timestamp": "2024-08-28T00:00:00.000Z",
+      "value": 0.262,
+      "title": "Cohere: Command R (08-2024)",
+      "subtitle": "Cohere",
+      "timestamp": "2024-08-30T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
-        "model_id": "qwen/qwen-2.5-vl-7b-instruct",
-        "context_length": 32768,
-        "price_1m_input": 0.2,
-        "price_1m_output": 0.2,
-        "price_1m_blended": 0.2
+        "model_id": "cohere/command-r-08-2024",
+        "context_length": 128000,
+        "price_1m_input": 0.15,
+        "price_1m_output": 0.6,
+        "price_1m_blended": 0.26249999999999996
       }
     },
     {
@@ -4476,33 +4436,13 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-08-06T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o-2024-08-06",
         "context_length": 128000,
         "price_1m_input": 2.5,
         "price_1m_output": 10,
         "price_1m_blended": 4.375
-      }
-    },
-    {
-      "id": "meta-ai:meta-llama-llama-3-1-405b:pricing",
-      "kind": "pricing",
-      "lab": "Meta AI",
-      "source": "pricing_feed",
-      "metric": "price_per_1m",
-      "value": 4,
-      "title": "Meta: Llama 3.1 405B (base)",
-      "subtitle": "Meta AI",
-      "timestamp": "2024-08-02T00:00:00.000Z",
-      "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
-      "payload": {
-        "model_id": "meta-llama/llama-3.1-405b",
-        "context_length": 32768,
-        "price_1m_input": 4,
-        "price_1m_output": 4,
-        "price_1m_blended": 4
       }
     },
     {
@@ -4516,7 +4456,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-07-23T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3.1-8b-instruct",
         "context_length": 16384,
@@ -4536,7 +4476,7 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-07-23T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3.1-70b-instruct",
         "context_length": 131072,
@@ -4556,7 +4496,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2024-07-19T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-nemo",
         "context_length": 131072,
@@ -4576,7 +4516,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-07-18T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o-mini-2024-07-18",
         "context_length": 128000,
@@ -4596,7 +4536,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-07-18T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o-mini",
         "context_length": 128000,
@@ -4616,7 +4556,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2024-07-13T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-2-27b-it",
         "context_length": 8192,
@@ -4636,7 +4576,7 @@
       "subtitle": "Google DeepMind",
       "timestamp": "2024-06-28T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "google/gemma-2-9b-it",
         "context_length": 8192,
@@ -4656,7 +4596,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-05-13T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o-2024-05-13",
         "context_length": 128000,
@@ -4676,7 +4616,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-05-13T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o",
         "context_length": 128000,
@@ -4696,33 +4636,13 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-05-13T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4o:extended",
         "context_length": 128000,
         "price_1m_input": 6,
         "price_1m_output": 18,
         "price_1m_blended": 9
-      }
-    },
-    {
-      "id": "meta-ai:meta-llama-llama-3-70b-instruct:pricing",
-      "kind": "pricing",
-      "lab": "Meta AI",
-      "source": "pricing_feed",
-      "metric": "price_per_1m",
-      "value": 0.568,
-      "title": "Meta: Llama 3 70B Instruct",
-      "subtitle": "Meta AI",
-      "timestamp": "2024-04-18T00:00:00.000Z",
-      "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
-      "payload": {
-        "model_id": "meta-llama/llama-3-70b-instruct",
-        "context_length": 8192,
-        "price_1m_input": 0.51,
-        "price_1m_output": 0.74,
-        "price_1m_blended": 0.5675
       }
     },
     {
@@ -4736,13 +4656,33 @@
       "subtitle": "Meta AI",
       "timestamp": "2024-04-18T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "meta-llama/llama-3-8b-instruct",
         "context_length": 8192,
         "price_1m_input": 0.03,
         "price_1m_output": 0.04,
         "price_1m_blended": 0.0325
+      }
+    },
+    {
+      "id": "meta-ai:meta-llama-llama-3-70b-instruct:pricing",
+      "kind": "pricing",
+      "lab": "Meta AI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 0.568,
+      "title": "Meta: Llama 3 70B Instruct",
+      "subtitle": "Meta AI",
+      "timestamp": "2024-04-18T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
+      "payload": {
+        "model_id": "meta-llama/llama-3-70b-instruct",
+        "context_length": 8192,
+        "price_1m_input": 0.51,
+        "price_1m_output": 0.74,
+        "price_1m_blended": 0.5675
       }
     },
     {
@@ -4756,7 +4696,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2024-04-17T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mixtral-8x22b-instruct",
         "context_length": 65536,
@@ -4776,7 +4716,7 @@
       "subtitle": "Microsoft (Phi)",
       "timestamp": "2024-04-16T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "microsoft/wizardlm-2-8x22b",
         "context_length": 65535,
@@ -4796,7 +4736,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-04-09T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4-turbo",
         "context_length": 128000,
@@ -4816,7 +4756,7 @@
       "subtitle": "Anthropic",
       "timestamp": "2024-03-13T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "anthropic/claude-3-haiku",
         "context_length": 200000,
@@ -4836,33 +4776,13 @@
       "subtitle": "Mistral AI",
       "timestamp": "2024-02-26T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-large",
         "context_length": 128000,
         "price_1m_input": 2,
         "price_1m_output": 6,
         "price_1m_blended": 3
-      }
-    },
-    {
-      "id": "openai:openai-gpt-3-5-turbo-0613:pricing",
-      "kind": "pricing",
-      "lab": "OpenAI",
-      "source": "pricing_feed",
-      "metric": "price_per_1m",
-      "value": 1.25,
-      "title": "OpenAI: GPT-3.5 Turbo (older v0613)",
-      "subtitle": "OpenAI",
-      "timestamp": "2024-01-25T00:00:00.000Z",
-      "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
-      "payload": {
-        "model_id": "openai/gpt-3.5-turbo-0613",
-        "context_length": 4095,
-        "price_1m_input": 1,
-        "price_1m_output": 2,
-        "price_1m_blended": 1.25
       }
     },
     {
@@ -4876,13 +4796,33 @@
       "subtitle": "OpenAI",
       "timestamp": "2024-01-25T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4-turbo-preview",
         "context_length": 128000,
         "price_1m_input": 10,
         "price_1m_output": 30,
         "price_1m_blended": 15
+      }
+    },
+    {
+      "id": "openai:openai-gpt-3-5-turbo-0613:pricing",
+      "kind": "pricing",
+      "lab": "OpenAI",
+      "source": "pricing_feed",
+      "metric": "price_per_1m",
+      "value": 1.25,
+      "title": "OpenAI: GPT-3.5 Turbo (older v0613)",
+      "subtitle": "OpenAI",
+      "timestamp": "2024-01-25T00:00:00.000Z",
+      "confidence": "medium",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
+      "payload": {
+        "model_id": "openai/gpt-3.5-turbo-0613",
+        "context_length": 4095,
+        "price_1m_input": 1,
+        "price_1m_output": 2,
+        "price_1m_blended": 1.25
       }
     },
     {
@@ -4896,7 +4836,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2023-12-10T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mixtral-8x7b-instruct",
         "context_length": 32768,
@@ -4916,7 +4856,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2023-11-06T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4-1106-preview",
         "context_length": 128000,
@@ -4936,7 +4876,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2023-09-28T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-3.5-turbo-instruct",
         "context_length": 4095,
@@ -4956,7 +4896,7 @@
       "subtitle": "Mistral AI",
       "timestamp": "2023-09-28T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "mistralai/mistral-7b-instruct-v0.1",
         "context_length": 2824,
@@ -4976,7 +4916,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2023-08-28T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-3.5-turbo-16k",
         "context_length": 16385,
@@ -4996,7 +4936,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2023-05-28T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4-0314",
         "context_length": 8191,
@@ -5016,7 +4956,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2023-05-28T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-4",
         "context_length": 8191,
@@ -5036,7 +4976,7 @@
       "subtitle": "OpenAI",
       "timestamp": "2023-05-28T00:00:00.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:21.977Z",
+      "last_success_at": "2026-03-25T06:41:24.563Z",
       "payload": {
         "model_id": "openai/gpt-3.5-turbo",
         "context_length": 16385,

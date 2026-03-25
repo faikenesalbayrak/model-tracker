@@ -370,3 +370,30 @@ Aşağıdakiler ilk versiyona dahil değildir, sonraki iterasyonlara bırakılm�
 - Model detay sayfası
 - Karşılaştırma modu (2 modeli yan yana)
 - Mobil uygulama
+
+---
+
+## 16. Monitoring Extension (v0.2 Planlanan/Uygulanan)
+
+Bu proje için local-first monitoring katmanı eklenmiştir:
+
+1. SQLite persistence şeması:
+   - `docs/sqlite_monitoring_schema.sql`
+2. Adapter kontratları ve kaynak registry:
+   - `lib/monitoring/contracts.ts`
+3. Orchestrator ve scheduler:
+   - `lib/monitoring/orchestrator.ts`
+   - `lib/monitoring/scheduler.ts`
+4. Leaderboard diff ve kaynak işleme:
+   - `lib/monitoring/leaderboard-sources.ts`
+   - `lib/monitoring/leaderboard-diff.ts`
+5. News kaynakları ve weekly selection:
+   - `lib/monitoring/news-sources.ts`
+   - `lib/monitoring/news-selection.ts`
+6. SMTP notification + görsel render:
+   - `lib/monitoring/notifications.ts`
+   - `scripts/render_alert_image.py`
+
+Çalışma zamanları (Europe/Istanbul):
+1. Günlük monitoring: `09:00` ve `21:00`
+2. Haftalık digest: `Pazartesi 09:15`

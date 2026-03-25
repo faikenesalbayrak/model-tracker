@@ -1,102 +1,114 @@
 {
-  "last_success_at": "2026-03-24T15:01:28.058Z",
+  "last_success_at": "2026-03-25T06:41:25.552Z",
   "source": "llm_stats_ai_news",
   "data": [
     {
-      "id": "http://www.techmeme.com/260324/p20#a260324p20",
-      "title": "Beehiiv now lets creators manage their accounts through AI platforms; the first iteration of Beehiiv MCP supports subscriber analysis and SEO optimization",
-      "link": "https://www.axios.com/2026/03/24/beehiiv-creator-ai-chatbot-mcp",
+      "id": "http://www.techmeme.com/260325/p2#a260325p2",
+      "title": "Sources: worsening supply constraints in CPUs made by Intel and AMD add a fresh blow to PC and server makers already hit by a severe memory chip shortage (Nikkei Asia)",
+      "link": "https://asia.nikkei.com/business/tech/semiconductors/supply-crunch-in-intel-amd-cpus-deal-fresh-blow-to-pc-and-server-makers",
       "source": "Techmeme",
-      "publishedAt": "2026-03-24T14:40:01.000Z",
-      "timeAgo": "21m ago"
+      "publishedAt": "2026-03-25T05:15:01.000Z",
+      "timeAgo": "1h ago",
+      "imageUrl": "http://www.techmeme.com/260325/i2.jpg"
     },
     {
-      "id": "https://towardsdatascience.com/production-ready-llm-agents-a-comprehensive-framework-for-offline-evaluation/",
-      "title": "Production-Ready LLM Agents: A Comprehensive Framework for Offline Evaluation",
-      "link": "https://towardsdatascience.com/production-ready-llm-agents-a-comprehensive-framework-for-offline-evaluation/",
+      "id": "http://www.techmeme.com/260324/p61#a260324p61",
+      "title": "Filing: Meta offers top executives stock options for the first time since its 2012 IPO to retain talent, if it hits stock-price milestones in the coming years",
+      "link": "https://www.bloomberg.com/news/articles/2026-03-25/meta-offers-top-execs-stock-options-for-first-time-since-ipo",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-25T03:25:14.000Z",
+      "timeAgo": "3h ago",
+      "imageUrl": "http://www.techmeme.com/260324/i61.jpg"
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p60#a260324p60",
+      "title": "Amity, a Thailand-based startup that provides generative AI tools to businesses like retail and telecom, raised $100M in a Series D as it plans for a 2027 IPO",
+      "link": "https://www.bloomberg.com/news/articles/2026-03-25/thai-ai-startup-amity-raises-100-million-in-push-toward-ipo",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-25T02:40:10.000Z",
+      "timeAgo": "4h ago",
+      "imageUrl": "http://www.techmeme.com/260324/i60.jpg"
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p58#a260324p58",
+      "title": "Sources: some Sora team members were surprised by OpenAI's sudden decision to end Sora support, just a day after OpenAI posted a blog on Sora safety standards (Reuters)",
+      "link": "https://www.reuters.com/technology/openai-set-discontinue-sora-video-platform-app-wsj-reports-2026-03-24/",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-25T01:05:03.000Z",
+      "timeAgo": "5h ago",
+      "imageUrl": "http://www.techmeme.com/260324/i58.jpg"
+    },
+    {
+      "id": "https://techcrunch.com/2026/03/24/with-3-5b-in-fresh-capital-kleiner-perkins-is-going-all-in-on-ai/",
+      "title": "With $3.5B in fresh capital, Kleiner Perkins is going all in on AI",
+      "link": "https://techcrunch.com/2026/03/24/with-3-5b-in-fresh-capital-kleiner-perkins-is-going-all-in-on-ai/",
       "source": "Planet AI",
-      "publishedAt": "2026-03-24T13:30:00.000Z",
-      "timeAgo": "1h ago"
+      "publishedAt": "2026-03-25T00:47:20.000Z",
+      "timeAgo": "5h ago",
+      "imageUrl": null
     },
     {
-      "id": "http://www.techmeme.com/260324/p18#a260324p18",
-      "title": "Mirage, formerly Captions, which develops an AI video editing and marketing suite, raised $75M from General Catalyst, after moving to a freemium model in 2025",
-      "link": "https://techcrunch.com/2026/03/24/mirage-raises-75m-to-continue-building-models-for-its-ai-video-editing-app-captions/",
+      "id": "http://www.techmeme.com/260324/p57#a260324p57",
+      "title": "Source: Meta's rollout of Meta Ray-Ban Display in the EU has been hampered by regulations on AI features and removable batteries, as well as supply constraints (Bloomberg)",
+      "link": "https://www.bloomberg.com/news/articles/2026-03-25/meta-s-new-display-glasses-withheld-from-eu-over-battery-rules-supply-shortages",
       "source": "Techmeme",
-      "publishedAt": "2026-03-24T13:25:03.000Z",
-      "timeAgo": "1h ago"
+      "publishedAt": "2026-03-25T00:40:11.000Z",
+      "timeAgo": "6h ago",
+      "imageUrl": "http://www.techmeme.com/260324/i57.jpg"
     },
     {
-      "id": "http://www.techmeme.com/260324/p17#a260324p17",
-      "title": "Amazon's Zoox plans to launch a paid robotaxi service in Las Vegas by late June, pending local approvals and an NHTSA exemption, ahead of a San Francisco launch",
-      "link": "https://www.ft.com/content/4f58a788-4bfa-4954-a185-98eb96cb4ea0",
+      "id": "http://www.techmeme.com/260324/p56#a260324p56",
+      "title": "Source: SpaceX is aiming to file its IPO prospectus with regulators later this week or next week, and could try to raise more than $75B (The Information)",
+      "link": "https://www.theinformation.com/articles/spacex-aims-file-ipo-soon-week",
       "source": "Techmeme",
-      "publishedAt": "2026-03-24T13:10:15.000Z",
-      "timeAgo": "1h ago"
+      "publishedAt": "2026-03-25T00:25:09.000Z",
+      "timeAgo": "6h ago",
+      "imageUrl": "http://www.techmeme.com/260324/i56.jpg"
     },
     {
-      "id": "https://www.kdnuggets.com/getting-started-with-nanobot-build-your-first-ai-agent",
-      "title": "Getting Started with Nanobot: Build Your First AI Agent",
-      "link": "https://www.kdnuggets.com/getting-started-with-nanobot-build-your-first-ai-agent",
+      "id": "http://www.techmeme.com/260324/p55#a260324p55",
+      "title": "Spotify is beta testing Artist Profile Protection, allowing artists to review releases before they go live to prevent AI tracks from being attributed to them",
+      "link": "https://techcrunch.com/2026/03/24/spotify-tests-new-tool-to-stop-ai-slop-from-being-attributed-to-real-artists/",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-25T00:20:01.000Z",
+      "timeAgo": "6h ago",
+      "imageUrl": "http://www.techmeme.com/260324/i55.jpg"
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p54#a260324p54",
+      "title": "SK Hynix has submitted a confidential filing to the SEC for a possible listing of American depositary receipts in 2026; it reportedly considers raising ~$10B (Reuters)",
+      "link": "https://www.reuters.com/world/asia-pacific/sk-hynix-files-confidentiality-2026-us-listing-2026-03-24/",
+      "source": "Techmeme",
+      "publishedAt": "2026-03-25T00:10:10.000Z",
+      "timeAgo": "6h ago",
+      "imageUrl": "http://www.techmeme.com/260324/i54.jpg"
+    },
+    {
+      "id": "https://techcrunch.com/2026/03/24/openais-sora-was-the-creepiest-app-on-your-phone-now-its-shutting-down/",
+      "title": "OpenAI’s Sora was the creepiest app on your phone — now it’s shutting down",
+      "link": "https://techcrunch.com/2026/03/24/openais-sora-was-the-creepiest-app-on-your-phone-now-its-shutting-down/",
       "source": "Planet AI",
-      "publishedAt": "2026-03-24T12:14:39.000Z",
-      "timeAgo": "2h ago"
+      "publishedAt": "2026-03-24T23:57:55.000Z",
+      "timeAgo": "6h ago",
+      "imageUrl": null
     },
     {
-      "id": "http://www.techmeme.com/260324/p15#a260324p15",
-      "title": "Kleiner Perkins raised $3.5B for two new funds, allocating $1B to its 22nd early-stage fund and $2.5B to a growth-stage fund, taking its AUM to $21B+",
-      "link": "https://www.bloomberg.com/news/articles/2026-03-24/kleiner-perkins-raises-3-5-billion-to-invest-in-the-ai-boom",
+      "id": "https://simonwillison.net/2026/Mar/24/auto-mode-for-claude-code/#atom-tag",
+      "title": "Auto mode for Claude Code",
+      "link": "https://simonwillison.net/2026/Mar/24/auto-mode-for-claude-code/#atom-tag",
+      "source": "Simon Willison",
+      "publishedAt": "2026-03-24T23:57:33.000Z",
+      "timeAgo": "6h ago",
+      "imageUrl": null
+    },
+    {
+      "id": "http://www.techmeme.com/260324/p52#a260324p52",
+      "title": "A US judge dismisses a lawsuit against Meta by Attaullah Baig, former head of cybersecurity at WhatsApp, who alleged Meta ignored critical security flaws",
+      "link": "https://www.courthousenews.com/meta-dodges-retaliation-claims-from-whatsapp-whistleblower/",
       "source": "Techmeme",
-      "publishedAt": "2026-03-24T12:12:51.000Z",
-      "timeAgo": "2h ago"
-    },
-    {
-      "id": "http://www.techmeme.com/260324/p13#a260324p13",
-      "title": "How Palantir became a flashpoint on the US campaign trail due to its ICE work, ahead of the midterms; six lawmakers publicly refuse any further Palantir funds (Financial Times)",
-      "link": "https://www.ft.com/content/5d6f924d-2e7e-4a5e-ae20-d4f8e29a7d17",
-      "source": "Techmeme",
-      "publishedAt": "2026-03-24T11:00:40.000Z",
-      "timeAgo": "4h ago"
-    },
-    {
-      "id": "https://thesequence.substack.com/p/the-sequence-knowledge-829-world",
-      "title": "The Sequence Knowledge #829: World Models and Physical AI",
-      "link": "https://thesequence.substack.com/p/the-sequence-knowledge-829-world",
-      "source": "The Sequence",
-      "publishedAt": "2026-03-24T10:57:19.000Z",
-      "timeAgo": "4h ago"
-    },
-    {
-      "id": "http://www.techmeme.com/260324/p11#a260324p11",
-      "title": "Xiaomi reports Q4 revenue up 7.3% YoY to ~$17B, narrowly above est., its slowest growth since 2023, as EV sales failed to make up for slumping smartphone demand (Bloomberg)",
-      "link": "https://www.bloomberg.com/news/articles/2026-03-24/xiaomi-sales-grows-slowest-in-years-in-sign-of-poor-phone-demand",
-      "source": "Techmeme",
-      "publishedAt": "2026-03-24T10:20:01.000Z",
-      "timeAgo": "4h ago"
-    },
-    {
-      "id": "https://the-decoder.com/?p=33547",
-      "title": "Anthropic lets Claude take control of your desktop when regular app integrations fall short",
-      "link": "https://the-decoder.com/anthropic-lets-claude-take-control-of-your-desktop-when-regular-app-integrations-fall-short/",
-      "source": "The Decoder",
-      "publishedAt": "2026-03-24T09:56:41.000Z",
-      "timeAgo": "5h ago"
-    },
-    {
-      "id": "https://machinelearningmastery.com/beyond-the-vector-store-building-the-full-data-layer-for-ai-applications/",
-      "title": "Beyond the Vector Store: Building the Full Data Layer for AI Applications",
-      "link": "https://machinelearningmastery.com/beyond-the-vector-store-building-the-full-data-layer-for-ai-applications/",
-      "source": "Planet AI",
-      "publishedAt": "2026-03-24T09:00:03.000Z",
-      "timeAgo": "6h ago"
-    },
-    {
-      "id": "https://www.therundown.ai/p/anthropic-claude-gets-remote-control",
-      "title": "Anthropic's Claude gets remote control",
-      "link": "https://www.therundown.ai/p/anthropic-claude-gets-remote-control",
-      "source": "The Rundown AI",
-      "publishedAt": "2026-03-24T09:00:00.000Z",
-      "timeAgo": "6h ago"
+      "publishedAt": "2026-03-24T23:20:01.000Z",
+      "timeAgo": "7h ago",
+      "imageUrl": "http://www.techmeme.com/260324/i52.jpg"
     }
   ]
 }

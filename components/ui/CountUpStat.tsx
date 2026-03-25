@@ -13,10 +13,14 @@ export function CountUpStat({ value, duration = 1400 }: CountUpStatProps) {
   const started = useRef(false);
 
   useEffect(() => {
+    let resetFrame = 0;
+
     if (started.current) {
       // Reset when value changes
       started.current = false;
-      setDisplay(0);
+      resetFrame = requestAnimationFrame(() => {
+        setDisplay(0);
+      });
     }
 
     const el = ref.current;
@@ -43,7 +47,12 @@ export function CountUpStat({ value, duration = 1400 }: CountUpStatProps) {
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (resetFrame) {
+        cancelAnimationFrame(resetFrame);
+      }
+    };
   }, [value, duration]);
 
   return (

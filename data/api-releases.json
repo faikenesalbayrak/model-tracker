@@ -1,8 +1,8 @@
 {
   "route": "releases",
   "source": "hf_hub",
-  "generated_at": "2026-03-24T11:08:11.734Z",
-  "last_success_at": "2026-03-24T11:08:11.734Z",
+  "generated_at": "2026-03-25T06:41:24.538Z",
+  "last_success_at": "2026-03-25T06:41:24.538Z",
   "stale": false,
   "data": [
     {
@@ -16,7 +16,7 @@
       "url": "https://huggingface.co/nvidia/Nemotron-Cascade-2-30B-A3B",
       "timestamp": "2026-03-18T20:57:41.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-24T11:08:11.734Z",
+      "last_success_at": "2026-03-25T06:41:24.538Z",
       "payload": {
         "model_id": "nvidia/Nemotron-Cascade-2-30B-A3B",
         "release_date": "2026-03-18T20:57:41.000Z",
@@ -42,7 +42,7 @@
           "deploy:azure",
           "region:us"
         ],
-        "likes": 236,
+        "likes": 269,
         "downloads": 19722,
         "pipeline_tag": "text-generation"
       }

@@ -15,7 +15,6 @@ import type {
 import { daysAgo, formatLocaleCode } from "./dashboard-utils";
 import { CapabilityTierBoard } from "./CapabilityTierBoard";
 import { ModelExplorer } from "./ModelExplorer";
-import { DotPattern } from "./ui/DotPattern";
 import { CountUpStat } from "./ui/CountUpStat";
 
 type DashboardBundle = {
@@ -24,6 +23,14 @@ type DashboardBundle = {
   leaderboard: FeedState<LeaderboardRow[]>;
   pricing: FeedState<PricePoint[]>;
   releases: FeedState<ReleaseItem[]>;
+};
+
+type MonitoringStats = {
+  last30Days: number;
+  providers: number;
+  snapshotAt: string | null;
+  sources: number;
+  totalModels: number;
 };
 
 const copy = {
@@ -39,7 +46,7 @@ const copy = {
     sourceLeaderboard: "Hugging Face Leaderboard",
     sourcePricing: "Pricing Feed",
     sourceAA: "Artificial Analysis",
-    sourceAiNews: "LLM Stats AI News",
+    sourceAiNews: "Hacker News (Algolia)",
     overview: "Overview",
     ready: "Snapshot ready",
   },
@@ -54,7 +61,7 @@ const copy = {
     sourceLeaderboard: "Hugging Face Leaderboard",
     sourcePricing: "Fiyat Verisi",
     sourceAA: "Artificial Analysis",
-    sourceAiNews: "LLM Stats AI News",
+    sourceAiNews: "Hacker News (Algolia)",
     overview: "Genel Bakış",
     ready: "Görünüm hazır",
   },
@@ -82,8 +89,8 @@ export default function DashboardApp({ showCapabilityTiers = false }: DashboardA
 function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean }) {
   const [locale, setLocale] = useState<Locale>("en");
   const [activeSection, setActiveSection] = useState("general");
-  const strings = copy[locale];
   const [feeds, setFeeds] = useState<DashboardBundle>(() => makeInitialFeeds());
+  const [monitoringStats, setMonitoringStats] = useState<MonitoringStats | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -135,6 +142,9 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
         sourceLabels.sourceAiNews,
         parseAiNewsFeed,
       );
+      const monitoringStatsPromise = requestJson("/api/monitoring/stats", 20_000)
+        .then((payload) => parseMonitoringStats(payload))
+        .catch(() => null);
 
       void releasesPromise.then((releases) => {
         if (!alive) return;
@@ -156,6 +166,10 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
         if (!alive) return;
         setFeeds((current) => ({ ...current, aiNews }));
       });
+      void monitoringStatsPromise.then((stats) => {
+        if (!alive || !stats) return;
+        setMonitoringStats(stats);
+      });
     }
 
     void run();
@@ -165,94 +179,51 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
     };
   }, []);
 
-  const totals = useMemo(
-    () => ({
-      releases: feeds.releases.data.length,
-      leaderboard: feeds.leaderboard.data.length,
-      pricing: feeds.pricing.data.length,
-      aa: feeds.artificialAnalysis.data.length,
-    }),
-    [feeds],
-  );
-
-  const listedModelCount = totals.releases + totals.leaderboard + totals.pricing + totals.aa;
-  const sourceCount = new Set([
+  const fallbackSourceCount = new Set([
     feeds.releases.sourceLabel,
     feeds.leaderboard.sourceLabel,
     feeds.pricing.sourceLabel,
     feeds.artificialAnalysis.sourceLabel,
   ]).size;
+  const fallbackStats = useMemo<MonitoringStats>(() => {
+    const nowTs = Date.parse(feeds.artificialAnalysis.lastSuccessAt);
+    return {
+      totalModels: feeds.artificialAnalysis.data.length,
+      last30Days: feeds.artificialAnalysis.data.filter((row) => {
+        if (!row.releaseDate) return false;
+        const parsed = Date.parse(row.releaseDate);
+        return Number.isFinite(nowTs) && Number.isFinite(parsed) && nowTs - parsed <= 30 * 24 * 60 * 60 * 1000;
+      }).length,
+      providers: new Set(
+        feeds.artificialAnalysis.data
+          .map((row) => row.lab.trim())
+          .filter(Boolean),
+      ).size,
+      sources: fallbackSourceCount,
+      snapshotAt: feeds.artificialAnalysis.lastSuccessAt,
+    };
+  }, [fallbackSourceCount, feeds.artificialAnalysis.data, feeds.artificialAnalysis.lastSuccessAt]);
+
+  const statCards = monitoringStats ?? fallbackStats;
 
   return (
     <div
-      className="min-h-screen transition-colors duration-300"
+      className="min-h-full transition-colors duration-300"
       style={{ color: "var(--text)" }}
     >
       <HeaderControlsPortal>
         <LocaleToggle locale={locale} setLocale={setLocale} />
       </HeaderControlsPortal>
 
-      {/* Hero Header */}
-      <header className="mx-auto flex w-full max-w-none flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:pt-6">
-        <div
-          className="animate-enter relative overflow-hidden rounded-2xl p-6"
-          style={{
-            border: "1px solid var(--border-strong)",
-            background: "var(--surface-card)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            boxShadow: "var(--shadow-lg)",
-          }}
-        >
-          {/* Subtle dot pattern */}
-          <DotPattern
-            width={24}
-            height={24}
-            cr={1}
-            className="opacity-[0.025]"
-            style={{ color: "var(--tt-navy)" }}
-          />
-          {/* Gradient fill — top-left accent, bottom-right navy */}
-          <div
-            className="pointer-events-none absolute inset-0 rounded-2xl"
-            style={{
-              background: "linear-gradient(135deg, var(--accent-muted) 0%, transparent 40%), radial-gradient(circle at bottom right, var(--navy-tint) 0%, transparent 60%)",
-            }}
-          />
-          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1
-                className="text-3xl font-semibold tracking-tight sm:text-4xl"
-                style={{ color: "var(--text)" }}
-              >
-                {strings.title}
-              </h1>
-              <p
-                className="mt-1.5 text-xs font-medium tracking-wide"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {strings.updated} {formatHeaderDate(feeds.artificialAnalysis.lastSuccessAt, locale)}
-              </p>
-            </div>
-            <div className="flex animate-enter animate-enter-delay-1 flex-wrap gap-3 sm:justify-end sm:shrink-0">
-              <StatCard
-                label={locale === "tr" ? "Toplam Model" : "Total Models"}
-                value={listedModelCount}
-              />
-              <StatCard
-                label={locale === "tr" ? "Kaynak" : "Sources"}
-                value={sourceCount}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto flex w-full max-w-none flex-col gap-5 px-4 pb-12 sm:px-6 lg:px-8">
+      <main className="mx-auto flex w-full max-w-none flex-col gap-5 overflow-hidden px-4 pb-4 sm:px-6 lg:px-8">
         <ModelExplorer
           aaModels={feeds.artificialAnalysis.data}
           aiNews={feeds.aiNews.data}
+          last30DaysCount={statCards.last30Days}
           locale={locale}
+          modelCount={statCards.totalModels}
+          providerCount={statCards.providers}
+          sourceCount={statCards.sources}
           onSectionChange={setActiveSection}
         />
         {showCapabilityTiers && activeSection === "general" ? (
@@ -364,17 +335,6 @@ function StatCard({
   );
 }
 
-function formatHeaderDate(value: string, locale: Locale) {
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) {
-    return locale === "tr" ? "Tarih yok" : "No date";
-  }
-
-  return new Intl.DateTimeFormat(locale === "tr" ? "tr-TR" : "en-US", {
-    day: "numeric",
-    month: "short",
-  }).format(parsed);
-}
 
 function makeInitialFeeds(): DashboardBundle {
   return {
@@ -523,6 +483,29 @@ function parseAiNewsFeed(payload: unknown) {
   return normalized.length ? normalized : null;
 }
 
+function parseMonitoringStats(payload: unknown): MonitoringStats | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const totalModels = pickNumber(payload, ["totalModels"], -1);
+  const last30Days = pickNumber(payload, ["last30Days"], -1);
+  const providers = pickNumber(payload, ["providers"], -1);
+  const sources = pickNumber(payload, ["sources"], -1);
+
+  if (totalModels < 0 || last30Days < 0 || providers < 0 || sources < 0) {
+    return null;
+  }
+
+  return {
+    totalModels,
+    last30Days,
+    providers,
+    sources,
+    snapshotAt: pickString(payload, ["snapshotAt"], "") || null,
+  };
+}
+
 function normalizeReleaseItem(value: unknown): ReleaseItem | null {
   if (!isRecord(value)) {
     return null;
@@ -632,15 +615,15 @@ function normalizeAAModelItem(value: unknown): AAModelRow | null {
     outputPricePer1m: normalizePositiveValue(pickNullableNumber(value, ["price_1m_output_tokens"])),
     outputTokensPerSecond: normalizePositiveValue(
       pickNullableNumber(value, ["output_tokens_per_second", "outputTokensPerSecond"])
-        ?? pickNullableNumber(timescaleData ?? {}, ["median_output_speed"]),
+      ?? pickNullableNumber(timescaleData ?? {}, ["median_output_speed"]),
     ),
     ttftSeconds: normalizePositiveValue(
       pickNullableNumber(value, ["ttft_seconds", "ttftSeconds"])
-        ?? pickNullableNumber(timescaleData ?? {}, ["median_time_to_first_chunk"]),
+      ?? pickNullableNumber(timescaleData ?? {}, ["median_time_to_first_chunk"]),
     ),
     endToEndSeconds: normalizePositiveValue(
       pickNullableNumber(value, ["end_to_end_seconds", "endToEndSeconds"])
-        ?? pickNullableNumber(endToEnd ?? {}, ["total_time"]),
+      ?? pickNullableNumber(endToEnd ?? {}, ["total_time"]),
     ),
     contextWindowTokens: normalizePositiveValue(pickNullableNumber(value, ["context_window_tokens"])),
     openWeights,
@@ -664,7 +647,7 @@ function normalizeAiNewsItem(value: unknown): AiNewsItem | null {
     id: pickString(value, ["id"], link),
     title: pickString(value, ["title", "name"], "Untitled"),
     link,
-    source: pickString(value, ["source", "publisher"], "LLM Stats"),
+    source: pickString(value, ["source", "publisher"], "Hacker News"),
     publishedAt: pickString(value, ["publishedAt", "pubDate", "date"], new Date().toISOString()),
     timeAgo: pickString(value, ["timeAgo"], "") || null,
     imageUrl: pickString(value, ["imageUrl", "image", "thumbnail", "image_url"], "") || null,

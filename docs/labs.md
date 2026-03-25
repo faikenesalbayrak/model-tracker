@@ -2,6 +2,12 @@
 
 _Not: Tier sınıflandırması, her lab’ın en yüksek `intelligence_index` skoruna göre yüzde 20 dilimlerle yapılmıştır._
 
+## Update Notes (Monitoring Plan ile Uyum)
+- Bu dosya lab tier görünümünü taşır; rank-change alert pipeline’ında doğrudan trigger kaynağı değildir.
+- Alert trigger’ları kategori bazlı top-10 snapshot karşılaştırmasından gelir.
+- Lab adları `canonical_model_key` üretiminde yardımcı sinyal olarak kullanılabilir.
+- Kaynak genişlemesi sonrası aynı model farklı kaynakta farklı vendor adıyla gelebileceği için canonical map tablosu güncellenecektir.
+
 ## S Tier
 
 - Google

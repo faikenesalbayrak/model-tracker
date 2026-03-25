@@ -174,7 +174,7 @@ export function CapabilityTierBoard({ items, locale }: CapabilityTierBoardProps)
                       >
                         <span
                           className="inline-block h-2 w-2 rounded-full shrink-0"
-                          style={{ background: "var(--accent)" }}
+                          style={{ background: tier === "D" ? "var(--text-muted)" : cfg.bg }}
                         />
                         <span className="font-semibold">{item.model}</span>
                         <span style={{ color: "var(--text-faint)" }}>

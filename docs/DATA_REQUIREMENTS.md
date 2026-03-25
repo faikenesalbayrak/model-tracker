@@ -97,3 +97,62 @@ Amaç: Ürün, araştırma ve procurement kararlarında “tam görünürlük”
 - Deep Comparison benchmark stratejisi:
 1. Mevcut pipeline'daki metrikler (`GPQA`, `MMLU-PRO`, `TerminalBench Hard`, `BBH`, `MATH Lvl 5`, `MUSR`, `IFEval`, `HumanEval`, `ARC`, `HellaSwag`, `MT-Bench`) anında gösterilir.
 2. Yeni eklenmek istenen metrikler (`AIME 2025`, `SWE-Bench`, `LiveCodeBench`, vb.) için önce normalize alanları açılır, sonra tabloya aktif sütun olarak alınır.
+
+## Monitoring & Notification Requirements (Yeni)
+
+### 1) Top-10 Rank Change Alerts
+Amaç: Aşağıdaki kategorilerde top-10 sıralama değiştiğinde bildirim göndermek.
+
+Kategoriler:
+1. `general_llm`
+2. `image_generation`
+3. `video_generation`
+4. `text_to_speech`
+5. `speech_to_text`
+6. `embeddings`
+
+Tetikleyici olaylar:
+1. `entered`: Yeni model top-10’a girdi
+2. `exited`: Model top-10’dan çıktı
+3. `moved`: Model rank değiştirdi
+
+Kalite kuralları:
+1. Model eşleştirme `canonical_model_key` ile yapılır.
+2. Aynı olay tekrarını engellemek için `event_fingerprint` kullanılır.
+3. Kaynak önceliklendirme: `primary_source`, ardından sağlıklı `secondary_sources`.
+
+### 2) Weekly Important AI News Digest
+Amaç: Haftalık olarak 10 önemli AI haberini tek e-posta halinde göndermek.
+
+Kurallar:
+1. Zaman penceresi: son 7 gün
+2. Kaynak havuzu: LLM Stats + NewsAPI + NewsCatcher + GDELT + HN Algolia + arXiv
+3. Seçim: recency + source diversity + keyword importance
+4. Dedupe: canonical URL ve normalize başlık benzerliği
+5. Çıktı: sabit 10 haber
+
+### 3) Scheduler Requirements
+1. Local process içinde çalışmalı (serverless yok)
+2. Timezone: `Europe/Istanbul`
+3. Run saatleri:
+   - günlük `09:00` ve `21:00` (top-10 monitoring)
+   - haftalık `Pazartesi 09:15` (weekly digest)
+
+### 4) Persistence Requirements (SQLite)
+Gerekli tablolar:
+1. `monitor_runs`
+2. `leaderboard_snapshots`
+3. `leaderboard_entries`
+4. `leaderboard_changes`
+5. `news_snapshots`
+6. `news_entries`
+7. `weekly_digests`
+8. `weekly_digest_items`
+9. `notification_log`
+10. `source_health`
+
+### 5) Notification Requirements
+1. Mail gönderimi: kurumsal SMTP (`nodemailer`)
+2. Top-10 alert mail: python script ile üretilen görsel (PNG) e-posta içinde
+3. Weekly digest mail: 10 haber başlık/özet/link listesi
+4. Tüm gönderimler `notification_log` ile izlenmeli (sent/failed)

@@ -12,6 +12,9 @@ export interface ArtificialAnalysisModel {
   intelligence_index?: number | null;
   coding_index?: number | null;
   agentic_index?: number | null;
+  gpqa?: number | null;
+  mmlu_pro?: number | null;
+  terminalbench_hard?: number | null;
   price_1m_blended_3_to_1?: number | null;
   price_1m_input_tokens?: number | null;
   price_1m_output_tokens?: number | null;
@@ -21,6 +24,15 @@ export interface ArtificialAnalysisModel {
   release_date?: string | null;
   model_url?: string | null;
   hosts_url?: string | null;
+  input_modality_image?: boolean | null;
+  input_modality_speech?: boolean | null;
+  input_modality_text?: boolean | null;
+  input_modality_video?: boolean | null;
+  output_modality_image?: boolean | null;
+  output_modality_speech?: boolean | null;
+  output_modality_text?: boolean | null;
+  output_modality_video?: boolean | null;
+  price_per_1k_1mp_images?: number | null;
   timescaleData?: {
     median_output_speed?: number | null;
     median_time_to_first_chunk?: number | null;

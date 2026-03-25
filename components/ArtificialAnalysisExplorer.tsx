@@ -2,6 +2,7 @@ import { ArrowUpRight, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SectionFrame } from "./SectionFrame";
 import type { AAModelRow, Locale } from "./dashboard-types";
+import { handleHorizontalScrollBoundary, handleHorizontalWheelBoundary } from "./horizontal-scroll";
 
 type SortKey =
   | "intelligenceIndex"
@@ -212,60 +213,64 @@ export function ArtificialAnalysisExplorer({
           </div>
 
           <div className="relative">
-          <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-white/80 dark:border-white/10 dark:bg-white/5">
-            <table className="min-w-[1280px] w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
-                <tr>
-                  <th className="px-3 py-2">{strings.headers.model}</th>
-                  <th className="px-3 py-2">{strings.headers.lab}</th>
-                  <th className="px-3 py-2">{strings.headers.intelligence}</th>
-                  <th className="px-3 py-2">{strings.headers.coding}</th>
-                  <th className="px-3 py-2">{strings.headers.agentic}</th>
-                  <th className="px-3 py-2">{strings.headers.price}</th>
-                  <th className="px-3 py-2">{strings.headers.speed}</th>
-                  <th className="px-3 py-2">{strings.headers.ttft}</th>
-                  <th className="px-3 py-2">{strings.headers.context}</th>
-                  <th className="px-3 py-2">{strings.headers.openness}</th>
-                  <th className="px-3 py-2">{strings.headers.reasoning}</th>
-                  <th className="px-3 py-2">{strings.headers.release}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((row) => (
-                  <tr key={row.id} className="border-t border-slate-100 dark:border-white/10">
-                    <td className="px-3 py-2 font-semibold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2">
-                        <span>{row.model}</span>
-                        {row.modelUrl ? (
-                          <a
-                            className="inline-flex text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
-                            href={row.modelUrl}
-                            rel="noreferrer"
-                            target="_blank"
-                          >
-                            <ArrowUpRight className="h-3.5 w-3.5" />
-                          </a>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.lab}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.intelligenceIndex, 2)}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.codingIndex, 2)}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.agenticIndex, 2)}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatCurrency(row.pricePer1m)}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.outputTokensPerSecond, 1)}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.ttftSeconds, 2)}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatContext(row.contextWindowTokens)}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.openWeights ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.reasoning ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}</td>
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.releaseDate?.slice(0, 10) ?? "-"}</td>
+            <div
+              className="overflow-x-auto overscroll-x-none rounded-2xl border border-slate-200/70 bg-white/80 dark:border-white/10 dark:bg-white/5"
+              onScroll={handleHorizontalScrollBoundary}
+              onWheel={handleHorizontalWheelBoundary}
+            >
+              <table className="min-w-[1280px] w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                  <tr>
+                    <th className="w-full px-3 py-2">{strings.headers.model}</th>
+                    <th className="px-3 py-2">{strings.headers.lab}</th>
+                    <th className="px-3 py-2">{strings.headers.intelligence}</th>
+                    <th className="px-3 py-2">{strings.headers.coding}</th>
+                    <th className="px-3 py-2">{strings.headers.agentic}</th>
+                    <th className="px-3 py-2">{strings.headers.price}</th>
+                    <th className="px-3 py-2">{strings.headers.speed}</th>
+                    <th className="px-3 py-2">{strings.headers.ttft}</th>
+                    <th className="px-3 py-2">{strings.headers.context}</th>
+                    <th className="px-3 py-2">{strings.headers.openness}</th>
+                    <th className="px-3 py-2">{strings.headers.reasoning}</th>
+                    <th className="px-3 py-2">{strings.headers.release}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {/* Mobile scroll hint */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-950/60 md:hidden" />
+                </thead>
+                <tbody>
+                  {filtered.map((row) => (
+                    <tr key={row.id} className="border-t border-slate-100 dark:border-white/10">
+                      <td className="whitespace-nowrap px-3 py-2 font-semibold text-slate-900 dark:text-white">
+                        <div className="flex items-center gap-2">
+                          <span>{row.model}</span>
+                          {row.modelUrl ? (
+                            <a
+                              className="inline-flex text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                              href={row.modelUrl}
+                              rel="noreferrer"
+                              target="_blank"
+                            >
+                              <ArrowUpRight className="h-3.5 w-3.5" />
+                            </a>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.lab}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.intelligenceIndex, 2)}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.codingIndex, 2)}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.agenticIndex, 2)}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatCurrency(row.pricePer1m)}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.outputTokensPerSecond, 1)}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatNumber(row.ttftSeconds, 2)}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatContext(row.contextWindowTokens)}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.openWeights ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.reasoning ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}</td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.releaseDate?.slice(0, 10) ?? "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Mobile scroll hint */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-white/60 to-transparent dark:from-slate-950/60 md:hidden" />
           </div>
         </div>
       )}

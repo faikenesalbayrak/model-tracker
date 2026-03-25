@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { ColumnTooltipLabel } from "./ColumnTooltipLabel";
 import type { LeaderboardRow, Locale } from "./dashboard-types";
 import { formatCompactNumber } from "./dashboard-utils";
+import { handleHorizontalScrollBoundary, handleHorizontalWheelBoundary } from "./horizontal-scroll";
 import { SectionFrame } from "./SectionFrame";
 
 type SortKey =
@@ -134,79 +135,85 @@ export function LeaderboardTable({
         <EmptyState message={strings.empty} />
       ) : (
         <div className="relative">
-        <div className="overflow-x-auto rounded-[var(--radius-card)] border border-slate-200/70 bg-white/80 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
-          <table className="min-w-[900px] w-full border-collapse text-left text-sm">
-            <thead className="sticky top-0 z-10 bg-slate-50/95 text-xs tracking-[0.18em] text-slate-500 backdrop-blur dark:bg-slate-950/90 dark:text-slate-400">
-              <tr>
-                {[
-                  ["model", strings.headers.model],
-                  ["lab", strings.headers.lab],
-                  ["params", strings.headers.params],
-                  ["mmlu", strings.headers.mmlu],
-                  ["humaneval", strings.headers.humaneval],
-                  ["mtBench", strings.headers.mtBench],
-                  ["arc", strings.headers.arc],
-                  ["hellaswag", strings.headers.hellaswag],
-                  ["releasedAt", strings.headers.releasedAt],
-                  ["openSource", strings.headers.openSource],
-                ].map(([key, label]) => (
-                  <th key={key} className="border-b border-slate-200/70 px-4 py-3 text-xs font-semibold dark:border-white/10">
-                    {key === "openSource" ? (
-                      <ColumnTooltipLabel center description={hints.openSource} label={label} />
-                    ) : (
-                      <button
-                        className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none dark:hover:bg-white/10 dark:hover:text-white"
-                        onClick={() => handleSortClick(key as SortKey, sortKey, direction, setSortKey, setDirection)}
-                        type="button"
-                      >
-                        <ColumnTooltipLabel
-                          description={hints[key as keyof typeof hints]}
-                          label={label}
-                        />
-                        {renderSortIcon(key as SortKey, sortKey, direction)}
-                      </button>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-slate-100 transition last:border-none hover:bg-slate-50/80 dark:border-white/5 dark:hover:bg-white/[0.04]"
-                >
-                  <td className="px-4 py-4">
-                    <div className="font-semibold text-slate-950 dark:text-white">{row.model}</div>
-                  </td>
-                  <td className="px-4 py-4 text-slate-600 dark:text-slate-300">{row.lab}</td>
-                  <td className="px-4 py-4 text-slate-600 tabular-nums dark:text-slate-300">{row.parameters}</td>
-                  {metricCells.map((metric) => (
-                    <td key={metric} className="px-4 py-4">
-                      <MetricBar value={row[metric]} locale={locale} />
-                    </td>
-                  ))}
-                  <td className="px-4 py-4 text-slate-600 tabular-nums dark:text-slate-300">
-                    {row.releasedAt.slice(0, 10)}
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${
-                        row.openSource
-                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200"
-                          : "bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300"
-                      }`}
+          <div
+            className="overflow-x-auto overscroll-x-none rounded-[var(--radius-card)] border border-slate-200/70 bg-white/80 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5"
+            onScroll={handleHorizontalScrollBoundary}
+            onWheel={handleHorizontalWheelBoundary}
+          >
+            <table className="min-w-[900px] w-full border-collapse text-left text-sm">
+              <thead className="sticky top-0 z-10 bg-slate-50/95 text-xs tracking-[0.18em] text-slate-500 backdrop-blur dark:bg-slate-950/90 dark:text-slate-400">
+                <tr>
+                  {[
+                    ["model", strings.headers.model],
+                    ["lab", strings.headers.lab],
+                    ["params", strings.headers.params],
+                    ["mmlu", strings.headers.mmlu],
+                    ["humaneval", strings.headers.humaneval],
+                    ["mtBench", strings.headers.mtBench],
+                    ["arc", strings.headers.arc],
+                    ["hellaswag", strings.headers.hellaswag],
+                    ["releasedAt", strings.headers.releasedAt],
+                    ["openSource", strings.headers.openSource],
+                  ].map(([key, label]) => (
+                    <th
+                      key={key}
+                      className={`${key === "model" ? "w-full " : ""}${key === "releasedAt" ? "whitespace-nowrap " : ""}border-b border-slate-200/70 px-4 py-3 text-xs font-semibold dark:border-white/10`}
                     >
-                      {row.openSource ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}
-                    </span>
-                  </td>
+                      {key === "openSource" ? (
+                        <ColumnTooltipLabel center description={hints.openSource} label={label} />
+                      ) : (
+                        <button
+                          className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none dark:hover:bg-white/10 dark:hover:text-white"
+                          onClick={() => handleSortClick(key as SortKey, sortKey, direction, setSortKey, setDirection)}
+                          type="button"
+                        >
+                          <ColumnTooltipLabel
+                            description={hints[key as keyof typeof hints]}
+                            label={label}
+                          />
+                          {renderSortIcon(key as SortKey, sortKey, direction)}
+                        </button>
+                      )}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {/* Mobile scroll hint */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-[var(--radius-card)] bg-gradient-to-l from-white/60 to-transparent dark:from-slate-950/60 md:hidden" />
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="border-b border-slate-100 transition last:border-none hover:bg-slate-50/80 dark:border-white/5 dark:hover:bg-white/[0.04]"
+                  >
+                    <td className="whitespace-nowrap px-4 py-4">
+                      <div className="font-semibold text-slate-950 dark:text-white">{row.model}</div>
+                    </td>
+                    <td className="px-4 py-4 text-slate-600 dark:text-slate-300">{row.lab}</td>
+                    <td className="px-4 py-4 text-slate-600 tabular-nums dark:text-slate-300">{row.parameters}</td>
+                    {metricCells.map((metric) => (
+                      <td key={metric} className="px-4 py-4">
+                        <MetricBar value={row[metric]} locale={locale} />
+                      </td>
+                    ))}
+                    <td className="min-w-[10ch] whitespace-nowrap px-4 py-4 text-slate-600 tabular-nums dark:text-slate-300">
+                      {row.releasedAt.slice(0, 10)}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${row.openSource
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200"
+                            : "bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300"
+                          }`}
+                      >
+                        {row.openSource ? (locale === "tr" ? "Evet" : "Yes") : (locale === "tr" ? "Hayır" : "No")}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Mobile scroll hint */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-[var(--radius-card)] bg-gradient-to-l from-white/60 to-transparent dark:from-slate-950/60 md:hidden" />
         </div>
       )}
       <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
