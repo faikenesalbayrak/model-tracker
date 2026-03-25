@@ -21,6 +21,14 @@ function getRecipients(): string[] {
     .filter(Boolean);
 }
 
+function isNotificationsEnabled(): boolean {
+  const value = process.env.MONITORING_NOTIFICATIONS_ENABLED?.trim().toLowerCase();
+  if (!value) {
+    return true;
+  }
+  return value === "1" || value === "true" || value === "yes";
+}
+
 function isoMinusDays(iso: string, days: number): string {
   const ts = Date.parse(iso);
   if (!Number.isFinite(ts)) {
@@ -56,7 +64,7 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
   });
 
   try {
-    const recipients = getRecipients();
+    const recipients = isNotificationsEnabled() ? getRecipients() : [];
     const newsAdapters = getActiveNewsSources();
 
     for (const category of LEADERBOARD_CATEGORIES) {
@@ -234,7 +242,7 @@ export async function runWeeklyDigestCycle(options: RunCycleOptions = {}): Promi
   const shouldClose = !options.runtime;
   const repository = runtime.repository;
   const nowIso = options.nowIso ?? new Date().toISOString();
-  const recipients = getRecipients();
+  const recipients = isNotificationsEnabled() ? getRecipients() : [];
 
   const runId = await repository.insertRun({
     runType: "weekly_digest",
