@@ -79,7 +79,7 @@ export function SectionFrame({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <p
-              className="inline-flex rounded-full px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.22em]"
+              className="inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em]"
               style={{
                 border: "1px solid var(--border)",
                 background: "var(--surface-subtle)",

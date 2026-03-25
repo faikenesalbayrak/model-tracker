@@ -340,7 +340,7 @@ function StatCard({
       }}
     >
       <div
-        className="text-[0.6rem] font-semibold uppercase tracking-[0.22em]"
+        className="text-[10px] font-semibold uppercase tracking-[0.22em]"
         style={{ color: "var(--text-faint)" }}
       >
         {label}

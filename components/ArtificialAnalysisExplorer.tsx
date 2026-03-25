@@ -297,7 +297,7 @@ function TopCard({
 
   return (
     <article className="rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-white/10 dark:bg-white/5">
-      <p className="text-[0.68rem] font-semibold tracking-[0.14em] text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="text-xs font-semibold tracking-[0.14em] text-slate-500 dark:text-slate-400">{label}</p>
       <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-white">{item?.model ?? (locale === "tr" ? "Yok" : "N/A")}</p>
       <p className="text-xs text-slate-500 dark:text-slate-400">{item?.lab ?? "-"}</p>
       <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">{value}</p>

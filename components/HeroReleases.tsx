@@ -74,7 +74,7 @@ export function HeroReleases({
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <p
-                      className="inline-flex rounded-full px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.18em]"
+                      className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]"
                       style={{
                         border: "1px solid var(--border)",
                         background: "var(--surface-card)",
@@ -91,7 +91,7 @@ export function HeroReleases({
                     </h3>
                   </div>
                   <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[0.6rem] font-semibold tabular-nums"
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold tabular-nums"
                     style={{
                       border: "1px solid var(--border)",
                       background: "var(--surface-card)",
@@ -109,7 +109,7 @@ export function HeroReleases({
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
                   <span
-                    className="rounded-full px-2.5 py-1 text-[0.65rem] font-semibold"
+                    className="rounded-full px-2.5 py-1 text-[10px] sm:text-xs font-semibold"
                     style={{
                       background: "var(--text)",
                       color: "var(--surface)",
@@ -118,7 +118,7 @@ export function HeroReleases({
                     {strings.released}: {item.releasedAt.slice(0, 10)}
                   </span>
                   <a
-                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.65rem] font-semibold transition-all duration-150"
+                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] sm:text-xs font-semibold transition-all duration-150"
                     href={item.url}
                     rel="noreferrer"
                     target="_blank"

@@ -51,6 +51,7 @@ export type AAModelRow = {
   gpqa: number | null;
   mmluPro: number | null;
   terminalBenchHard: number | null;
+  sweBench: number | null;
   pricePer1m: number | null;
   inputPricePer1m: number | null;
   outputPricePer1m: number | null;

@@ -1333,7 +1333,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             <div className="relative">
             <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
               <table className="min-w-[1080px] w-max text-left text-sm">
-                <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
+                <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
                   <tr>
                     <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-3" />
                     <th aria-label={locale === "tr" ? "Sağlayıcı logosu" : "Vendor logo"} className="w-14 px-4 py-3" />
@@ -1597,7 +1597,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
                           {item.title}
                         </p>
                       )}
-                      <p className="mt-0.5 text-[0.65rem]" style={{ color: "var(--text-faint)" }}>
+                      <p className="mt-0.5 text-[10px] sm:text-xs" style={{ color: "var(--text-faint)" }}>
                         {item.source} <span className="px-1">·</span> {shortDate(item.publishedAt, locale)}
                       </p>
                     </div>
@@ -1669,7 +1669,7 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
           <div className="relative">
           <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
             <table className="min-w-[1800px] w-max text-left text-sm">
-              <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
+              <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
                 <tr>
                   <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
                   <th className="px-4 py-2">{locale === "tr" ? "Sıra" : "Rank"}</th>
@@ -1804,6 +1804,43 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             color: "var(--text-muted)",
           }}
         >
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+                {(() => {
+                  if (activeSection === "image") return locale === "tr" ? "Image Generation Detaylar" : "Image Generation Details";
+                  if (activeSection === "video") return locale === "tr" ? "Video Generation Detaylar" : "Video Generation Details";
+                  if (activeSection === "tts") return locale === "tr" ? "Text-to-Speech Detaylar" : "Text-to-Speech Details";
+                  if (activeSection === "stt") return locale === "tr" ? "Speech-to-Text Detaylar" : "Speech-to-Text Details";
+                  return locale === "tr" ? "Embeddings Detaylar" : "Embeddings Details";
+                })()}
+              </h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
+                <span>{locale === "tr" ? "Satır" : "Rows"}</span>
+                <select
+                  className="h-7 rounded-lg px-2 text-xs outline-none transition"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                    color: "var(--text)",
+                  }}
+                  onChange={(event) => setCategoryRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number])}
+                  value={categoryRowLimit}
+                >
+                  {LLM_ROW_LIMIT_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
+                {categoryLimitedRows.length} / {categoryRows.length}
+              </div>
+            </div>
+          </div>
           <div
             className="mb-2 rounded-2xl p-4"
             style={{
@@ -1900,51 +1937,10 @@ export function ModelExplorer({ aaModels, aiNews, locale, onSectionChange }: Mod
             <p>{locale === "tr" ? "Bu kategori için henüz snapshot yok." : "No snapshot yet for this category."}</p>
           ) : (
             <div className="space-y-3">
-              <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-                    {(() => {
-                      if (activeSection === "image") return locale === "tr" ? "Image Generation Detaylar" : "Image Generation Details";
-                      if (activeSection === "video") return locale === "tr" ? "Video Generation Detaylar" : "Video Generation Details";
-                      if (activeSection === "tts") return locale === "tr" ? "Text-to-Speech Detaylar" : "Text-to-Speech Details";
-                      if (activeSection === "stt") return locale === "tr" ? "Speech-to-Text Detaylar" : "Speech-to-Text Details";
-                      return locale === "tr" ? "Embeddings Detaylar" : "Embeddings Details";
-                    })()}
-                  </h2>
-                </div>
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-                    <span>{locale === "tr" ? "Satır" : "Rows"}</span>
-                    <select
-                      className="h-7 rounded-lg px-2 text-xs outline-none transition"
-                      style={{
-                        border: "1px solid var(--border)",
-                        background: "var(--surface-subtle)",
-                        color: "var(--text)",
-                      }}
-                      onChange={(event) => setCategoryRowLimit(Number(event.target.value) as (typeof LLM_ROW_LIMIT_OPTIONS)[number])}
-                      value={categoryRowLimit}
-                    >
-                      {LLM_ROW_LIMIT_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="text-right text-xs" style={{ color: "var(--text-faint)" }}>
-                    {categoryLimitedRows.length} / {categoryRows.length}
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-5 text-xs" style={{ color: "var(--text-faint)" }}>
-                <span>{locale === "tr" ? "Kaynak" : "Source"}: {categorySourceName ?? "-"}</span>
-                <span>{locale === "tr" ? "Snapshot" : "Snapshot"}: {categorySnapshotAt ? categorySnapshotAt.slice(0, 16).replace("T", " ") : "-"}</span>
-              </div>
               <div className="relative">
               <div className="overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200/80 bg-white dark:border-white/8 dark:bg-white/[0.02]">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-[0.7rem] tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
+                  <thead className="bg-slate-50 text-xs tracking-[0.14em] text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">
                     <tr>
                       <th aria-label={locale === "tr" ? "Karşılaştırma seçimi" : "Compare selection"} className="w-10 px-3 py-2" />
                       <th className="px-4 py-2">

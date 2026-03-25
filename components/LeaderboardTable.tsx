@@ -136,7 +136,7 @@ export function LeaderboardTable({
         <div className="relative">
         <div className="overflow-x-auto rounded-[var(--radius-card)] border border-slate-200/70 bg-white/80 shadow-[0_14px_40px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-white/5">
           <table className="min-w-[900px] w-full border-collapse text-left text-sm">
-            <thead className="sticky top-0 z-10 bg-slate-50/95 text-[0.68rem] tracking-[0.18em] text-slate-500 backdrop-blur dark:bg-slate-950/90 dark:text-slate-400">
+            <thead className="sticky top-0 z-10 bg-slate-50/95 text-xs tracking-[0.18em] text-slate-500 backdrop-blur dark:bg-slate-950/90 dark:text-slate-400">
               <tr>
                 {[
                   ["model", strings.headers.model],
@@ -150,7 +150,7 @@ export function LeaderboardTable({
                   ["releasedAt", strings.headers.releasedAt],
                   ["openSource", strings.headers.openSource],
                 ].map(([key, label]) => (
-                  <th key={key} className="border-b border-slate-200/70 px-4 py-3 text-[0.68rem] font-semibold dark:border-white/10">
+                  <th key={key} className="border-b border-slate-200/70 px-4 py-3 text-xs font-semibold dark:border-white/10">
                     {key === "openSource" ? (
                       <ColumnTooltipLabel center description={hints.openSource} label={label} />
                     ) : (
