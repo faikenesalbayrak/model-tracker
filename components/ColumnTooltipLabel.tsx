@@ -19,7 +19,7 @@ export function ColumnTooltipLabel({
       <span className="group inline-flex items-center">
         <span>{label}</span>
         <span
-          className={`tt-tooltip-bubble absolute ${bubblePositionClass} top-full z-30 mt-2 w-max max-w-[260px] rounded-xl border border-slate-200/90 bg-white/95 px-3 py-2 text-[0.68rem] font-medium normal-case leading-relaxed tracking-normal text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.16)] backdrop-blur dark:border-white/15 dark:bg-slate-950/95 dark:text-slate-200`}
+          className={`tt-tooltip-bubble absolute ${bubblePositionClass} top-full z-30 mt-2 w-max max-w-[16rem] rounded-xl border border-slate-200/90 bg-white/95 px-3 py-2 text-[0.68rem] font-medium normal-case leading-relaxed tracking-normal text-slate-700 shadow-[0_12px_30px_rgba(15,23,42,0.16)] backdrop-blur dark:border-white/15 dark:bg-slate-950/95 dark:text-slate-200`}
           role="tooltip"
           style={{ "--tt-tooltip-x": center ? "-50%" : "0%" } as CSSProperties}
         >

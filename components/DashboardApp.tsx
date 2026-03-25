@@ -2,9 +2,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import {
-  Languages,
-} from "lucide-react";
+import { Languages } from "lucide-react";
 import type {
   AAModelRow,
   AiNewsItem,
@@ -17,6 +15,8 @@ import type {
 import { daysAgo, formatLocaleCode } from "./dashboard-utils";
 import { CapabilityTierBoard } from "./CapabilityTierBoard";
 import { ModelExplorer } from "./ModelExplorer";
+import { DotPattern } from "./ui/DotPattern";
+import { CountUpStat } from "./ui/CountUpStat";
 
 type DashboardBundle = {
   artificialAnalysis: FeedState<AAModelRow[]>;
@@ -122,7 +122,7 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
       );
       const aaPromise = loadFeed(
         "artificial-analysis",
-        "/api/artificial-analysis",
+        "/api/monitoring/leaderboard?category=general_llm",
         [],
         sourceLabels.sourceAA,
         parseAAModelsFeed,
@@ -130,7 +130,7 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
       );
       const aiNewsPromise = loadFeed(
         "ai-news",
-        "/api/ai-news",
+        "/api/monitoring/news",
         [],
         sourceLabels.sourceAiNews,
         parseAiNewsFeed,
@@ -185,41 +185,70 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
 
   return (
     <div
-      className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(201,12,15,0.16),transparent_25%),radial-gradient(circle_at_top_right,rgba(0,12,84,0.14),transparent_30%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] text-slate-950 transition-colors duration-300 dark:bg-[radial-gradient(circle_at_top_left,rgba(17,94,255,0.2),transparent_30%),radial-gradient(circle_at_top_right,rgba(11,20,46,0.8),transparent_42%),linear-gradient(180deg,#050b18_0%,#0a1228_100%)] dark:text-slate-100"
-      style={BRANDED_STYLE}
+      className="min-h-screen transition-colors duration-300"
+      style={{ color: "var(--text)" }}
     >
       <HeaderControlsPortal>
         <LocaleToggle locale={locale} setLocale={setLocale} />
       </HeaderControlsPortal>
-      <header className="mx-auto flex w-full max-w-none flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:pt-4">
-        <div className="animate-enter relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/55 dark:shadow-[0_24px_72px_rgba(2,6,23,0.55)]">
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(201,12,15,0.08),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(0,53,214,0.08),transparent_26%)]" />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl xl:max-w-3xl">
-              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:whitespace-nowrap">
+
+      {/* Hero Header */}
+      <header className="mx-auto flex w-full max-w-none flex-col gap-6 px-4 py-4 sm:px-6 lg:px-8 lg:pt-6">
+        <div
+          className="animate-enter relative overflow-hidden rounded-2xl p-6"
+          style={{
+            border: "1px solid var(--border-strong)",
+            background: "var(--surface-card)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            boxShadow: "var(--shadow-lg)",
+          }}
+        >
+          {/* Subtle dot pattern */}
+          <DotPattern
+            width={24}
+            height={24}
+            cr={1}
+            className="opacity-[0.025]"
+            style={{ color: "var(--tt-navy)" }}
+          />
+          {/* Gradient fill — top-left accent, bottom-right navy */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl"
+            style={{
+              background: "linear-gradient(135deg, var(--accent-muted) 0%, transparent 40%), radial-gradient(circle at bottom right, var(--navy-tint) 0%, transparent 60%)",
+            }}
+          />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1
+                className="text-3xl font-semibold tracking-tight sm:text-4xl"
+                style={{ color: "var(--text)" }}
+              >
                 {strings.title}
               </h1>
-              <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+              <p
+                className="mt-1.5 text-xs font-medium tracking-wide"
+                style={{ color: "var(--text-muted)" }}
+              >
                 {strings.updated} {formatHeaderDate(feeds.artificialAnalysis.lastSuccessAt, locale)}
               </p>
             </div>
-            <div className="flex flex-col items-end gap-3 animate-enter animate-enter-delay-1 lg:shrink-0">
-              <div className="flex flex-wrap justify-end gap-3">
-                <StatCard
-                  label={locale === "tr" ? "Toplam Listelenen Model" : "Total Listed Models"}
-                  value={listedModelCount}
-                />
-                <StatCard
-                  label={locale === "tr" ? "Kaynak Sayısı" : "Source Count"}
-                  value={sourceCount}
-                />
-              </div>
+            <div className="flex animate-enter animate-enter-delay-1 flex-wrap gap-3 sm:justify-end sm:shrink-0">
+              <StatCard
+                label={locale === "tr" ? "Toplam Model" : "Total Models"}
+                value={listedModelCount}
+              />
+              <StatCard
+                label={locale === "tr" ? "Kaynak" : "Sources"}
+                value={sourceCount}
+              />
             </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-none flex-col gap-6 px-4 pb-12 sm:px-6 lg:px-8">
+      <main className="mx-auto flex w-full max-w-none flex-col gap-5 px-4 pb-12 sm:px-6 lg:px-8">
         <ModelExplorer
           aaModels={feeds.artificialAnalysis.data}
           aiNews={feeds.aiNews.data}
@@ -264,15 +293,22 @@ function LocaleToggle({
   setLocale: (value: Locale) => void;
 }) {
   return (
-    <div className="inline-flex rounded-full border border-slate-200/80 bg-white p-1 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/70">
+    <div
+      className="inline-flex rounded-full p-1"
+      style={{
+        border: "1px solid var(--border)",
+        background: "var(--surface-card)",
+      }}
+    >
       {(["en", "tr"] as const).map((value) => (
         <button
           key={value}
           aria-pressed={locale === value}
-          className={`rounded-full px-3 py-2 text-sm font-semibold transition ${locale === value
-              ? "bg-[color:var(--tt-red)] text-white shadow"
-              : "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-            }`}
+          className="rounded-full px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-150"
+          style={{
+            background: locale === value ? "var(--accent)" : "transparent",
+            color: locale === value ? "#fff" : "var(--text-muted)",
+          }}
           onClick={() => setLocale(value)}
           type="button"
         >
@@ -295,13 +331,32 @@ function StatCard({
   value: number;
 }) {
   return (
-    <div className="panel-interactive w-[140px] min-w-0 rounded-3xl border border-slate-200/70 bg-white/90 px-5 py-4 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/65">
-      <div className="text-[0.68rem] font-semibold tracking-[0.2em] text-slate-500 dark:text-slate-400">
+    <div
+      className="panel-interactive flex min-w-0 flex-1 flex-col rounded-xl px-4 py-3 sm:px-5 sm:py-4"
+      style={{
+        border: "1px solid var(--border)",
+        background: "var(--surface-card)",
+        boxShadow: "var(--shadow-sm)",
+      }}
+    >
+      <div
+        className="text-[0.6rem] font-semibold uppercase tracking-[0.22em]"
+        style={{ color: "var(--text-faint)" }}
+      >
         {label}
       </div>
-      <div className="mt-2 text-3xl font-bold tabular-nums text-slate-950 dark:text-white sm:text-5xl">{value}</div>
+      <div
+        className="mt-2 text-3xl font-bold sm:text-4xl"
+        style={{ color: "var(--text)" }}
+      >
+        <CountUpStat value={value} />
+      </div>
       {meta ? (
-        <div className="mt-1 max-w-[220px] truncate text-[11px] text-slate-500 dark:text-slate-400" title={meta}>
+        <div
+          className="mt-1 max-w-[14rem] truncate text-[11px]"
+          style={{ color: "var(--text-faint)" }}
+          title={meta}
+        >
           {meta}
         </div>
       ) : null}
@@ -541,23 +596,53 @@ function normalizeAAModelItem(value: unknown): AAModelRow | null {
         ? `https://artificialanalysis.ai${hostsUrl}`
         : null;
 
+  const normalizeBenchmarkScore = (score: number | null): number | null => {
+    if (typeof score !== "number" || !Number.isFinite(score)) return null;
+    if (score <= 0) return null;
+    if (score >= 0 && score <= 1) return score * 100;
+    return score;
+  };
+  const normalizePositiveValue = (value: number | null): number | null => {
+    if (typeof value !== "number" || !Number.isFinite(value)) return null;
+    return value > 0 ? value : null;
+  };
+
+  const gpqa = normalizeBenchmarkScore(pickNullableNumber(value, ["gpqa"]));
+  const mmluPro = normalizeBenchmarkScore(pickNullableNumber(value, ["mmlu_pro", "mmluPro"]));
+  const terminalBenchHard = normalizeBenchmarkScore(
+    pickNullableNumber(value, ["terminalbench_hard", "terminalBenchHard"]),
+  );
+  const sweBench = normalizeBenchmarkScore(
+    pickNullableNumber(value, ["swe_bench", "sweBench", "swebench", "swe_bench_verified", "swebench_verified"]),
+  );
+
   return {
     id: pickString(value, ["id", "slug", "name"], crypto.randomUUID()),
     model,
     lab: pickString(creator ?? value, ["name", "lab", "provider"], lab),
-    intelligenceIndex: pickNullableNumber(value, ["intelligence_index"]),
-    codingIndex: pickNullableNumber(value, ["coding_index"]),
-    agenticIndex: pickNullableNumber(value, ["agentic_index"]),
-    gpqa: pickNullableNumber(value, ["gpqa"]),
-    mmluPro: pickNullableNumber(value, ["mmlu_pro"]),
-    terminalBenchHard: pickNullableNumber(value, ["terminalbench_hard"]),
-    pricePer1m: pickNullableNumber(value, ["price_1m_blended_3_to_1"]),
-    inputPricePer1m: pickNullableNumber(value, ["price_1m_input_tokens"]),
-    outputPricePer1m: pickNullableNumber(value, ["price_1m_output_tokens"]),
-    outputTokensPerSecond: pickNullableNumber(timescaleData ?? {}, ["median_output_speed"]),
-    ttftSeconds: pickNullableNumber(timescaleData ?? {}, ["median_time_to_first_chunk"]),
-    endToEndSeconds: pickNullableNumber(endToEnd ?? {}, ["total_time"]),
-    contextWindowTokens: pickNullableNumber(value, ["context_window_tokens"]),
+    intelligenceIndex: normalizePositiveValue(pickNullableNumber(value, ["intelligence_index"])),
+    codingIndex: normalizePositiveValue(pickNullableNumber(value, ["coding_index"])),
+    agenticIndex: normalizePositiveValue(pickNullableNumber(value, ["agentic_index"])),
+    gpqa,
+    mmluPro,
+    terminalBenchHard,
+    sweBench,
+    pricePer1m: normalizePositiveValue(pickNullableNumber(value, ["price_1m_blended_3_to_1"])),
+    inputPricePer1m: normalizePositiveValue(pickNullableNumber(value, ["price_1m_input_tokens"])),
+    outputPricePer1m: normalizePositiveValue(pickNullableNumber(value, ["price_1m_output_tokens"])),
+    outputTokensPerSecond: normalizePositiveValue(
+      pickNullableNumber(value, ["output_tokens_per_second", "outputTokensPerSecond"])
+        ?? pickNullableNumber(timescaleData ?? {}, ["median_output_speed"]),
+    ),
+    ttftSeconds: normalizePositiveValue(
+      pickNullableNumber(value, ["ttft_seconds", "ttftSeconds"])
+        ?? pickNullableNumber(timescaleData ?? {}, ["median_time_to_first_chunk"]),
+    ),
+    endToEndSeconds: normalizePositiveValue(
+      pickNullableNumber(value, ["end_to_end_seconds", "endToEndSeconds"])
+        ?? pickNullableNumber(endToEnd ?? {}, ["total_time"]),
+    ),
+    contextWindowTokens: normalizePositiveValue(pickNullableNumber(value, ["context_window_tokens"])),
     openWeights,
     reasoning,
     releaseDate: releaseDate || null,
@@ -668,7 +753,11 @@ function pickNumber(value: Record<string, unknown>, keys: string[], fallback: nu
       return candidate;
     }
     if (typeof candidate === "string") {
-      const parsed = Number(candidate);
+      const trimmed = candidate.trim();
+      if (!trimmed.length) {
+        continue;
+      }
+      const parsed = Number(trimmed);
       if (!Number.isNaN(parsed)) {
         return parsed;
       }
