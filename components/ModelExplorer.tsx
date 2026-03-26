@@ -329,6 +329,16 @@ const CATEGORY_TABLE_COLUMNS: Record<CategoryKey, CategoryColumn[]> = {
 
 function formatSourceDisplayName(sourceName: string | null): string {
   switch (sourceName) {
+    case "aa_image_text_to_image":
+      return "Artificial Analysis (image leaderboard)";
+    case "aa_video_text_to_video":
+      return "Artificial Analysis (video leaderboard)";
+    case "aa_tts":
+      return "Artificial Analysis (TTS leaderboard)";
+    case "aa_stt":
+      return "Artificial Analysis (STT leaderboard)";
+    case "mteb_embeddings":
+      return "MTEB Leaderboard";
     case "llm_stats_image_generation":
       return "ZeroEval Magia Arena (image)";
     case "llm_stats_video_generation":
@@ -400,6 +410,36 @@ function describeCategoryScore(
     return locale === "tr"
       ? `Kaynak: ${source}. Bu skor, birden fazla benchmark setindeki normalize edilmiş puanların ortalamasıdır. Yüksek olması daha iyi performans demektir.`
       : `Source: ${source}. This score is the average of normalized scores across multiple benchmark sets. Higher is better.`;
+  }
+
+  if (scoreUnit?.startsWith("aa:image_generation")) {
+    return locale === "tr"
+      ? `Kaynak: ${source}. Bu skor, text-to-image ve image-editing leaderboard puanlarının birleşik ortalamasıdır. Yüksek değer daha iyi görsel kaliteyi ifade eder.`
+      : `Source: ${source}. Combined average of text-to-image and image editing leaderboard quality indices. Higher is better.`;
+  }
+
+  if (scoreUnit?.startsWith("aa:video_generation")) {
+    return locale === "tr"
+      ? `Kaynak: ${source}. Bu skor, text-to-video ve image-to-video leaderboard puanlarının birleşik ortalamasıdır.`
+      : `Source: ${source}. Combined average of text-to-video and image-to-video leaderboard quality indices. Higher is better.`;
+  }
+
+  if (scoreUnit?.startsWith("aa:text_to_speech")) {
+    return locale === "tr"
+      ? `Kaynak: ${source}. Artificial Analysis TTS kalite indeksi. Yüksek değer daha iyi TTS performansını ifade eder.`
+      : `Source: ${source}. Artificial Analysis TTS quality index. Higher is better.`;
+  }
+
+  if (scoreUnit?.startsWith("aa:speech_to_text")) {
+    return locale === "tr"
+      ? `Kaynak: ${source}. Doğruluk skoru: (1 − WER) × 100. Düşük Word Error Rate'den türetilmiştir; yüksek değer daha iyi transkripsiyon doğruluğunu ifade eder.`
+      : `Source: ${source}. Accuracy score derived from Word Error Rate: (1 − WER) × 100. Higher is better.`;
+  }
+
+  if (scoreUnit?.startsWith("mteb:embeddings")) {
+    return locale === "tr"
+      ? `Kaynak: ${source}. MTEB ortalama benchmark skoru. Çok sayıda embedding benchmark setindeki ortalama performansı gösterir. Yüksek değer daha iyi embedding kalitesini ifade eder.`
+      : `Source: ${source}. MTEB average benchmark score across multiple embedding evaluation tasks. Higher is better.`;
   }
 
   return locale === "tr"
@@ -1098,9 +1138,18 @@ export function ModelExplorer({
         .sort((a, b) => a.localeCompare(b)),
     [categoryRows],
   );
-  const visibleCategoryColumns = categorySectionKey
-    ? CATEGORY_TABLE_COLUMNS[categorySectionKey].filter((column) => column.key !== "rank")
-    : [];
+  const visibleCategoryColumns = useMemo(() => {
+    if (!categorySectionKey) return [];
+    const columns = CATEGORY_TABLE_COLUMNS[categorySectionKey].filter((column) => column.key !== "rank");
+    if (categoryRows.length === 0) return columns;
+    return columns.filter((column) => {
+      if (column.key === "model" || column.key === "lab") return true;
+      return categoryRows.some((row) => {
+        const val = row[column.key as keyof CategoryLeaderboardItem];
+        return typeof val === "number" && Number.isFinite(val);
+      });
+    });
+  }, [categorySectionKey, categoryRows]);
   const categoryFilteredRows = useMemo(() => {
     const q = categoryQuery.trim().toLowerCase();
     return categoryRows.filter((row) => {

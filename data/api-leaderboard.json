@@ -1,8 +1,8 @@
 {
   "route": "leaderboard",
   "source": "hf_leaderboard",
-  "generated_at": "2026-03-25T06:41:24.551Z",
-  "last_success_at": "2026-03-25T06:41:24.551Z",
+  "generated_at": "2026-03-26T14:51:12.356Z",
+  "last_success_at": "2026-03-26T14:51:12.356Z",
   "stale": false,
   "data": [
     {
@@ -17,7 +17,7 @@
       "url": "https://huggingface.co/google/recurrentgemma-2b",
       "timestamp": "2024-04-06T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/recurrentgemma-2b",
         "params_b": 2.683,
@@ -46,7 +46,7 @@
       "url": "https://huggingface.co/google/codegemma-1.1-2b",
       "timestamp": "2024-04-30T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/codegemma-1.1-2b",
         "params_b": 2.506,
@@ -75,7 +75,7 @@
       "url": "https://huggingface.co/google/gemma-2b",
       "timestamp": "2024-02-08T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/gemma-2b",
         "params_b": 2.506,
@@ -104,7 +104,7 @@
       "url": "https://huggingface.co/google/gemma-2-2b",
       "timestamp": "2024-07-16T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/gemma-2-2b",
         "params_b": 2.614,
@@ -133,7 +133,7 @@
       "url": "https://huggingface.co/google/gemma-2-2b",
       "timestamp": "2024-07-16T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/gemma-2-2b",
         "params_b": 2.614,
@@ -162,7 +162,7 @@
       "url": "https://huggingface.co/google/recurrentgemma-2b",
       "timestamp": "2024-04-06T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/recurrentgemma-2b",
         "params_b": 2.683,
@@ -191,7 +191,7 @@
       "url": "https://huggingface.co/google/codegemma-1.1-2b",
       "timestamp": "2024-04-30T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/codegemma-1.1-2b",
         "params_b": 2.506,
@@ -220,7 +220,7 @@
       "url": "https://huggingface.co/google/gemma-2b",
       "timestamp": "2024-02-08T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/gemma-2b",
         "params_b": 2.506,
@@ -249,7 +249,7 @@
       "url": "https://huggingface.co/google/gemma-2-2b",
       "timestamp": "2024-07-16T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/gemma-2-2b",
         "params_b": 2.614,
@@ -278,7 +278,7 @@
       "url": "https://huggingface.co/google/gemma-2-2b",
       "timestamp": "2024-07-16T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "google/gemma-2-2b",
         "params_b": 2.614,
@@ -307,7 +307,7 @@
       "url": "https://huggingface.co/meta-llama/Meta-Llama-3-8B",
       "timestamp": "2024-04-17T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "meta-llama/Meta-Llama-3-8B",
         "params_b": 8.03,
@@ -336,7 +336,7 @@
       "url": "https://huggingface.co/meta-llama/Meta-Llama-3-70B",
       "timestamp": "2024-04-17T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "meta-llama/Meta-Llama-3-70B",
         "params_b": 70.554,
@@ -365,7 +365,7 @@
       "url": "https://huggingface.co/meta-llama/Meta-Llama-3-70B-Instruct",
       "timestamp": "2024-04-17T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "meta-llama/Meta-Llama-3-70B-Instruct",
         "params_b": 70.554,
@@ -394,7 +394,7 @@
       "url": "https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct",
       "timestamp": "2024-04-17T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "meta-llama/Meta-Llama-3-8B-Instruct",
         "params_b": 8.03,
@@ -423,7 +423,7 @@
       "url": "https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct",
       "timestamp": "2024-04-17T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "meta-llama/Meta-Llama-3-8B-Instruct",
         "params_b": 8.03,
@@ -452,7 +452,7 @@
       "url": "https://huggingface.co/mistralai/Codestral-22B-v0.1",
       "timestamp": "2024-05-29T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "mistralai/Codestral-22B-v0.1",
         "params_b": 22.247,
@@ -481,7 +481,7 @@
       "url": "https://huggingface.co/mistralai/Mixtral-8x7B-v0.1",
       "timestamp": "2023-12-01T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "mistralai/Mixtral-8x7B-v0.1",
         "params_b": 46.703,
@@ -510,7 +510,7 @@
       "url": "https://huggingface.co/mistralai/Mixtral-8x22B-v0.1",
       "timestamp": "2024-04-16T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "mistralai/Mixtral-8x22B-v0.1",
         "params_b": 140.621,
@@ -539,7 +539,7 @@
       "url": "https://huggingface.co/mistralai/Mistral-7B-v0.3",
       "timestamp": "2024-05-22T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "mistralai/Mistral-7B-v0.3",
         "params_b": 7.248,
@@ -568,7 +568,7 @@
       "url": "https://huggingface.co/mistralai/Mistral-7B-v0.1",
       "timestamp": "2023-09-20T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "mistralai/Mistral-7B-v0.1",
         "params_b": 7.242,
@@ -597,7 +597,7 @@
       "url": "https://huggingface.co/Qwen/Qwen1.5-4B",
       "timestamp": "2024-01-22T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "Qwen/Qwen1.5-4B",
         "params_b": 3.95,
@@ -626,7 +626,7 @@
       "url": "https://huggingface.co/Qwen/Qwen1.5-0.5B",
       "timestamp": "2024-01-22T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "Qwen/Qwen1.5-0.5B",
         "params_b": 0.62,
@@ -655,7 +655,7 @@
       "url": "https://huggingface.co/Qwen/Qwen2-72B",
       "timestamp": "2024-05-22T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "Qwen/Qwen2-72B",
         "params_b": 72.706,
@@ -684,7 +684,7 @@
       "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B",
       "timestamp": "2024-09-15T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "Qwen/Qwen2.5-1.5B",
         "params_b": 1.5,
@@ -713,7 +713,7 @@
       "url": "https://huggingface.co/Qwen/Qwen2.5-0.5B",
       "timestamp": "2024-09-15T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "Qwen/Qwen2.5-0.5B",
         "params_b": 0.5,
@@ -742,7 +742,7 @@
       "url": "https://huggingface.co/01-ai/Yi-1.5-34B-32K",
       "timestamp": "2024-05-15T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-1.5-34B-32K",
         "params_b": 34.389,
@@ -771,7 +771,7 @@
       "url": "https://huggingface.co/01-ai/Yi-1.5-34B",
       "timestamp": "2024-05-11T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-1.5-34B",
         "params_b": 34.389,
@@ -800,7 +800,7 @@
       "url": "https://huggingface.co/01-ai/Yi-6B-200K",
       "timestamp": "2023-11-06T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-6B-200K",
         "params_b": 6.061,
@@ -829,7 +829,7 @@
       "url": "https://huggingface.co/01-ai/Yi-1.5-9B-32K",
       "timestamp": "2024-05-15T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-1.5-9B-32K",
         "params_b": 8.829,
@@ -858,7 +858,7 @@
       "url": "https://huggingface.co/01-ai/Yi-6B",
       "timestamp": "2023-11-01T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-6B",
         "params_b": 6.061,
@@ -887,7 +887,7 @@
       "url": "https://huggingface.co/01-ai/Yi-1.5-34B-32K",
       "timestamp": "2024-05-15T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-1.5-34B-32K",
         "params_b": 34.389,
@@ -916,7 +916,7 @@
       "url": "https://huggingface.co/01-ai/Yi-1.5-34B",
       "timestamp": "2024-05-11T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-1.5-34B",
         "params_b": 34.389,
@@ -945,7 +945,7 @@
       "url": "https://huggingface.co/01-ai/Yi-6B-200K",
       "timestamp": "2023-11-06T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-6B-200K",
         "params_b": 6.061,
@@ -974,7 +974,7 @@
       "url": "https://huggingface.co/01-ai/Yi-1.5-9B-32K",
       "timestamp": "2024-05-15T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-1.5-9B-32K",
         "params_b": 8.829,
@@ -1003,7 +1003,7 @@
       "url": "https://huggingface.co/01-ai/Yi-6B",
       "timestamp": "2023-11-01T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "01-ai/Yi-6B",
         "params_b": 6.061,
@@ -1032,7 +1032,7 @@
       "url": "https://huggingface.co/nvidia/Minitron-4B-Base",
       "timestamp": "2024-07-19T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "nvidia/Minitron-4B-Base",
         "params_b": 4,
@@ -1061,7 +1061,7 @@
       "url": "https://huggingface.co/nvidia/AceInstruct-1.5B",
       "timestamp": "2025-01-15T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "nvidia/AceInstruct-1.5B",
         "params_b": 1.777,
@@ -1090,7 +1090,7 @@
       "url": "https://huggingface.co/nvidia/Hymba-1.5B-Base",
       "timestamp": "2024-10-09T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "nvidia/Hymba-1.5B-Base",
         "params_b": 1.523,
@@ -1119,7 +1119,7 @@
       "url": "https://huggingface.co/nvidia/AceInstruct-72B",
       "timestamp": "2025-01-15T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "nvidia/AceInstruct-72B",
         "params_b": 72.706,
@@ -1148,7 +1148,7 @@
       "url": "https://huggingface.co/nvidia/Minitron-8B-Base",
       "timestamp": "2024-07-19T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "nvidia/Minitron-8B-Base",
         "params_b": 7.22,
@@ -1177,7 +1177,7 @@
       "url": "https://huggingface.co/microsoft/phi-1_5",
       "timestamp": "2023-09-10T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "microsoft/phi-1_5",
         "params_b": 1.418,
@@ -1206,7 +1206,7 @@
       "url": "https://huggingface.co/microsoft/phi-2",
       "timestamp": "2023-12-13T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "microsoft/phi-2",
         "params_b": 2.78,
@@ -1235,7 +1235,7 @@
       "url": "https://huggingface.co/microsoft/phi-1",
       "timestamp": "2023-09-10T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "microsoft/phi-1",
         "params_b": 1.418,
@@ -1264,7 +1264,7 @@
       "url": "https://huggingface.co/microsoft/phi-4",
       "timestamp": "2024-12-11T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "microsoft/phi-4",
         "params_b": 14.66,
@@ -1293,7 +1293,7 @@
       "url": "https://huggingface.co/microsoft/Orca-2-7b",
       "timestamp": "2023-11-14T00:00:00.000Z",
       "confidence": "high",
-      "last_success_at": "2026-03-25T06:41:24.551Z",
+      "last_success_at": "2026-03-26T14:51:12.356Z",
       "payload": {
         "model_id": "microsoft/Orca-2-7b",
         "params_b": 7,

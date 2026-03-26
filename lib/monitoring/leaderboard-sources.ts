@@ -1,4 +1,9 @@
-import { extractArtificialAnalysisModels } from "@/lib/normalize/artificial-analysis";
+import {
+  extractArtificialAnalysisModels,
+  extractArtificialAnalysisArenaPage,
+  extractArtificialAnalysisSttPage,
+  type ArtificialAnalysisArenaEntry,
+} from "@/lib/normalize/artificial-analysis";
 import { fetchJsonWithRetry, fetchWithRetry } from "@/lib/fetcher";
 import type { LeaderboardV2Response } from "@/lib/normalize/leaderboard";
 import type {
@@ -12,10 +17,32 @@ import { LEADERBOARD_CATEGORIES, SOURCE_REGISTRY } from "@/lib/monitoring/contra
 import { HF_DATASETS_SEARCH_API, HF_LEADERBOARD_V2_DATASET, LAB_HF_ORGS, PWC_API_BASE } from "@/lib/sources";
 
 const ARTIFICIAL_ANALYSIS_MODELS_URL = "https://artificialanalysis.ai/models";
+const AA_IMAGE_TEXT_TO_IMAGE_URL = "https://artificialanalysis.ai/image/leaderboard/text-to-image";
+const AA_IMAGE_EDITING_URL = "https://artificialanalysis.ai/image/leaderboard/editing";
+const AA_VIDEO_TEXT_TO_VIDEO_URL = "https://artificialanalysis.ai/video/leaderboard/text-to-video";
+const AA_VIDEO_IMAGE_TO_VIDEO_URL = "https://artificialanalysis.ai/video/leaderboard/image-to-video";
+const AA_TTS_URL = "https://artificialanalysis.ai/text-to-speech/leaderboard";
+const AA_STT_URL = "https://artificialanalysis.ai/speech-to-text";
+const MTEB_DATASET = "mteb/leaderboard";
+const HF_DATASETS_VIEWER_BASE = "https://datasets-server.huggingface.co/rows";
 const LLM_STATS_IMAGE_URL = "https://llm-stats.com/leaderboards/best-ai-for-image-generation";
 const LLM_STATS_VIDEO_URL = "https://llm-stats.com/leaderboards/best-ai-for-video-generation";
 const ZEROEVAL_CATEGORY_BENCHMARKS_URL = "https://api.zeroeval.com/leaderboard/categories";
 const ZEROEVAL_MAGIA_ARENAS_URL = "https://api.zeroeval.com/magia/arenas";
+const LIVEBENCH_CHANGELOG_URL = "https://raw.githubusercontent.com/LiveBench/LiveBench/main/changelog.md";
+const LIVEBENCH_TABLE_BASE_URL = "https://livebench.ai";
+const LIVEBENCH_FALLBACK_RELEASES = [
+  "2026-01-08",
+  "2025-12-23",
+  "2025-11-25",
+  "2025-05-30",
+  "2025-04-25",
+  "2025-04-02",
+  "2024-11-25",
+  "2024-08-31",
+  "2024-07-26",
+  "2024-06-24",
+];
 
 type EnrichmentMaps = {
   gpqaByModel: Map<string, number>;
@@ -88,6 +115,14 @@ type MagiaArenaLeaderboardResponse = {
   leaderboard?: MagiaArenaLeaderboardEntry[];
 };
 
+type LiveBenchCategories = Record<string, string[]>;
+
+type LiveBenchSnapshot = {
+  releaseDate: string;
+  csvText: string;
+  categories: LiveBenchCategories;
+};
+
 function normalizeBenchmarkScore(value: number | null | undefined): number | null {
   if (typeof value !== "number" || !Number.isFinite(value)) return null;
   if (value <= 0) return null;
@@ -138,6 +173,241 @@ function canonicalKey(modelName: string, vendor?: string): string {
   const normalizedModel = canonicalize(modelName);
   const normalizedVendor = canonicalize(vendor ?? "unknown");
   return `${normalizedVendor}:${normalizedModel}`;
+}
+
+function inferVendorFromModelId(modelId: string): string | undefined {
+  const normalized = modelId.trim().toLowerCase();
+  if (!normalized) return undefined;
+  const mappings: Array<[RegExp, string]> = [
+    [/^gpt|^chatgpt|^o[134]/, "OpenAI"],
+    [/^claude/, "Anthropic"],
+    [/^gemini/, "Google"],
+    [/^deepseek/, "DeepSeek"],
+    [/^qwen|^qwq/, "Alibaba"],
+    [/^grok/, "xAI"],
+    [/^llama|^meta-llama/, "Meta"],
+    [/^mistral|^mixtral/, "Mistral"],
+    [/^command/, "Cohere"],
+    [/^kimi/, "Moonshot AI"],
+    [/^phi/, "Microsoft"],
+  ];
+  for (const [pattern, vendor] of mappings) {
+    if (pattern.test(normalized)) return vendor;
+  }
+  return undefined;
+}
+
+function parseCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    if (char === '"') {
+      const next = line[i + 1];
+      if (inQuotes && next === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (char === "," && !inQuotes) {
+      values.push(current);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  values.push(current);
+  return values.map((item) => item.trim());
+}
+
+function parseCsvTable(csvText: string): Array<Record<string, string>> {
+  const lines = csvText
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length < 2) return [];
+
+  const headers = parseCsvLine(lines[0]);
+  if (headers.length === 0) return [];
+
+  const rows: Array<Record<string, string>> = [];
+  for (const line of lines.slice(1)) {
+    const values = parseCsvLine(line);
+    if (values.length === 0) continue;
+    const row: Record<string, string> = {};
+    for (let index = 0; index < headers.length; index += 1) {
+      row[headers[index]] = values[index] ?? "";
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+function toNumber(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return parsed;
+}
+
+function parseLiveBenchReleaseDates(changelogText: string): string[] {
+  const matches = [...changelogText.matchAll(/\b(20\d{2}-\d{2}-\d{2})\b/g)].map((match) => match[1]);
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  for (const date of matches) {
+    if (seen.has(date)) continue;
+    seen.add(date);
+    ordered.push(date);
+  }
+  return ordered;
+}
+
+async function fetchLiveBenchReleaseCandidates(): Promise<string[]> {
+  try {
+    const { data } = await fetchWithRetry<string>(
+      LIVEBENCH_CHANGELOG_URL,
+      {
+        method: "GET",
+        headers: {
+          Accept: "text/plain",
+          "User-Agent": "model-tracker-monitoring/1.0",
+        },
+      },
+      async (response) => response.text(),
+      { allowedHosts: ["raw.githubusercontent.com"] },
+    );
+    const parsed = parseLiveBenchReleaseDates(data);
+    if (parsed.length > 0) {
+      const merged = [...parsed, ...LIVEBENCH_FALLBACK_RELEASES];
+      return [...new Set(merged)];
+    }
+  } catch {
+    // fall back to known release dates
+  }
+  return LIVEBENCH_FALLBACK_RELEASES;
+}
+
+async function fetchLiveBenchSnapshot(): Promise<LiveBenchSnapshot> {
+  const releases = await fetchLiveBenchReleaseCandidates();
+  let lastError: unknown = null;
+
+  for (const releaseDate of releases) {
+    const releaseToken = releaseDate.replaceAll("-", "_");
+    const tableUrl = `${LIVEBENCH_TABLE_BASE_URL}/table_${releaseToken}.csv`;
+    const categoriesUrl = `${LIVEBENCH_TABLE_BASE_URL}/categories_${releaseToken}.json`;
+
+    try {
+      const [tableResult, categoriesResult] = await Promise.all([
+        fetchWithRetry<string>(
+          tableUrl,
+          {
+            method: "GET",
+            headers: {
+              Accept: "text/csv",
+              "User-Agent": "model-tracker-monitoring/1.0",
+            },
+          },
+          async (response) => response.text(),
+          { allowedHosts: ["livebench.ai"] },
+        ),
+        fetchJsonWithRetry<LiveBenchCategories>(
+          categoriesUrl,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+              "User-Agent": "model-tracker-monitoring/1.0",
+            },
+          },
+          { allowedHosts: ["livebench.ai"] },
+        ),
+      ]);
+
+      const csvText = tableResult.data;
+      const categories = categoriesResult.data;
+      if (typeof csvText !== "string" || !csvText.includes("model,")) {
+        throw new Error(`LiveBench CSV format invalid for release ${releaseDate}`);
+      }
+      if (!categories || typeof categories !== "object") {
+        throw new Error(`LiveBench categories format invalid for release ${releaseDate}`);
+      }
+
+      return {
+        releaseDate,
+        csvText,
+        categories,
+      };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastError instanceof Error) {
+    throw lastError;
+  }
+  throw new Error("Could not fetch a valid LiveBench snapshot.");
+}
+
+function entriesFromLiveBenchSnapshot(snapshot: LiveBenchSnapshot): NormalizedLeaderboardEntry[] {
+  const rows = parseCsvTable(snapshot.csvText);
+  const categories = snapshot.categories;
+  const categoryColumnsByName = Object.entries(categories)
+    .map(([name, columns]) => [name, Array.isArray(columns) ? columns : []] as const)
+    .filter((entry) => entry[1].length > 0);
+
+  const entries = rows
+    .map((row) => {
+      const sourceModelId = String(row.model ?? "").trim();
+      if (!sourceModelId) return null;
+
+      const categoryScores: Record<string, number> = {};
+      for (const [categoryName, columns] of categoryColumnsByName) {
+        const numeric = columns
+          .map((column) => toNumber(row[column]))
+          .filter((value): value is number => typeof value === "number");
+        if (numeric.length === 0) continue;
+        categoryScores[categoryName] = numeric.reduce((sum, score) => sum + score, 0) / numeric.length;
+      }
+
+      const categoryValues = Object.values(categoryScores);
+      const globalAverage =
+        categoryValues.length > 0
+          ? categoryValues.reduce((sum, score) => sum + score, 0) / categoryValues.length
+          : null;
+      if (typeof globalAverage !== "number" || !Number.isFinite(globalAverage)) {
+        return null;
+      }
+
+      const vendor = inferVendorFromModelId(sourceModelId);
+      return {
+        rank: 0,
+        sourceModelId,
+        canonicalModelKey: canonicalKey(sourceModelId, vendor),
+        modelName: sourceModelId,
+        vendor,
+        score: globalAverage,
+        scoreUnit: "livebench:global_average",
+        payload: {
+          livebench_release_date: snapshot.releaseDate,
+          ...Object.fromEntries(
+            Object.entries(categoryScores).map(([name, value]) => [
+              `livebench_${canonicalize(name)}_average`,
+              value,
+            ]),
+          ),
+        },
+      } satisfies NormalizedLeaderboardEntry;
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+
+  return rankEntries(entries);
 }
 
 function buildHfSearchUrl(query: string): string {
@@ -807,6 +1077,23 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
   },
 };
 
+const liveBenchGeneralLlmAdapter: LeaderboardAdapter = {
+  sourceName: "livebench_general_llm",
+  sourceType: "leaderboard",
+  categories: ["general_llm"],
+  priority: 20,
+  async fetchRaw(): Promise<unknown> {
+    return fetchLiveBenchSnapshot();
+  },
+  async normalizeTop10(raw: unknown): Promise<NormalizedLeaderboardEntry[]> {
+    const snapshot = (raw && typeof raw === "object" ? (raw as LiveBenchSnapshot) : null);
+    if (!snapshot?.csvText || !snapshot.categories || !snapshot.releaseDate) {
+      return [];
+    }
+    return entriesFromLiveBenchSnapshot(snapshot);
+  },
+};
+
 const llmStatsImageGenerationAdapter: LeaderboardAdapter = {
   sourceName: "llm_stats_image_generation",
   sourceType: "leaderboard",
@@ -918,12 +1205,404 @@ const llmStatsEmbeddingsAdapter = makeZeroEvalCategoryAdapter(
   "search",
 );
 
+// ─── AA Leaderboard page fetch helper ────────────────────────────────────────
+
+async function fetchAaLeaderboardPageHtml(url: string): Promise<string> {
+  const parsed = new URL(url);
+  if (!["artificialanalysis.ai", "www.artificialanalysis.ai"].includes(parsed.hostname)) {
+    throw new Error(`Disallowed AA leaderboard host: ${parsed.hostname}`);
+  }
+  const { data } = await fetchWithRetry<string>(
+    url,
+    {
+      method: "GET",
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": "model-tracker-monitoring/1.0",
+      },
+    },
+    async (response) => response.text(),
+    { allowedHosts: ["artificialanalysis.ai", "www.artificialanalysis.ai"] },
+  );
+  return data;
+}
+
+// Convert AA arena entries to NormalizedLeaderboardEntry.
+// score = elo rating (higher = better).
+function aaArenaEntriesToLeaderboard(
+  entries: ArtificialAnalysisArenaEntry[],
+  scoreUnit: string,
+  subScoreKey?: string,
+): NormalizedLeaderboardEntry[] {
+  const rows = entries.map((item) => {
+    const vendor = item.vendorName ?? undefined;
+    const payload: Record<string, unknown> = {};
+    if (subScoreKey) payload[subScoreKey] = item.elo;
+    if (item.winRate !== null) payload.win_rate = item.winRate;
+    if (item.appearances !== null) payload.matches_played = item.appearances;
+    if (item.released !== null) payload.release_date = item.released;
+    if (item.pricePer1kImages !== null) payload.price_per_1k_images = item.pricePer1kImages;
+    if (item.pricePerMinute !== null) payload.price_per_minute = item.pricePerMinute;
+    if (item.pricePer1mCharacters !== null) payload.price_per_1m_chars = item.pricePer1mCharacters;
+
+    return {
+      rank: 0,
+      sourceModelId: item.id,
+      canonicalModelKey: canonicalKey(item.name, vendor),
+      modelName: item.name,
+      vendor,
+      score: item.elo,
+      scoreUnit,
+      payload,
+    } satisfies NormalizedLeaderboardEntry;
+  });
+
+  return rankEntries(rows);
+}
+
+// Merge two leaderboard sets by canonicalModelKey, averaging elo scores.
+function mergeAaArenaLeaderboards(
+  aEntries: NormalizedLeaderboardEntry[],
+  bEntries: NormalizedLeaderboardEntry[],
+  category: LeaderboardCategory,
+  combinedScoreUnit: string,
+  aSubKey: string,
+  bSubKey: string,
+): NormalizedLeaderboardEntry[] {
+  const bucket = new Map<
+    string,
+    { base: NormalizedLeaderboardEntry; aScore: number | null; bScore: number | null }
+  >();
+
+  for (const entry of aEntries) {
+    bucket.set(entry.canonicalModelKey, { base: entry, aScore: entry.score ?? null, bScore: null });
+  }
+  for (const entry of bEntries) {
+    const prev = bucket.get(entry.canonicalModelKey);
+    if (prev) {
+      prev.bScore = entry.score ?? null;
+    } else {
+      bucket.set(entry.canonicalModelKey, { base: entry, aScore: null, bScore: entry.score ?? null });
+    }
+  }
+
+  const merged: NormalizedLeaderboardEntry[] = [...bucket.values()].map(({ base, aScore, bScore }) => {
+    const scores = [aScore, bScore].filter((s): s is number => s !== null);
+    const combined = scores.length > 0 ? scores.reduce((acc, s) => acc + s, 0) / scores.length : null;
+    return {
+      rank: 0,
+      sourceModelId: base.sourceModelId,
+      canonicalModelKey: base.canonicalModelKey,
+      modelName: base.modelName,
+      vendor: base.vendor,
+      score: combined ?? undefined,
+      scoreUnit: combinedScoreUnit,
+      payload: {
+        ...(base.payload ?? {}),
+        ...(aScore !== null ? { [aSubKey]: aScore } : {}),
+        ...(bScore !== null ? { [bSubKey]: bScore } : {}),
+        ...(category === "image_generation" ? { image_gen_score: aScore, image_edit_score: bScore } : {}),
+        ...(category === "video_generation" ? { video_gen_score: aScore, image_to_video_score: bScore } : {}),
+      },
+    };
+  });
+
+  return rankEntries(merged);
+}
+
+// ─── AA Image Generation adapter ─────────────────────────────────────────────
+
+const aaImageLeaderboardAdapter: LeaderboardAdapter = {
+  sourceName: "aa_image_text_to_image",
+  sourceType: "leaderboard",
+  categories: ["image_generation"],
+  priority: 10,
+  async fetchRaw(): Promise<unknown> {
+    const [textToImageResult, editingResult] = await Promise.allSettled([
+      fetchAaLeaderboardPageHtml(AA_IMAGE_TEXT_TO_IMAGE_URL),
+      fetchAaLeaderboardPageHtml(AA_IMAGE_EDITING_URL),
+    ]);
+    return {
+      textToImageHtml: textToImageResult.status === "fulfilled" ? textToImageResult.value : "",
+      editingHtml: editingResult.status === "fulfilled" ? editingResult.value : "",
+    };
+  },
+  async normalizeTop10(raw: unknown): Promise<NormalizedLeaderboardEntry[]> {
+    const record = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+    const t2iHtml = String(record.textToImageHtml ?? "");
+    const editHtml = String(record.editingHtml ?? "");
+
+    if (!t2iHtml && !editHtml) {
+      throw new Error("aa_image_text_to_image: no HTML fetched from either leaderboard page");
+    }
+
+    const t2iArena = t2iHtml ? extractArtificialAnalysisArenaPage(t2iHtml) : [];
+    const editArena = editHtml ? extractArtificialAnalysisArenaPage(editHtml) : [];
+
+    const t2iEntries = aaArenaEntriesToLeaderboard(t2iArena, "aa:image_generation:text_to_image", "image_gen_score");
+    const editEntries = aaArenaEntriesToLeaderboard(editArena, "aa:image_generation:editing", "image_edit_score");
+
+    if (t2iEntries.length === 0 && editEntries.length === 0) {
+      throw new Error("aa_image_text_to_image: parsed 0 models from both leaderboard pages");
+    }
+    if (t2iEntries.length === 0) return rankEntries(editEntries.map((e) => ({ ...e, scoreUnit: "aa:image_generation:blended" })));
+    if (editEntries.length === 0) return rankEntries(t2iEntries.map((e) => ({ ...e, scoreUnit: "aa:image_generation:blended" })));
+
+    return mergeAaArenaLeaderboards(t2iEntries, editEntries, "image_generation", "aa:image_generation:blended", "image_gen_score", "image_edit_score");
+  },
+};
+
+// ─── AA Video Generation adapter ─────────────────────────────────────────────
+
+const aaVideoLeaderboardAdapter: LeaderboardAdapter = {
+  sourceName: "aa_video_text_to_video",
+  sourceType: "leaderboard",
+  categories: ["video_generation"],
+  priority: 10,
+  async fetchRaw(): Promise<unknown> {
+    const [t2vResult, i2vResult] = await Promise.allSettled([
+      fetchAaLeaderboardPageHtml(AA_VIDEO_TEXT_TO_VIDEO_URL),
+      fetchAaLeaderboardPageHtml(AA_VIDEO_IMAGE_TO_VIDEO_URL),
+    ]);
+    return {
+      textToVideoHtml: t2vResult.status === "fulfilled" ? t2vResult.value : "",
+      imageToVideoHtml: i2vResult.status === "fulfilled" ? i2vResult.value : "",
+    };
+  },
+  async normalizeTop10(raw: unknown): Promise<NormalizedLeaderboardEntry[]> {
+    const record = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+    const t2vHtml = String(record.textToVideoHtml ?? "");
+    const i2vHtml = String(record.imageToVideoHtml ?? "");
+
+    if (!t2vHtml && !i2vHtml) {
+      throw new Error("aa_video_text_to_video: no HTML fetched from either leaderboard page");
+    }
+
+    const t2vArena = t2vHtml ? extractArtificialAnalysisArenaPage(t2vHtml) : [];
+    const i2vArena = i2vHtml ? extractArtificialAnalysisArenaPage(i2vHtml) : [];
+
+    const t2vEntries = aaArenaEntriesToLeaderboard(t2vArena, "aa:video_generation:text_to_video", "video_gen_score");
+    const i2vEntries = aaArenaEntriesToLeaderboard(i2vArena, "aa:video_generation:image_to_video", "image_to_video_score");
+
+    if (t2vEntries.length === 0 && i2vEntries.length === 0) {
+      throw new Error("aa_video_text_to_video: parsed 0 models from both leaderboard pages");
+    }
+    if (t2vEntries.length === 0) return rankEntries(i2vEntries.map((e) => ({ ...e, scoreUnit: "aa:video_generation:blended" })));
+    if (i2vEntries.length === 0) return rankEntries(t2vEntries.map((e) => ({ ...e, scoreUnit: "aa:video_generation:blended" })));
+
+    return mergeAaArenaLeaderboards(t2vEntries, i2vEntries, "video_generation", "aa:video_generation:blended", "video_gen_score", "image_to_video_score");
+  },
+};
+
+// ─── AA TTS adapter ───────────────────────────────────────────────────────────
+
+const aaTtsAdapter: LeaderboardAdapter = {
+  sourceName: "aa_tts",
+  sourceType: "leaderboard",
+  categories: ["text_to_speech"],
+  priority: 10,
+  async fetchRaw(): Promise<unknown> {
+    return fetchAaLeaderboardPageHtml(AA_TTS_URL);
+  },
+  async normalizeTop10(raw: unknown): Promise<NormalizedLeaderboardEntry[]> {
+    const html = String(raw ?? "");
+    const arenaEntries = extractArtificialAnalysisArenaPage(html);
+    const entries = aaArenaEntriesToLeaderboard(arenaEntries, "aa:text_to_speech:elo");
+    if (entries.length === 0) {
+      throw new Error("aa_tts: parsed 0 models from TTS leaderboard page");
+    }
+    return entries;
+  },
+};
+
+// ─── AA STT adapter ───────────────────────────────────────────────────────────
+
+const aaSttAdapter: LeaderboardAdapter = {
+  sourceName: "aa_stt",
+  sourceType: "leaderboard",
+  categories: ["speech_to_text"],
+  priority: 10,
+  async fetchRaw(): Promise<unknown> {
+    return fetchAaLeaderboardPageHtml(AA_STT_URL);
+  },
+  async normalizeTop10(raw: unknown): Promise<NormalizedLeaderboardEntry[]> {
+    const html = String(raw ?? "");
+    const sttEntries = extractArtificialAnalysisSttPage(html);
+    if (sttEntries.length === 0) {
+      throw new Error("aa_stt: parsed 0 models from STT page (word_error_rate not found)");
+    }
+    const rows = sttEntries.map((item) => {
+      const vendor = inferVendorFromModelId(item.name);
+      return {
+        rank: 0,
+        sourceModelId: item.id,
+        canonicalModelKey: canonicalKey(item.name, vendor),
+        modelName: item.name,
+        vendor,
+        score: item.accuracyScore,
+        scoreUnit: "aa:speech_to_text:accuracy",
+        payload: {
+          word_error_rate: item.wordErrorRate,
+          ...(item.pricePerMinute !== null ? { price_per_minute: item.pricePerMinute } : {}),
+        },
+      } satisfies NormalizedLeaderboardEntry;
+    });
+    return rankEntries(rows);
+  },
+};
+
+// ─── MTEB Embeddings adapter ──────────────────────────────────────────────────
+
+type MtebLeaderboardRow = {
+  model?: string;
+  model_name?: string;
+  average_score?: number | null;
+  main_score?: number | null;
+  mteb_avg?: number | null;
+  [key: string]: unknown;
+};
+
+type HfDatasetsViewerResponse = {
+  rows?: Array<{ row?: Record<string, unknown>; row_idx?: number }>;
+  num_rows_total?: number;
+};
+
+async function fetchMtebLeaderboardRows(): Promise<MtebLeaderboardRow[]> {
+  // Try known MTEB leaderboard configs in priority order.
+  const attempts: Array<{ config: string; split: string }> = [
+    { config: "default", split: "test" },
+    { config: "default", split: "train" },
+    { config: "all", split: "test" },
+    { config: "all", split: "train" },
+  ];
+
+  for (const { config, split } of attempts) {
+    const url = new URL(HF_DATASETS_VIEWER_BASE);
+    url.searchParams.set("dataset", MTEB_DATASET);
+    url.searchParams.set("config", config);
+    url.searchParams.set("split", split);
+    url.searchParams.set("offset", "0");
+    url.searchParams.set("length", "200");
+
+    try {
+      const { data } = await fetchJsonWithRetry<HfDatasetsViewerResponse>(
+        url.toString(),
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "model-tracker-monitoring/1.0",
+          },
+        },
+        { allowedHosts: ["datasets-server.huggingface.co"] },
+      );
+      const rows = (Array.isArray(data.rows) ? data.rows : [])
+        .map((r) => r.row)
+        .filter((r): r is Record<string, unknown> => Boolean(r));
+      if (rows.length > 0) {
+        return rows as MtebLeaderboardRow[];
+      }
+    } catch {
+      // try next config
+    }
+  }
+
+  return [];
+}
+
+function normalizeMtebRows(rows: MtebLeaderboardRow[]): NormalizedLeaderboardEntry[] {
+  const entries = rows
+    .map((row) => {
+      const modelName = String(row.model_name ?? row.model ?? "").trim();
+      if (!modelName) return null;
+
+      // score: prefer average_score > main_score > mteb_avg > any field ending with _score/_avg
+      let score: number | null = null;
+      for (const key of ["average_score", "main_score", "mteb_avg", "mteb_average"]) {
+        const v = row[key];
+        if (typeof v === "number" && Number.isFinite(v) && v > 0) {
+          score = v;
+          break;
+        }
+      }
+      if (score === null) {
+        for (const [key, val] of Object.entries(row)) {
+          if ((key.endsWith("_score") || key.endsWith("_avg") || key.endsWith("_average")) && typeof val === "number" && Number.isFinite(val) && val > 0) {
+            score = val;
+            break;
+          }
+        }
+      }
+      if (score === null) return null;
+
+      // Normalize 0–1 scale to 0–100
+      if (score > 0 && score <= 1) score = score * 100;
+
+      const vendor = String(row.vendor ?? row.organization ?? row.org ?? "").trim() || undefined;
+      const payload: Record<string, unknown> = {};
+      for (const [key, val] of Object.entries(row)) {
+        if (key === "model" || key === "model_name") continue;
+        if ((typeof val === "number" && Number.isFinite(val)) || typeof val === "string") {
+          payload[key] = val;
+        }
+      }
+
+      return {
+        rank: 0,
+        sourceModelId: modelName,
+        canonicalModelKey: canonicalKey(modelName, vendor),
+        modelName,
+        vendor,
+        score,
+        scoreUnit: "mteb:embeddings:average",
+        payload,
+      } satisfies NormalizedLeaderboardEntry;
+    })
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+
+  return rankEntries(entries);
+}
+
+const mtebEmbeddingsAdapter: LeaderboardAdapter = {
+  sourceName: "mteb_embeddings",
+  sourceType: "leaderboard",
+  categories: ["embeddings"],
+  priority: 10,
+  async fetchRaw(): Promise<unknown> {
+    const rows = await fetchMtebLeaderboardRows();
+    return { rows };
+  },
+  async normalizeTop10(raw: unknown): Promise<NormalizedLeaderboardEntry[]> {
+    const record = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+    const rows = Array.isArray(record.rows) ? (record.rows as MtebLeaderboardRow[]) : [];
+    if (rows.length === 0) {
+      throw new Error("mteb_embeddings: no rows returned from MTEB leaderboard dataset");
+    }
+    const entries = normalizeMtebRows(rows);
+    if (entries.length === 0) {
+      throw new Error("mteb_embeddings: parsed 0 valid entries from MTEB dataset rows");
+    }
+    return entries;
+  },
+};
+
 const LEADERBOARD_ADAPTERS: Record<string, LeaderboardAdapter> = {
   [artificialAnalysisAdapter.sourceName]: artificialAnalysisAdapter,
+  [liveBenchGeneralLlmAdapter.sourceName]: liveBenchGeneralLlmAdapter,
+  // Image generation
+  [aaImageLeaderboardAdapter.sourceName]: aaImageLeaderboardAdapter,
   [llmStatsImageGenerationAdapter.sourceName]: llmStatsImageGenerationAdapter,
+  // Video generation
+  [aaVideoLeaderboardAdapter.sourceName]: aaVideoLeaderboardAdapter,
   [llmStatsVideoGenerationAdapter.sourceName]: llmStatsVideoGenerationAdapter,
+  // TTS
+  [aaTtsAdapter.sourceName]: aaTtsAdapter,
   [llmStatsTextToSpeechAdapter.sourceName]: llmStatsTextToSpeechAdapter,
+  // STT
+  [aaSttAdapter.sourceName]: aaSttAdapter,
   [llmStatsSpeechToTextAdapter.sourceName]: llmStatsSpeechToTextAdapter,
+  // Embeddings
+  [mtebEmbeddingsAdapter.sourceName]: mtebEmbeddingsAdapter,
   [llmStatsEmbeddingsAdapter.sourceName]: llmStatsEmbeddingsAdapter,
 };
 
