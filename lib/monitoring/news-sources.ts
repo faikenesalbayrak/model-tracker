@@ -268,6 +268,37 @@ function keywordImportance(title: string): number {
   return weights.reduce((total, [pattern, weight]) => total + (pattern.test(text) ? weight : 0), 0);
 }
 
+const AI_SIGNAL_PATTERN =
+  /\b(ai|artificial intelligence|llm|large language model|foundation model|genai|machine learning|neural|transformer|gpt|claude|gemini|copilot|openai|anthropic|mistral|deepmind|xai|deepseek|nvidia ai)\b/i;
+const STRONG_AI_CONTEXT_PATTERN =
+  /\b(model|inference|training|benchmark|leaderboard|weights|fine[- ]?tuning|agentic|multimodal|speech[- ]?to[- ]?text|text[- ]?to[- ]?speech|embedding|vector db|retrieval|rag|safety)\b/i;
+const COMMERCE_NOISE_PATTERN =
+  /\b(deal|deals|sale|shopping|coupon|discount|black friday|prime day|gift guide|under \$|save big|best .* deals)\b/i;
+
+export function isAiNewsRelevant(
+  title: string,
+  summary = "",
+  minRelevanceScore = 0,
+  relevanceScore?: number,
+): boolean {
+  const combined = `${title} ${summary}`.trim();
+  if (!combined) return false;
+
+  if (!AI_SIGNAL_PATTERN.test(combined)) {
+    return false;
+  }
+
+  if (COMMERCE_NOISE_PATTERN.test(combined) && !STRONG_AI_CONTEXT_PATTERN.test(combined)) {
+    return false;
+  }
+
+  if (typeof relevanceScore === "number" && Number.isFinite(relevanceScore)) {
+    return relevanceScore >= minRelevanceScore;
+  }
+
+  return true;
+}
+
 function normalizeHnHits(raw: unknown, nowIso: string): NormalizedNewsEntry[] {
   const payload = (raw ?? {}) as HnAlgoliaResponse;
   const hits = Array.isArray(payload.hits) ? payload.hits : [];
@@ -355,7 +386,7 @@ async function normalizeRssXml(
     const title = stripHtml(titleRaw);
     const summary = stripHtml(summaryRaw).slice(0, 320);
     const relevanceScore = keywordImportance(`${title} ${summary}`);
-    if (relevanceScore < minRelevanceScore) continue;
+    if (!isAiNewsRelevant(title, summary, minRelevanceScore, relevanceScore)) continue;
 
     rows.push({
       sourceName,

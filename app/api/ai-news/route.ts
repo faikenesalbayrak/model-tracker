@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
-import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
+import { getActiveNewsSources, isAiNewsRelevant } from "@/lib/monitoring/news-sources";
 import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
 import { getNewsDisplayTitle, getNewsSourceLabel, getNewsSourceLogo } from "@/lib/monitoring/news-source-label";
 
@@ -82,6 +82,17 @@ function filterEntriesForIngestWindow(entries: NormalizedNewsEntry[], nowIso: st
   });
 }
 
+function filterEntriesForAiRelevance(entries: NormalizedNewsEntry[]): NormalizedNewsEntry[] {
+  return entries.filter((entry) =>
+    isAiNewsRelevant(
+      entry.title,
+      entry.summary ?? "",
+      2.8,
+      typeof entry.importanceScore === "number" ? entry.importanceScore : undefined,
+    ),
+  );
+}
+
 async function hydrateNewsIfEmpty(nowIso: string) {
   const runtime = await openMonitoringRuntime();
   const runId = await runtime.repository.insertRun({
@@ -103,7 +114,9 @@ async function hydrateNewsIfEmpty(nowIso: string) {
       checked += 1;
       const raw = await adapter.fetchRaw({ nowIso, timeoutMs: 15_000 });
       const entries = await adapter.normalizeNews(raw, nowIso);
-      const filteredEntries = filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays);
+      const filteredEntries = filterEntriesForAiRelevance(
+        filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays),
+      );
       written += filteredEntries.length;
       await runtime.repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
       await runtime.repository.upsertSourceHealth({
@@ -162,17 +175,25 @@ export async function GET() {
         .map((item) => item.sourceName),
     );
 
-    let rawEntries = await runtime.repository.getNewsEntriesInWindow(recentWindowStartIso, windowEndIso);
+    let rawEntries = filterEntriesForAiRelevance(
+      await runtime.repository.getNewsEntriesInWindow(recentWindowStartIso, windowEndIso),
+    );
     if (rawEntries.length === 0) {
-      rawEntries = await runtime.repository.getNewsEntriesInWindow(fallbackWindowStartIso, windowEndIso);
+      rawEntries = filterEntriesForAiRelevance(
+        await runtime.repository.getNewsEntriesInWindow(fallbackWindowStartIso, windowEndIso),
+      );
     }
     let entries = pickVisibleEntries(rawEntries, activeNewsSources);
 
     if (entries.length === 0) {
       await hydrateNewsIfEmpty(windowEndIso);
-      let refreshedEntries = await runtime.repository.getNewsEntriesInWindow(recentWindowStartIso, windowEndIso);
+      let refreshedEntries = filterEntriesForAiRelevance(
+        await runtime.repository.getNewsEntriesInWindow(recentWindowStartIso, windowEndIso),
+      );
       if (refreshedEntries.length === 0) {
-        refreshedEntries = await runtime.repository.getNewsEntriesInWindow(fallbackWindowStartIso, windowEndIso);
+        refreshedEntries = filterEntriesForAiRelevance(
+          await runtime.repository.getNewsEntriesInWindow(fallbackWindowStartIso, windowEndIso),
+        );
       }
       entries = pickVisibleEntries(refreshedEntries, activeNewsSources);
     }
