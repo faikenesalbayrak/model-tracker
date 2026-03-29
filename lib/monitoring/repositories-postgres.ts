@@ -60,7 +60,7 @@ export class PostgresMonitoringRepository {
     const id = randomUUID();
     await this.db.query(
       `
-      INSERT INTO monitor_runs (id, run_type, status, started_at, completed_at, summary_json, error_message)
+      INSERT INTO public.monitor_runs (id, run_type, status, started_at, completed_at, summary_json, error_message)
       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
       `,
       [
@@ -85,7 +85,7 @@ export class PostgresMonitoringRepository {
   ): Promise<void> {
     await this.db.query(
       `
-      UPDATE monitor_runs
+      UPDATE public.monitor_runs
       SET status = $2,
           completed_at = $3,
           summary_json = $4::jsonb,
@@ -103,7 +103,7 @@ export class PostgresMonitoringRepository {
     const snapshot = await this.db.query<{ id: string }>(
       `
       SELECT id
-      FROM leaderboard_snapshots
+      FROM public.leaderboard_snapshots
       WHERE category = $1 AND source_name = $2
       ORDER BY snapshot_at DESC
       LIMIT 1
@@ -129,7 +129,7 @@ export class PostgresMonitoringRepository {
     }>(
       `
       SELECT rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json
-      FROM leaderboard_entries
+      FROM public.leaderboard_entries
       WHERE snapshot_id = $1
       ORDER BY rank ASC
       `,
@@ -155,7 +155,7 @@ export class PostgresMonitoringRepository {
     const snapshot = await this.db.query<{ id: string; source_name: string; snapshot_at: string }>(
       `
       SELECT id, source_name, snapshot_at
-      FROM leaderboard_snapshots
+      FROM public.leaderboard_snapshots
       WHERE category = $1
       ORDER BY snapshot_at DESC, source_priority ASC
       LIMIT 1
@@ -181,7 +181,7 @@ export class PostgresMonitoringRepository {
     }>(
       `
       SELECT rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json
-      FROM leaderboard_entries
+      FROM public.leaderboard_entries
       WHERE snapshot_id = $1
       ORDER BY rank ASC
       `,
@@ -219,7 +219,7 @@ export class PostgresMonitoringRepository {
             PARTITION BY category
             ORDER BY snapshot_at DESC, source_priority ASC
           ) AS rn
-        FROM leaderboard_snapshots
+        FROM public.leaderboard_snapshots
       ) ranked
       WHERE rn = 1
     `);
@@ -240,7 +240,7 @@ export class PostgresMonitoringRepository {
 
     await this.db.query(
       `
-      INSERT INTO leaderboard_snapshots
+      INSERT INTO public.leaderboard_snapshots
       (id, run_id, category, source_name, source_priority, snapshot_at, top_n, raw_payload_json)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
       `,
@@ -250,7 +250,7 @@ export class PostgresMonitoringRepository {
     for (const entry of entries) {
       await this.db.query(
         `
-        INSERT INTO leaderboard_entries
+        INSERT INTO public.leaderboard_entries
         (id, snapshot_id, rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)
         `,
@@ -284,7 +284,7 @@ export class PostgresMonitoringRepository {
     for (const change of changes) {
       const result = await this.db.query(
         `
-        INSERT INTO leaderboard_changes
+        INSERT INTO public.leaderboard_changes
         (id, run_id, category, source_name, change_type, canonical_model_key, model_name, vendor, rank_before, rank_after, score_before, score_after, event_fingerprint, details_json)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb)
         ON CONFLICT (event_fingerprint) DO NOTHING
@@ -324,7 +324,7 @@ export class PostgresMonitoringRepository {
 
     await this.db.query(
       `
-      INSERT INTO news_snapshots (id, run_id, source_name, snapshot_at, raw_payload_json)
+      INSERT INTO public.news_snapshots (id, run_id, source_name, snapshot_at, raw_payload_json)
       VALUES ($1, $2, $3, $4, $5::jsonb)
       `,
       [snapshotId, runId, sourceName, snapshotAt, rawPayload ? toJson(rawPayload) : null],
@@ -333,7 +333,7 @@ export class PostgresMonitoringRepository {
     for (const row of entries) {
       await this.db.query(
         `
-        INSERT INTO news_entries
+        INSERT INTO public.news_entries
         (id, snapshot_id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11::jsonb)
         ON CONFLICT (snapshot_id, canonical_url) DO NOTHING
@@ -371,7 +371,7 @@ export class PostgresMonitoringRepository {
     }>(
       `
       SELECT source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json
-      FROM news_entries
+      FROM public.news_entries
       WHERE (published_at IS NOT NULL AND published_at >= $1 AND published_at < $2)
          OR (published_at IS NULL AND created_at >= $1 AND created_at < $2)
       ORDER BY COALESCE(published_at, created_at) DESC
@@ -401,7 +401,7 @@ export class PostgresMonitoringRepository {
   ): Promise<string> {
     const digestRow = await this.db.query<{ id: string }>(
       `
-      INSERT INTO weekly_digests (id, run_id, window_start, window_end, generated_at)
+      INSERT INTO public.weekly_digests (id, run_id, window_start, window_end, generated_at)
       VALUES ($1, $2, $3, $4, $5)
       ON CONFLICT (window_start, window_end) DO UPDATE SET generated_at = EXCLUDED.generated_at
       RETURNING id
@@ -413,7 +413,7 @@ export class PostgresMonitoringRepository {
     for (const item of items) {
       await this.db.query(
         `
-        INSERT INTO weekly_digest_items
+        INSERT INTO public.weekly_digest_items
         (id, digest_id, rank, canonical_url, title, source_name, published_at, importance_score, summary)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         ON CONFLICT (digest_id, rank) DO NOTHING
@@ -450,7 +450,7 @@ export class PostgresMonitoringRepository {
   }): Promise<void> {
     await this.db.query(
       `
-      INSERT INTO notification_log
+      INSERT INTO public.notification_log
       (id, run_id, notification_type, category, source_name, dedupe_key, recipient, subject, status, message_id, error_message, sent_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       ON CONFLICT (dedupe_key) DO NOTHING
@@ -487,7 +487,7 @@ export class PostgresMonitoringRepository {
 
     await this.db.query(
       `
-      INSERT INTO source_health
+      INSERT INTO public.source_health
       (source_name, source_type, enabled, last_checked_at, last_success_at, consecutive_failures, total_successes, total_failures, avg_latency_ms, last_error_message, updated_at)
       VALUES
       ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
