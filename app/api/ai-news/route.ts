@@ -127,7 +127,10 @@ export async function GET() {
           source: item.sourceName,
           publishedAt: item.publishedAt ?? windowEndIso,
           timeAgo: item.summary ?? null,
-          imageUrl: null,
+          imageUrl:
+            (item.payload?.image_url as string | undefined) ??
+            (item.payload?.imageUrl as string | undefined) ??
+            null,
         })),
       },
       { headers: { "Cache-Control": "no-store" } },

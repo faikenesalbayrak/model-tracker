@@ -1,4 +1,4 @@
-import { fetchJsonWithRetry } from "@/lib/fetcher";
+import { fetchJsonWithRetry, fetchWithRetry } from "@/lib/fetcher";
 import type {
   NewsAdapter,
   NormalizedNewsEntry,
@@ -8,6 +8,40 @@ import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 
 const HN_ALGOLIA_NEWS_URL =
   "https://hn.algolia.com/api/v1/search_by_date?tags=story&hitsPerPage=100&query=%28ai%20OR%20llm%20OR%20openai%20OR%20anthropic%20OR%20gemini%20OR%20claude%29";
+
+const RSS_FEEDS: Array<{
+  sourceName: string;
+  url: string;
+  topicTags: string[];
+  outlet: string;
+  importanceBoost?: number;
+}> = [
+  { sourceName: "arxiv_ai_rss", url: "https://export.arxiv.org/rss/cs.AI", topicTags: ["research", "arxiv"], outlet: "arXiv", importanceBoost: 2.2 },
+  { sourceName: "arxiv_cl_rss", url: "https://export.arxiv.org/rss/cs.CL", topicTags: ["research", "arxiv"], outlet: "arXiv", importanceBoost: 2.0 },
+  { sourceName: "arxiv_lg_rss", url: "https://export.arxiv.org/rss/cs.LG", topicTags: ["research", "arxiv"], outlet: "arXiv", importanceBoost: 2.0 },
+  { sourceName: "reuters_technology_rss", url: "https://www.reutersagency.com/feed/?best-topics=technology", topicTags: ["industry", "market"], outlet: "Reuters", importanceBoost: 2.2 },
+  { sourceName: "techcrunch_ai_rss", url: "https://techcrunch.com/category/artificial-intelligence/feed/", topicTags: ["industry", "startup"], outlet: "TechCrunch", importanceBoost: 1.8 },
+  { sourceName: "the_verge_ai_rss", url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", topicTags: ["industry", "consumer"], outlet: "The Verge", importanceBoost: 1.5 },
+  { sourceName: "venturebeat_ai_rss", url: "https://venturebeat.com/ai/feed/", topicTags: ["industry", "market"], outlet: "VentureBeat", importanceBoost: 1.7 },
+  { sourceName: "mit_tech_review_ai_rss", url: "https://www.technologyreview.com/topic/artificial-intelligence/feed", topicTags: ["industry", "research"], outlet: "MIT Technology Review", importanceBoost: 1.9 },
+  { sourceName: "openai_blog_rss", url: "https://openai.com/news/rss.xml", topicTags: ["vendor", "official"], outlet: "OpenAI", importanceBoost: 2.6 },
+  { sourceName: "anthropic_news_rss", url: "https://www.anthropic.com/news/rss.xml", topicTags: ["vendor", "official"], outlet: "Anthropic", importanceBoost: 2.6 },
+  { sourceName: "deepmind_blog_rss", url: "https://deepmind.google/discover/blog/rss.xml", topicTags: ["vendor", "official"], outlet: "Google DeepMind", importanceBoost: 2.4 },
+  { sourceName: "meta_ai_blog_rss", url: "https://ai.meta.com/blog/rss/", topicTags: ["vendor", "official"], outlet: "Meta AI", importanceBoost: 2.2 },
+  { sourceName: "huggingface_blog_rss", url: "https://huggingface.co/blog/feed.xml", topicTags: ["vendor", "models"], outlet: "Hugging Face", importanceBoost: 2.1 },
+  { sourceName: "cohere_blog_rss", url: "https://cohere.com/blog/rss.xml", topicTags: ["vendor", "official"], outlet: "Cohere", importanceBoost: 2.0 },
+  { sourceName: "mistral_news_rss", url: "https://mistral.ai/news/rss.xml", topicTags: ["vendor", "official"], outlet: "Mistral AI", importanceBoost: 2.0 },
+  { sourceName: "aws_ml_blog_rss", url: "https://aws.amazon.com/blogs/machine-learning/feed/", topicTags: ["cloud", "industry"], outlet: "AWS ML Blog", importanceBoost: 1.7 },
+  { sourceName: "google_cloud_blog_ai_rss", url: "https://cloud.google.com/blog/topics/ai-ml/rss", topicTags: ["cloud", "industry"], outlet: "Google Cloud", importanceBoost: 1.7 },
+  { sourceName: "azure_ai_blog_rss", url: "https://azure.microsoft.com/en-us/blog/topics/ai-machine-learning/feed/", topicTags: ["cloud", "industry"], outlet: "Microsoft Azure", importanceBoost: 1.7 },
+  { sourceName: "nvidia_blog_ai_rss", url: "https://blogs.nvidia.com/blog/category/ai/feed/", topicTags: ["hardware", "industry"], outlet: "NVIDIA", importanceBoost: 1.8 },
+  { sourceName: "semafor_tech_rss", url: "https://www.semafor.com/feeds/technology", topicTags: ["market", "industry"], outlet: "Semafor", importanceBoost: 1.3 },
+  { sourceName: "zdnet_ai_rss", url: "https://www.zdnet.com/topic/artificial-intelligence/rss.xml", topicTags: ["industry", "enterprise"], outlet: "ZDNET", importanceBoost: 1.4 },
+  { sourceName: "computerworld_ai_rss", url: "https://www.computerworld.com/index.rss", topicTags: ["enterprise", "industry"], outlet: "Computerworld", importanceBoost: 1.2 },
+  { sourceName: "infoworld_ai_rss", url: "https://www.infoworld.com/index.rss", topicTags: ["developer", "enterprise"], outlet: "InfoWorld", importanceBoost: 1.2 },
+  { sourceName: "siliconangle_ai_rss", url: "https://siliconangle.com/feed/", topicTags: ["industry", "market"], outlet: "SiliconANGLE", importanceBoost: 1.2 },
+  { sourceName: "searchengineland_ai_rss", url: "https://searchengineland.com/library/channel/ai/feed", topicTags: ["industry", "product"], outlet: "Search Engine Land", importanceBoost: 1.1 },
+];
 
 type HnAlgoliaHit = {
   objectID?: string;
@@ -42,13 +76,58 @@ function toIsoDate(value: string | undefined, fallbackIso: string): string {
   return new Date(parsed).toISOString();
 }
 
+function decodeXmlEntities(text: string): string {
+  return text
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'");
+}
+
+function stripHtml(text: string): string {
+  return decodeXmlEntities(text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+}
+
+function extractTagContent(block: string, tagName: string): string | null {
+  const direct = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, "i").exec(block);
+  if (direct?.[1]) return decodeXmlEntities(direct[1].trim());
+  const cdata = new RegExp(`<${tagName}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tagName}>`, "i").exec(block);
+  if (cdata?.[1]) return cdata[1].trim();
+  return null;
+}
+
+function extractLink(block: string): string | null {
+  const atomHref = /<link[^>]+href=["']([^"']+)["'][^>]*>/i.exec(block)?.[1];
+  if (atomHref) return canonicalizeUrl(atomHref);
+  const rssLink = extractTagContent(block, "link");
+  if (rssLink) return canonicalizeUrl(rssLink);
+  const guid = extractTagContent(block, "guid");
+  if (guid?.startsWith("http")) return canonicalizeUrl(guid);
+  return null;
+}
+
+function extractImageUrl(block: string): string | null {
+  const mediaContent = /<media:content[^>]+url=["']([^"']+)["']/i.exec(block)?.[1];
+  if (mediaContent) return mediaContent.trim();
+  const mediaThumb = /<media:thumbnail[^>]+url=["']([^"']+)["']/i.exec(block)?.[1];
+  if (mediaThumb) return mediaThumb.trim();
+  const enclosure = /<enclosure[^>]+url=["']([^"']+)["'][^>]*>/i.exec(block)?.[1];
+  if (enclosure) return enclosure.trim();
+  const desc = extractTagContent(block, "description") ?? extractTagContent(block, "content:encoded") ?? "";
+  const imgInDesc = /<img[^>]+src=["']([^"']+)["']/i.exec(desc)?.[1];
+  if (imgInDesc) return imgInDesc.trim();
+  return null;
+}
+
 function keywordImportance(title: string): number {
   const text = title.toLowerCase();
   const weights: Array<[RegExp, number]> = [
-    [/\b(model|release|launch|announces?)\b/, 2.5],
-    [/\b(openai|anthropic|google|meta|mistral|xai|deepseek)\b/, 2.2],
-    [/\b(funding|raises?|acquire|acquisition)\b/, 1.7],
-    [/\b(benchmark|leaderboard|sota)\b/, 1.6],
+    [/\b(model|release|launch|announces?|preview|api)\b/, 2.6],
+    [/\b(openai|anthropic|google|meta|mistral|xai|deepseek|nvidia|microsoft)\b/, 2.3],
+    [/\b(funding|raises?|acquire|acquisition|ipo|market|earnings)\b/, 1.9],
+    [/\b(benchmark|leaderboard|sota|paper|research|arxiv)\b/, 1.8],
   ];
   return weights.reduce((total, [pattern, weight]) => total + (pattern.test(text) ? weight : 0), 0);
 }
@@ -60,40 +139,97 @@ function normalizeHnHits(raw: unknown, nowIso: string): NormalizedNewsEntry[] {
   const nowTs = Date.parse(nowIso);
 
   const items: Array<NormalizedNewsEntry | null> = hits.map((hit): NormalizedNewsEntry | null => {
-      const title = (hit.title ?? hit.story_title ?? "").trim();
-      const url = (hit.url ?? hit.story_url ?? "").trim();
-      if (!title || !url) return null;
-      const canonicalUrl = canonicalizeUrl(url);
-      if (dedupe.has(canonicalUrl)) return null;
-      dedupe.add(canonicalUrl);
+    const title = (hit.title ?? hit.story_title ?? "").trim();
+    const url = (hit.url ?? hit.story_url ?? "").trim();
+    if (!title || !url) return null;
+    const canonicalUrl = canonicalizeUrl(url);
+    if (dedupe.has(canonicalUrl)) return null;
+    dedupe.add(canonicalUrl);
 
-      const publishedAt = toIsoDate(hit.created_at, nowIso);
-      const points = typeof hit.points === "number" && Number.isFinite(hit.points) ? hit.points : 0;
-      const comments =
-        typeof hit.num_comments === "number" && Number.isFinite(hit.num_comments) ? hit.num_comments : 0;
-      const recencyBoost = nowTs - Date.parse(publishedAt) < 86_400_000 ? 1 : 0;
+    const publishedAt = toIsoDate(hit.created_at, nowIso);
+    const points = typeof hit.points === "number" && Number.isFinite(hit.points) ? hit.points : 0;
+    const comments = typeof hit.num_comments === "number" && Number.isFinite(hit.num_comments) ? hit.num_comments : 0;
+    const recencyBoost = nowTs - Date.parse(publishedAt) < 86_400_000 ? 1 : 0;
 
-      return {
-        sourceName: "hn_algolia",
-        canonicalUrl,
-        title,
-        publishedAt,
-        authorOrOutlet: (hit.author ?? "").trim() || "Hacker News",
-        summary: `${points} points / ${comments} comments`,
-        topicTags: ["ai-news"],
-        importanceScore: keywordImportance(title) + recencyBoost + points / 100 + comments / 120,
-        payload: {
-          objectId: hit.objectID ?? null,
-          points,
-          comments,
-        },
-      };
-    });
+    return {
+      sourceName: "hn_algolia",
+      canonicalUrl,
+      title,
+      publishedAt,
+      authorOrOutlet: (hit.author ?? "").trim() || "Hacker News",
+      summary: `${points} points / ${comments} comments`,
+      topicTags: ["ai-news", "community"],
+      importanceScore: keywordImportance(title) + recencyBoost + points / 100 + comments / 120,
+      payload: {
+        objectId: hit.objectID ?? null,
+        points,
+        comments,
+      },
+    };
+  });
 
   return items
     .filter((item): item is NormalizedNewsEntry => item !== null)
-    .slice(0, 100)
+    .slice(0, 200)
     .sort((a, b) => Date.parse(b.publishedAt ?? nowIso) - Date.parse(a.publishedAt ?? nowIso));
+}
+
+function normalizeRssXml(
+  sourceName: string,
+  xml: string,
+  nowIso: string,
+  outlet: string,
+  topicTags: string[],
+  importanceBoost = 1,
+): NormalizedNewsEntry[] {
+  const dedupe = new Set<string>();
+  const blocks = [
+    ...(xml.match(/<item[\s\S]*?<\/item>/gi) ?? []),
+    ...(xml.match(/<entry[\s\S]*?<\/entry>/gi) ?? []),
+  ];
+
+  const rows: NormalizedNewsEntry[] = [];
+  for (const block of blocks) {
+    const titleRaw = extractTagContent(block, "title");
+    const link = extractLink(block);
+    if (!titleRaw || !link) continue;
+
+    const canonicalUrl = canonicalizeUrl(link);
+    if (!canonicalUrl || dedupe.has(canonicalUrl)) continue;
+    dedupe.add(canonicalUrl);
+
+    const publishedRaw =
+      extractTagContent(block, "pubDate") ??
+      extractTagContent(block, "published") ??
+      extractTagContent(block, "updated") ??
+      extractTagContent(block, "dc:date") ??
+      nowIso;
+
+    const summaryRaw =
+      extractTagContent(block, "description") ??
+      extractTagContent(block, "content:encoded") ??
+      extractTagContent(block, "summary") ??
+      "";
+
+    const imageUrl = extractImageUrl(block);
+
+    rows.push({
+      sourceName,
+      canonicalUrl,
+      title: stripHtml(titleRaw),
+      publishedAt: toIsoDate(publishedRaw, nowIso),
+      authorOrOutlet: extractTagContent(block, "author") ?? outlet,
+      summary: stripHtml(summaryRaw).slice(0, 320),
+      topicTags,
+      importanceScore: keywordImportance(titleRaw) + importanceBoost,
+      payload: {
+        image_url: imageUrl,
+        outlet,
+      },
+    });
+  }
+
+  return rows.sort((a, b) => Date.parse(b.publishedAt ?? nowIso) - Date.parse(a.publishedAt ?? nowIso));
 }
 
 const hnAlgoliaNewsAdapter: NewsAdapter = {
@@ -119,8 +255,57 @@ const hnAlgoliaNewsAdapter: NewsAdapter = {
   },
 };
 
+function makeRssAdapter(input: {
+  sourceName: string;
+  url: string;
+  topicTags: string[];
+  outlet: string;
+  importanceBoost?: number;
+  priority: number;
+}): NewsAdapter {
+  return {
+    sourceName: input.sourceName,
+    sourceType: "news",
+    priority: input.priority,
+    async fetchRaw(): Promise<unknown> {
+      const host = new URL(input.url).hostname;
+      const { data } = await fetchWithRetry<string>(
+        input.url,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml, text/plain",
+            "User-Agent": "model-tracker-monitoring/1.0",
+          },
+        },
+        async (response) => response.text(),
+        { allowedHosts: [host] },
+      );
+      return data;
+    },
+    async normalizeNews(raw: unknown, nowIso: string): Promise<NormalizedNewsEntry[]> {
+      return normalizeRssXml(
+        input.sourceName,
+        String(raw ?? ""),
+        nowIso,
+        input.outlet,
+        input.topicTags,
+        input.importanceBoost,
+      );
+    },
+  };
+}
+
+const rssAdapters = RSS_FEEDS.map((feed, index) =>
+  makeRssAdapter({
+    ...feed,
+    priority: 20 + index,
+  }),
+);
+
 const NEWS_ADAPTERS: Record<string, NewsAdapter> = {
   [hnAlgoliaNewsAdapter.sourceName]: hnAlgoliaNewsAdapter,
+  ...Object.fromEntries(rssAdapters.map((adapter) => [adapter.sourceName, adapter])),
 };
 
 function isActiveSource(item: SourceRegistryItem): boolean {
@@ -128,10 +313,13 @@ function isActiveSource(item: SourceRegistryItem): boolean {
 }
 
 export function getActiveNewsSources(): NewsAdapter[] {
+  const maxSources = Number(process.env.MONITORING_NEWS_MAX_SOURCES ?? "50");
+  const safeMax = Number.isFinite(maxSources) && maxSources > 0 ? Math.floor(maxSources) : 50;
+
   return SOURCE_REGISTRY
     .filter(isActiveSource)
     .map((item) => NEWS_ADAPTERS[item.sourceName])
     .filter((adapter): adapter is NewsAdapter => Boolean(adapter))
     .sort((a, b) => a.priority - b.priority)
-    .slice(0, 1);
+    .slice(0, safeMax);
 }
