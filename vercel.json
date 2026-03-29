@@ -5,8 +5,8 @@
       "schedule": "0 6 * * *"
     },
     {
-      "path": "/api/monitoring/run?type=weekly",
-      "schedule": "15 6 * * 1"
+      "path": "/api/monitoring/run?type=scheduled",
+      "schedule": "0 18 * * *"
     }
   ]
 }

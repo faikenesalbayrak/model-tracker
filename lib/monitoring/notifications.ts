@@ -23,22 +23,6 @@ export interface SendTop10AlertEmailInput {
   subjectPrefix?: string;
 }
 
-export interface WeeklyDigestItem {
-  title: string;
-  sourceName: string;
-  canonicalUrl: string;
-  publishedAt?: string;
-  importanceScore?: number;
-}
-
-export interface SendWeeklyDigestEmailInput {
-  to: string[];
-  windowStartIso: string;
-  windowEndIso: string;
-  items: WeeklyDigestItem[];
-  subjectPrefix?: string;
-}
-
 type MailTransportResult = {
   messageId: string;
 };
@@ -120,28 +104,6 @@ function buildTop10AlertHtml(input: SendTop10AlertEmailInput): string {
   `;
 }
 
-function buildWeeklyDigestSubject(input: SendWeeklyDigestEmailInput): string {
-  const prefix = input.subjectPrefix?.trim();
-  const lead = prefix ? `${prefix} ` : "";
-  return `${lead}[Weekly AI Digest] Top ${input.items.length} items (${input.windowStartIso} - ${input.windowEndIso})`;
-}
-
-function buildWeeklyDigestHtml(input: SendWeeklyDigestEmailInput): string {
-  const list = input.items
-    .slice(0, 10)
-    .map((item, index) => {
-      const when = item.publishedAt ? ` - ${item.publishedAt}` : "";
-      const score = typeof item.importanceScore === "number" ? ` [score ${item.importanceScore.toFixed(2)}]` : "";
-      return `<li><a href="${item.canonicalUrl}">${index + 1}. ${item.title}</a> - ${item.sourceName}${when}${score}</li>`;
-    })
-    .join("");
-
-  return `
-    <h2>Weekly AI Digest</h2>
-    <p><strong>Window:</strong> ${input.windowStartIso} to ${input.windowEndIso}</p>
-    <ol>${list}</ol>
-  `;
-}
 
 async function cleanupTempDir(tempDir: string): Promise<void> {
   await fs.rm(tempDir, { recursive: true, force: true });
@@ -216,14 +178,4 @@ export async function sendTop10AlertEmail(input: SendTop10AlertEmailInput): Prom
   } finally {
     await cleanupTempDir(tempDir);
   }
-}
-
-export async function sendWeeklyDigestEmail(input: SendWeeklyDigestEmailInput): Promise<MailTransportResult> {
-  const subject = buildWeeklyDigestSubject(input);
-  const html = buildWeeklyDigestHtml(input);
-  return sendMail({
-    to: input.to,
-    subject,
-    html,
-  });
 }

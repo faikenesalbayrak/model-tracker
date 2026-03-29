@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runScheduledCycle, runWeeklyDigestCycle } from "@/lib/monitoring/orchestrator";
+import { runScheduledCycle } from "@/lib/monitoring/orchestrator";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type RunType = "scheduled" | "weekly";
+type RunPayload = { nowIso?: string; timeoutMs?: number };
 
 function isManualRunEnabled(): boolean {
   const value = process.env.MONITORING_MANUAL_RUN_ENABLED?.trim().toLowerCase();
@@ -35,30 +35,7 @@ function authorizeCron(request: NextRequest): boolean {
   return readBearerToken(request) === cronSecret;
 }
 
-function parseRunType(raw: unknown): RunType {
-  if (raw === "weekly") return "weekly";
-  return "scheduled";
-}
-
-async function executeRun(payload: { type?: RunType; nowIso?: string; timeoutMs?: number }) {
-  const runType = parseRunType(payload.type);
-
-  if (runType === "weekly") {
-    const result = await runWeeklyDigestCycle({
-      nowIso: payload.nowIso,
-      timeoutMs: payload.timeoutMs,
-    });
-    return NextResponse.json(
-      {
-        ok: true,
-        type: "weekly",
-        runId: result.runId,
-        digestCount: result.digestCount,
-      },
-      { headers: { "Cache-Control": "no-store" } },
-    );
-  }
-
+async function executeRun(payload: RunPayload) {
   const result = await runScheduledCycle({
     nowIso: payload.nowIso,
     timeoutMs: payload.timeoutMs,
@@ -96,13 +73,11 @@ export async function GET(request: NextRequest) {
     return unauthorizedResponse();
   }
 
-  const type = parseRunType(request.nextUrl.searchParams.get("type"));
   const timeoutRaw = request.nextUrl.searchParams.get("timeoutMs");
   const timeoutMs = timeoutRaw ? Number(timeoutRaw) : undefined;
 
   try {
     return await executeRun({
-      type,
       timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : undefined,
     });
   } catch (error) {
@@ -115,7 +90,7 @@ export async function POST(request: NextRequest) {
     return unauthorizedResponse();
   }
 
-  let payload: { type?: RunType; nowIso?: string; timeoutMs?: number } = {};
+  let payload: RunPayload = {};
   try {
     payload = (await request.json()) as typeof payload;
   } catch {

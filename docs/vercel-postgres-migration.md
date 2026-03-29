@@ -21,8 +21,8 @@ Bu proje artık `monitoring` pipeline için iki backend destekler:
 
 `vercel.json` içindeki cronlar:
 
-1. `0 6,18 * * *` -> `/api/monitoring/run?type=scheduled` (Istanbul 09:00 ve 21:00)
-2. `15 6 * * 1` -> `/api/monitoring/run?type=weekly` (Istanbul Pazartesi 09:15)
+1. `0 6 * * *` -> `/api/monitoring/run?type=scheduled` (Istanbul 09:00)
+2. `0 18 * * *` -> `/api/monitoring/run?type=scheduled` (Istanbul 21:00)
 
 `/api/monitoring/run` cron çağrılarında `Authorization: Bearer <CRON_SECRET>` bekler.
 

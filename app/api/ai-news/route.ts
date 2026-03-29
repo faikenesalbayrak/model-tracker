@@ -105,7 +105,7 @@ async function hydrateNewsIfEmpty(nowIso: string) {
       const entries = await adapter.normalizeNews(raw, nowIso);
       const filteredEntries = filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays);
       written += filteredEntries.length;
-      await runtime.repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries, raw);
+      await runtime.repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
       await runtime.repository.upsertSourceHealth({
         sourceName: adapter.sourceName,
         sourceType: "news",

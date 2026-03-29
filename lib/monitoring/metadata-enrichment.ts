@@ -184,15 +184,20 @@ export async function runGeneralLlmMetadataEnrichment(
   const db = initDatabase(options.dbPath ?? defaultDbPath());
   try {
     runMigrations(options.schemaPath ?? defaultSchemaPath(), db);
-    const snapshot = db.prepare(`
-      SELECT id
-      FROM leaderboard_snapshots
+    const rows = db.prepare(`
+      SELECT id, model_name, vendor, canonical_model_key, payload_json
+      FROM llm_current
       WHERE category = 'general_llm'
-      ORDER BY snapshot_at DESC, source_priority ASC
-      LIMIT 1
-    `).get() as { id: string } | undefined;
+      ORDER BY rank ASC
+    `).all() as Array<{
+      id: string;
+      model_name: string;
+      vendor: string | null;
+      canonical_model_key: string;
+      payload_json: string | null;
+    }>;
 
-    if (!snapshot) {
+    if (rows.length === 0) {
       return {
         snapshotId: null,
         scanned: 0,
@@ -209,21 +214,8 @@ export async function runGeneralLlmMetadataEnrichment(
       fetchMbppByModel().catch(() => new Map<string, { mbpp?: number; mbppPlus?: number }>()),
     ]);
 
-    const rows = db.prepare(`
-      SELECT id, model_name, vendor, canonical_model_key, payload_json
-      FROM leaderboard_entries
-      WHERE snapshot_id = ?
-      ORDER BY rank ASC
-    `).all(snapshot.id) as Array<{
-      id: string;
-      model_name: string;
-      vendor: string | null;
-      canonical_model_key: string;
-      payload_json: string | null;
-    }>;
-
     const updateStmt = db.prepare(`
-      UPDATE leaderboard_entries
+      UPDATE llm_current
       SET payload_json = @payloadJson
       WHERE id = @id
     `);
@@ -274,7 +266,7 @@ export async function runGeneralLlmMetadataEnrichment(
     }
 
     return {
-      snapshotId: snapshot.id,
+      snapshotId: "llm_current:general_llm",
       scanned: rows.length,
       updated,
       aaMatched,

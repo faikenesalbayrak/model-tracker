@@ -1,6 +1,6 @@
 import type { LeaderboardCategory, NormalizedLeaderboardEntry, NormalizedNewsEntry } from "@/lib/monitoring/contracts";
 
-export type MonitorRunType = "scheduled_12h" | "weekly_digest" | "manual";
+export type MonitorRunType = "scheduled_12h" | "manual";
 export type MonitorRunStatus = "running" | "success" | "partial_success" | "failed";
 
 export interface RunSummary {
@@ -20,16 +20,6 @@ export interface LeaderboardCycleResult {
   changes: LeaderboardChangeEvent[];
 }
 
-export interface WeeklyDigestItem {
-  rank: number;
-  sourceName: string;
-  canonicalUrl: string;
-  title: string;
-  publishedAt?: string;
-  summary?: string;
-  importanceScore?: number;
-}
-
 export interface NewsCycleResult {
   sourceName: string;
   entries: NormalizedNewsEntry[];
@@ -46,4 +36,3 @@ export interface LeaderboardChangeEvent {
   scoreAfter?: number;
   eventFingerprint: string;
 }
-

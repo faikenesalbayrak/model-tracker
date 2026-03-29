@@ -10,7 +10,6 @@ import type {
   LeaderboardChangeEvent,
   MonitorRunStatus,
   MonitorRunType,
-  WeeklyDigestItem,
 } from "@/lib/monitoring/run-types";
 import type { LatestCategorySnapshotRef, SnapshotRef } from "@/lib/monitoring/repositories";
 
@@ -51,6 +50,24 @@ function fromJsonArray(value: unknown): string[] | undefined {
     return value as string[];
   }
   return undefined;
+}
+
+type LeaderboardDomain = "llm" | "vlm" | "tts" | "stt" | "embeddings";
+
+function domainForCategory(category: LeaderboardCategory): LeaderboardDomain {
+  if (category === "general_llm") return "llm";
+  if (category === "image_generation" || category === "video_generation") return "vlm";
+  if (category === "text_to_speech") return "tts";
+  if (category === "speech_to_text") return "stt";
+  return "embeddings";
+}
+
+function currentTableForCategory(category: LeaderboardCategory): string {
+  return `${domainForCategory(category)}_current`;
+}
+
+function historyTableForCategory(category: LeaderboardCategory): string {
+  return `${domainForCategory(category)}_history`;
 }
 
 export class PostgresMonitoringRepository {
@@ -100,22 +117,7 @@ export class PostgresMonitoringRepository {
     category: LeaderboardCategory,
     sourceName: string,
   ): Promise<SnapshotRef | null> {
-    const snapshot = await this.db.query<{ id: string }>(
-      `
-      SELECT id
-      FROM public.leaderboard_snapshots
-      WHERE category = $1 AND source_name = $2
-      ORDER BY snapshot_at DESC
-      LIMIT 1
-      `,
-      [category, sourceName],
-    );
-
-    if (snapshot.rowCount === 0) {
-      return null;
-    }
-
-    const snapshotId = snapshot.rows[0].id;
+    const currentTable = currentTableForCategory(category);
     const rows = await this.db.query<{
       rank: number;
       source_model_id: string | null;
@@ -129,12 +131,16 @@ export class PostgresMonitoringRepository {
     }>(
       `
       SELECT rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json
-      FROM public.leaderboard_entries
-      WHERE snapshot_id = $1
+      FROM public.${currentTable}
+      WHERE category = $1 AND source_name = $2
       ORDER BY rank ASC
       `,
-      [snapshotId],
+      [category, sourceName],
     );
+
+    if (rows.rowCount === 0) {
+      return null;
+    }
 
     const entries: NormalizedLeaderboardEntry[] = rows.rows.map((row) => ({
       rank: row.rank,
@@ -148,16 +154,17 @@ export class PostgresMonitoringRepository {
       payload: fromJsonObject(row.payload_json),
     }));
 
-    return { snapshotId, entries };
+    return { snapshotId: `${category}:${sourceName}`, entries };
   }
 
   async getLatestCategorySnapshot(category: LeaderboardCategory): Promise<LatestCategorySnapshotRef | null> {
+    const currentTable = currentTableForCategory(category);
     const snapshot = await this.db.query<{ id: string; source_name: string; snapshot_at: string }>(
       `
-      SELECT id, source_name, snapshot_at
-      FROM public.leaderboard_snapshots
+      SELECT source_name, observed_at AS snapshot_at
+      FROM public.${currentTable}
       WHERE category = $1
-      ORDER BY snapshot_at DESC, source_priority ASC
+      ORDER BY observed_at DESC, source_priority ASC
       LIMIT 1
       `,
       [category],
@@ -181,11 +188,11 @@ export class PostgresMonitoringRepository {
     }>(
       `
       SELECT rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json
-      FROM public.leaderboard_entries
-      WHERE snapshot_id = $1
+      FROM public.${currentTable}
+      WHERE category = $1 AND source_name = $2
       ORDER BY rank ASC
       `,
-      [row.id],
+      [category, row.source_name],
     );
 
     const entries: NormalizedLeaderboardEntry[] = entriesQuery.rows.map((entry) => ({
@@ -201,7 +208,7 @@ export class PostgresMonitoringRepository {
     }));
 
     return {
-      snapshotId: row.id,
+      snapshotId: `${category}:${row.source_name}`,
       sourceName: row.source_name,
       snapshotAt: row.snapshot_at,
       entries,
@@ -209,22 +216,23 @@ export class PostgresMonitoringRepository {
   }
 
   async getLatestSourceNamesByCategory(): Promise<string[]> {
-    const rows = await this.db.query<{ source_name: string }>(`
-      SELECT source_name
-      FROM (
-        SELECT
-          source_name,
-          category,
-          ROW_NUMBER() OVER (
-            PARTITION BY category
-            ORDER BY snapshot_at DESC, source_priority ASC
-          ) AS rn
-        FROM public.leaderboard_snapshots
-      ) ranked
-      WHERE rn = 1
-    `);
-
-    return rows.rows.map((row) => row.source_name);
+    const names = new Set<string>();
+    for (const category of ["general_llm", "image_generation", "video_generation", "text_to_speech", "speech_to_text", "embeddings"] as const) {
+      const row = await this.db.query<{ source_name: string }>(
+        `
+        SELECT source_name
+        FROM public.${currentTableForCategory(category)}
+        WHERE category = $1
+        ORDER BY observed_at DESC, source_priority ASC
+        LIMIT 1
+        `,
+        [category],
+      );
+      if (row.rowCount && row.rows[0].source_name) {
+        names.add(row.rows[0].source_name);
+      }
+    }
+    return [...names];
   }
 
   async insertLeaderboardSnapshot(
@@ -234,29 +242,35 @@ export class PostgresMonitoringRepository {
     sourcePriority: number,
     snapshotAt: string,
     entries: NormalizedLeaderboardEntry[],
-    rawPayload?: unknown,
   ): Promise<string> {
     const snapshotId = randomUUID();
-
-    await this.db.query(
-      `
-      INSERT INTO public.leaderboard_snapshots
-      (id, run_id, category, source_name, source_priority, snapshot_at, top_n, raw_payload_json)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
-      `,
-      [snapshotId, runId, category, sourceName, sourcePriority, snapshotAt, entries.length, rawPayload ? toJson(rawPayload) : null],
-    );
+    const currentTable = currentTableForCategory(category);
+    const historyTable = historyTableForCategory(category);
 
     for (const entry of entries) {
       await this.db.query(
         `
-        INSERT INTO public.leaderboard_entries
-        (id, snapshot_id, rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)
+        INSERT INTO public.${currentTable}
+        (id, category, source_name, source_priority, rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json, observed_at, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb, $14, NOW(), NOW())
+        ON CONFLICT (category, source_name, canonical_model_key) DO UPDATE SET
+          source_priority = EXCLUDED.source_priority,
+          rank = EXCLUDED.rank,
+          source_model_id = EXCLUDED.source_model_id,
+          model_name = EXCLUDED.model_name,
+          vendor = EXCLUDED.vendor,
+          score = EXCLUDED.score,
+          score_unit = EXCLUDED.score_unit,
+          model_url = EXCLUDED.model_url,
+          payload_json = EXCLUDED.payload_json,
+          observed_at = EXCLUDED.observed_at,
+          updated_at = NOW()
         `,
         [
           randomUUID(),
-          snapshotId,
+          category,
+          sourceName,
+          sourcePriority,
           entry.rank,
           entry.sourceModelId ?? null,
           entry.canonicalModelKey,
@@ -266,7 +280,54 @@ export class PostgresMonitoringRepository {
           entry.scoreUnit ?? null,
           entry.modelUrl ?? null,
           entry.payload ? toJson(entry.payload) : null,
+          snapshotAt,
         ],
+      );
+
+      await this.db.query(
+        `
+        INSERT INTO public.${historyTable}
+        (id, run_id, category, source_name, source_priority, rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json, observed_at, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15, NOW())
+        `,
+        [
+          randomUUID(),
+          runId,
+          category,
+          sourceName,
+          sourcePriority,
+          entry.rank,
+          entry.sourceModelId ?? null,
+          entry.canonicalModelKey,
+          entry.modelName,
+          entry.vendor ?? null,
+          typeof entry.score === "number" ? entry.score : null,
+          entry.scoreUnit ?? null,
+          entry.modelUrl ?? null,
+          entry.payload ? toJson(entry.payload) : null,
+          snapshotAt,
+        ],
+      );
+    }
+
+    const keys = entries.map((item) => item.canonicalModelKey);
+    if (keys.length > 0) {
+      await this.db.query(
+        `
+        DELETE FROM public.${currentTable}
+        WHERE category = $1
+          AND source_name = $2
+          AND canonical_model_key <> ALL($3::text[])
+        `,
+        [category, sourceName, keys],
+      );
+    } else {
+      await this.db.query(
+        `
+        DELETE FROM public.${currentTable}
+        WHERE category = $1 AND source_name = $2
+        `,
+        [category, sourceName],
       );
     }
 
@@ -318,34 +379,28 @@ export class PostgresMonitoringRepository {
     sourceName: string,
     snapshotAt: string,
     entries: NormalizedNewsEntry[],
-    rawPayload?: unknown,
   ): Promise<string> {
     const snapshotId = randomUUID();
-
-    await this.db.query(
-      `
-      INSERT INTO public.news_snapshots (id, run_id, source_name, snapshot_at, raw_payload_json)
-      VALUES ($1, $2, $3, $4, $5::jsonb)
-      `,
-      [snapshotId, runId, sourceName, snapshotAt, rawPayload ? toJson(rawPayload) : null],
-    );
 
     for (const row of entries) {
       await this.db.query(
         `
-        INSERT INTO public.news_entries
-        (id, snapshot_id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json)
-        SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11::jsonb
-        WHERE NOT EXISTS (
-          SELECT 1
-          FROM public.news_entries existing
-          WHERE existing.source_name = $3
-            AND existing.canonical_url = $4
-        )
+        INSERT INTO public.news_current
+        (id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json, observed_at, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10::jsonb, $11, NOW(), NOW())
+        ON CONFLICT (source_name, canonical_url) DO UPDATE SET
+          title = EXCLUDED.title,
+          published_at = EXCLUDED.published_at,
+          author_or_outlet = EXCLUDED.author_or_outlet,
+          summary = EXCLUDED.summary,
+          topic_tags_json = EXCLUDED.topic_tags_json,
+          importance_score = EXCLUDED.importance_score,
+          payload_json = EXCLUDED.payload_json,
+          observed_at = EXCLUDED.observed_at,
+          updated_at = NOW()
         `,
         [
           randomUUID(),
-          snapshotId,
           row.sourceName,
           row.canonicalUrl,
           row.title,
@@ -355,22 +410,59 @@ export class PostgresMonitoringRepository {
           row.topicTags ? toJson(row.topicTags) : null,
           typeof row.importanceScore === "number" ? row.importanceScore : null,
           row.payload ? toJson(row.payload) : null,
+          snapshotAt,
         ],
       );
+
+      await this.db.query(
+        `
+        INSERT INTO public.news_history
+        (id, run_id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json, observed_at, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11::jsonb, $12, NOW())
+        `,
+        [
+          randomUUID(),
+          runId,
+          row.sourceName,
+          row.canonicalUrl,
+          row.title,
+          row.publishedAt ?? null,
+          row.authorOrOutlet ?? null,
+          row.summary ?? null,
+          row.topicTags ? toJson(row.topicTags) : null,
+          typeof row.importanceScore === "number" ? row.importanceScore : null,
+          row.payload ? toJson(row.payload) : null,
+          snapshotAt,
+        ],
+      );
+    }
+
+    const urls = entries.map((entry) => entry.canonicalUrl);
+    if (urls.length > 0) {
+      await this.db.query(
+        `
+        DELETE FROM public.news_current
+        WHERE source_name = $1
+          AND canonical_url <> ALL($2::text[])
+        `,
+        [sourceName, urls],
+      );
+    } else {
+      await this.db.query(`DELETE FROM public.news_current WHERE source_name = $1`, [sourceName]);
     }
 
     return snapshotId;
   }
 
   async pruneNewsData(retentionDays: number): Promise<{ entriesDeleted: number; snapshotsDeleted: number }> {
-    const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 90;
+    const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 30;
     const cutoffIso = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString();
 
     const deletedEntries = await this.db.query<{ count: string }>(
       `
       WITH deleted AS (
-        DELETE FROM public.news_entries
-        WHERE COALESCE(published_at, created_at) < $1
+        DELETE FROM public.news_history
+        WHERE observed_at < $1
         RETURNING 1
       )
       SELECT COUNT(*)::text AS count FROM deleted
@@ -378,21 +470,18 @@ export class PostgresMonitoringRepository {
       [cutoffIso],
     );
 
-    const deletedSnapshots = await this.db.query<{ count: string }>(`
-      WITH deleted AS (
-        DELETE FROM public.news_snapshots s
-        WHERE NOT EXISTS (
-          SELECT 1 FROM public.news_entries e WHERE e.snapshot_id = s.id
-        )
-        RETURNING 1
-      )
-      SELECT COUNT(*)::text AS count FROM deleted
-    `);
-
     return {
       entriesDeleted: Number(deletedEntries.rows[0]?.count ?? "0"),
-      snapshotsDeleted: Number(deletedSnapshots.rows[0]?.count ?? "0"),
+      snapshotsDeleted: 0,
     };
+  }
+
+  async pruneHistoryData(retentionDays: number): Promise<void> {
+    const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 30;
+    const cutoffIso = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString();
+    for (const table of ["llm_history", "vlm_history", "tts_history", "stt_history", "embeddings_history", "news_history"] as const) {
+      await this.db.query(`DELETE FROM public.${table} WHERE observed_at < $1`, [cutoffIso]);
+    }
   }
 
   async getNewsEntriesInWindow(windowStartIso: string, windowEndIso: string): Promise<NormalizedNewsEntry[]> {
@@ -409,10 +498,10 @@ export class PostgresMonitoringRepository {
     }>(
       `
       SELECT source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json
-      FROM public.news_entries
+      FROM public.news_current
       WHERE (published_at IS NOT NULL AND published_at >= $1 AND published_at < $2)
-         OR (published_at IS NULL AND created_at >= $1 AND created_at < $2)
-      ORDER BY COALESCE(published_at, created_at) DESC
+         OR (published_at IS NULL AND observed_at >= $1 AND observed_at < $2)
+      ORDER BY COALESCE(published_at, observed_at) DESC
       `,
       [windowStartIso, windowEndIso],
     );
@@ -430,52 +519,9 @@ export class PostgresMonitoringRepository {
     }));
   }
 
-  async insertWeeklyDigest(
-    runId: string,
-    windowStartIso: string,
-    windowEndIso: string,
-    generatedAt: string,
-    items: WeeklyDigestItem[],
-  ): Promise<string> {
-    const digestRow = await this.db.query<{ id: string }>(
-      `
-      INSERT INTO public.weekly_digests (id, run_id, window_start, window_end, generated_at)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (window_start, window_end) DO UPDATE SET generated_at = EXCLUDED.generated_at
-      RETURNING id
-      `,
-      [randomUUID(), runId, windowStartIso, windowEndIso, generatedAt],
-    );
-    const digestId = digestRow.rows[0].id;
-
-    for (const item of items) {
-      await this.db.query(
-        `
-        INSERT INTO public.weekly_digest_items
-        (id, digest_id, rank, canonical_url, title, source_name, published_at, importance_score, summary)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        ON CONFLICT (digest_id, rank) DO NOTHING
-        `,
-        [
-          randomUUID(),
-          digestId,
-          item.rank,
-          item.canonicalUrl,
-          item.title,
-          item.sourceName,
-          item.publishedAt ?? null,
-          item.importanceScore ?? null,
-          item.summary ?? null,
-        ],
-      );
-    }
-
-    return digestId;
-  }
-
   async insertNotificationLog(params: {
     runId?: string;
-    notificationType: "top10_alert" | "weekly_digest";
+    notificationType: "top10_alert";
     category?: string;
     sourceName?: string;
     dedupeKey: string;

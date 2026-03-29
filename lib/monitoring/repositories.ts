@@ -10,7 +10,6 @@ import type {
   LeaderboardChangeEvent,
   MonitorRunStatus,
   MonitorRunType,
-  WeeklyDigestItem,
 } from "@/lib/monitoring/run-types";
 
 export interface InsertRunInput {
@@ -34,6 +33,24 @@ export interface LatestCategorySnapshotRef extends SnapshotRef {
 
 function toJson(value: unknown): string {
   return JSON.stringify(value ?? null);
+}
+
+type LeaderboardDomain = "llm" | "vlm" | "tts" | "stt" | "embeddings";
+
+function domainForCategory(category: LeaderboardCategory): LeaderboardDomain {
+  if (category === "general_llm") return "llm";
+  if (category === "image_generation" || category === "video_generation") return "vlm";
+  if (category === "text_to_speech") return "tts";
+  if (category === "speech_to_text") return "stt";
+  return "embeddings";
+}
+
+function currentTableForCategory(category: LeaderboardCategory): string {
+  return `${domainForCategory(category)}_current`;
+}
+
+function historyTableForCategory(category: LeaderboardCategory): string {
+  return `${domainForCategory(category)}_history`;
 }
 
 export class MonitoringRepository {
@@ -85,24 +102,12 @@ export class MonitoringRepository {
     category: LeaderboardCategory,
     sourceName: string,
   ): SnapshotRef | null {
-    const snapshot = this.db.prepare(`
-      SELECT id
-      FROM leaderboard_snapshots
-      WHERE category = ? AND source_name = ?
-      ORDER BY snapshot_at DESC
-      LIMIT 1
-    `).get(category, sourceName) as { id: string } | undefined;
-
-    if (!snapshot) {
-      return null;
-    }
-
     const rows = this.db.prepare(`
       SELECT rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json
-      FROM leaderboard_entries
-      WHERE snapshot_id = ?
+      FROM ${currentTableForCategory(category)}
+      WHERE category = ? AND source_name = ?
       ORDER BY rank ASC
-    `).all(snapshot.id) as Array<{
+    `).all(category, sourceName) as Array<{
       rank: number;
       source_model_id: string | null;
       canonical_model_key: string;
@@ -113,6 +118,10 @@ export class MonitoringRepository {
       model_url: string | null;
       payload_json: string | null;
     }>;
+
+    if (rows.length === 0) {
+      return null;
+    }
 
     const entries: NormalizedLeaderboardEntry[] = rows.map((row) => ({
       rank: row.rank,
@@ -126,17 +135,17 @@ export class MonitoringRepository {
       payload: row.payload_json ? (JSON.parse(row.payload_json) as Record<string, unknown>) : undefined,
     }));
 
-    return { snapshotId: snapshot.id, entries };
+    return { snapshotId: `${category}:${sourceName}`, entries };
   }
 
   getLatestCategorySnapshot(category: LeaderboardCategory): LatestCategorySnapshotRef | null {
     const snapshot = this.db.prepare(`
-      SELECT id, source_name, snapshot_at
-      FROM leaderboard_snapshots
+      SELECT source_name, observed_at AS snapshot_at
+      FROM ${currentTableForCategory(category)}
       WHERE category = ?
-      ORDER BY snapshot_at DESC, source_priority ASC
+      ORDER BY observed_at DESC, source_priority ASC
       LIMIT 1
-    `).get(category) as { id: string; source_name: string; snapshot_at: string } | undefined;
+    `).get(category) as { source_name: string; snapshot_at: string } | undefined;
 
     if (!snapshot) {
       return null;
@@ -144,10 +153,10 @@ export class MonitoringRepository {
 
     const rows = this.db.prepare(`
       SELECT rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json
-      FROM leaderboard_entries
-      WHERE snapshot_id = ?
+      FROM ${currentTableForCategory(category)}
+      WHERE category = ? AND source_name = ?
       ORDER BY rank ASC
-    `).all(snapshot.id) as Array<{
+    `).all(category, snapshot.source_name) as Array<{
       rank: number;
       source_model_id: string | null;
       canonical_model_key: string;
@@ -172,7 +181,7 @@ export class MonitoringRepository {
     }));
 
     return {
-      snapshotId: snapshot.id,
+      snapshotId: `${category}:${snapshot.source_name}`,
       sourceName: snapshot.source_name,
       snapshotAt: snapshot.snapshot_at,
       entries,
@@ -180,22 +189,18 @@ export class MonitoringRepository {
   }
 
   getLatestSourceNamesByCategory(): string[] {
-    const rows = this.db.prepare(`
-      SELECT source_name
-      FROM (
-        SELECT
-          source_name,
-          category,
-          ROW_NUMBER() OVER (
-            PARTITION BY category
-            ORDER BY snapshot_at DESC, source_priority ASC
-          ) AS rn
-        FROM leaderboard_snapshots
-      )
-      WHERE rn = 1
-    `).all() as Array<{ source_name: string }>;
-
-    return rows.map((row) => row.source_name);
+    const names = new Set<string>();
+    for (const category of ["general_llm", "image_generation", "video_generation", "text_to_speech", "speech_to_text", "embeddings"] as const) {
+      const row = this.db.prepare(`
+        SELECT source_name
+        FROM ${currentTableForCategory(category)}
+        WHERE category = ?
+        ORDER BY observed_at DESC, source_priority ASC
+        LIMIT 1
+      `).get(category) as { source_name: string } | undefined;
+      if (row?.source_name) names.add(row.source_name);
+    }
+    return [...names];
   }
 
   insertLeaderboardSnapshot(
@@ -205,36 +210,43 @@ export class MonitoringRepository {
     sourcePriority: number,
     snapshotAt: string,
     entries: NormalizedLeaderboardEntry[],
-    rawPayload?: unknown,
   ): string {
     const snapshotId = randomUUID();
-    const snapshotStmt = this.db.prepare(`
-      INSERT INTO leaderboard_snapshots (id, run_id, category, source_name, source_priority, snapshot_at, top_n, raw_payload_json)
-      VALUES (@id, @runId, @category, @sourceName, @sourcePriority, @snapshotAt, @topN, @rawPayloadJson)
-    `);
-    snapshotStmt.run({
-      id: snapshotId,
-      runId,
-      category,
-      sourceName,
-      sourcePriority,
-      snapshotAt,
-      topN: entries.length,
-      rawPayloadJson: rawPayload ? toJson(rawPayload) : null,
-    });
-
-    const entryStmt = this.db.prepare(`
-      INSERT INTO leaderboard_entries
-      (id, snapshot_id, rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json)
+    const currentTable = currentTableForCategory(category);
+    const historyTable = historyTableForCategory(category);
+    const upsertStmt = this.db.prepare(`
+      INSERT INTO ${currentTable}
+      (id, category, source_name, source_priority, rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json, observed_at, created_at, updated_at)
       VALUES
-      (@id, @snapshotId, @rank, @sourceModelId, @canonicalModelKey, @modelName, @vendor, @score, @scoreUnit, @modelUrl, @payloadJson)
+      (@id, @category, @sourceName, @sourcePriority, @rank, @sourceModelId, @canonicalModelKey, @modelName, @vendor, @score, @scoreUnit, @modelUrl, @payloadJson, @observedAt, @createdAt, @updatedAt)
+      ON CONFLICT(category, source_name, canonical_model_key) DO UPDATE SET
+        source_priority = excluded.source_priority,
+        rank = excluded.rank,
+        source_model_id = excluded.source_model_id,
+        model_name = excluded.model_name,
+        vendor = excluded.vendor,
+        score = excluded.score,
+        score_unit = excluded.score_unit,
+        model_url = excluded.model_url,
+        payload_json = excluded.payload_json,
+        observed_at = excluded.observed_at,
+        updated_at = excluded.updated_at
+    `);
+    const historyStmt = this.db.prepare(`
+      INSERT INTO ${historyTable}
+      (id, run_id, category, source_name, source_priority, rank, source_model_id, canonical_model_key, model_name, vendor, score, score_unit, model_url, payload_json, observed_at, created_at)
+      VALUES
+      (@id, @runId, @category, @sourceName, @sourcePriority, @rank, @sourceModelId, @canonicalModelKey, @modelName, @vendor, @score, @scoreUnit, @modelUrl, @payloadJson, @observedAt, @createdAt)
     `);
 
     const tx = this.db.transaction((batch: NormalizedLeaderboardEntry[]) => {
+      const now = new Date().toISOString();
       for (const entry of batch) {
-        entryStmt.run({
+        upsertStmt.run({
           id: randomUUID(),
-          snapshotId,
+          category,
+          sourceName,
+          sourcePriority,
           rank: entry.rank,
           sourceModelId: entry.sourceModelId ?? null,
           canonicalModelKey: entry.canonicalModelKey,
@@ -244,10 +256,48 @@ export class MonitoringRepository {
           scoreUnit: entry.scoreUnit ?? null,
           modelUrl: entry.modelUrl ?? null,
           payloadJson: entry.payload ? toJson(entry.payload) : null,
+          observedAt: snapshotAt,
+          createdAt: now,
+          updatedAt: now,
+        });
+        historyStmt.run({
+          id: randomUUID(),
+          runId,
+          category,
+          sourceName,
+          sourcePriority,
+          rank: entry.rank,
+          sourceModelId: entry.sourceModelId ?? null,
+          canonicalModelKey: entry.canonicalModelKey,
+          modelName: entry.modelName,
+          vendor: entry.vendor ?? null,
+          score: typeof entry.score === "number" ? entry.score : null,
+          scoreUnit: entry.scoreUnit ?? null,
+          modelUrl: entry.modelUrl ?? null,
+          payloadJson: entry.payload ? toJson(entry.payload) : null,
+          observedAt: snapshotAt,
+          createdAt: now,
         });
       }
     });
     tx(entries);
+
+    const keys = entries.map((item) => item.canonicalModelKey);
+    if (keys.length > 0) {
+      const placeholders = keys.map(() => "?").join(", ");
+      this.db.prepare(`
+        DELETE FROM ${currentTable}
+        WHERE category = ?
+          AND source_name = ?
+          AND canonical_model_key NOT IN (${placeholders})
+      `).run(category, sourceName, ...keys);
+    } else {
+      this.db.prepare(`
+        DELETE FROM ${currentTable}
+        WHERE category = ?
+          AND source_name = ?
+      `).run(category, sourceName);
+    }
 
     return snapshotId;
   }
@@ -293,37 +343,35 @@ export class MonitoringRepository {
     sourceName: string,
     snapshotAt: string,
     entries: NormalizedNewsEntry[],
-    rawPayload?: unknown,
   ): string {
     const snapshotId = randomUUID();
-    this.db.prepare(`
-      INSERT INTO news_snapshots (id, run_id, source_name, snapshot_at, raw_payload_json)
-      VALUES (@id, @runId, @sourceName, @snapshotAt, @rawPayloadJson)
-    `).run({
-      id: snapshotId,
-      runId,
-      sourceName,
-      snapshotAt,
-      rawPayloadJson: rawPayload ? toJson(rawPayload) : null,
-    });
-
-    const insert = this.db.prepare(`
-      INSERT INTO news_entries
-      (id, snapshot_id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json)
-      SELECT
-      @id, @snapshotId, @sourceName, @canonicalUrl, @title, @publishedAt, @authorOrOutlet, @summary, @topicTagsJson, @importanceScore, @payloadJson
-      WHERE NOT EXISTS (
-        SELECT 1
-        FROM news_entries existing
-        WHERE existing.source_name = @sourceName
-          AND existing.canonical_url = @canonicalUrl
-      )
+    const upsertCurrent = this.db.prepare(`
+      INSERT INTO news_current
+      (id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json, observed_at, created_at, updated_at)
+      VALUES
+      (@id, @sourceName, @canonicalUrl, @title, @publishedAt, @authorOrOutlet, @summary, @topicTagsJson, @importanceScore, @payloadJson, @observedAt, @createdAt, @updatedAt)
+      ON CONFLICT(source_name, canonical_url) DO UPDATE SET
+        title = excluded.title,
+        published_at = excluded.published_at,
+        author_or_outlet = excluded.author_or_outlet,
+        summary = excluded.summary,
+        topic_tags_json = excluded.topic_tags_json,
+        importance_score = excluded.importance_score,
+        payload_json = excluded.payload_json,
+        observed_at = excluded.observed_at,
+        updated_at = excluded.updated_at
+    `);
+    const insertHistory = this.db.prepare(`
+      INSERT INTO news_history
+      (id, run_id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json, observed_at, created_at)
+      VALUES
+      (@id, @runId, @sourceName, @canonicalUrl, @title, @publishedAt, @authorOrOutlet, @summary, @topicTagsJson, @importanceScore, @payloadJson, @observedAt, @createdAt)
     `);
     const tx = this.db.transaction((batch: NormalizedNewsEntry[]) => {
+      const now = new Date().toISOString();
       for (const row of batch) {
-        insert.run({
+        upsertCurrent.run({
           id: randomUUID(),
-          snapshotId,
           sourceName: row.sourceName,
           canonicalUrl: row.canonicalUrl,
           title: row.title,
@@ -333,37 +381,72 @@ export class MonitoringRepository {
           topicTagsJson: row.topicTags ? toJson(row.topicTags) : null,
           importanceScore: typeof row.importanceScore === "number" ? row.importanceScore : null,
           payloadJson: row.payload ? toJson(row.payload) : null,
+          observedAt: snapshotAt,
+          createdAt: now,
+          updatedAt: now,
+        });
+        insertHistory.run({
+          id: randomUUID(),
+          runId,
+          sourceName: row.sourceName,
+          canonicalUrl: row.canonicalUrl,
+          title: row.title,
+          publishedAt: row.publishedAt ?? null,
+          authorOrOutlet: row.authorOrOutlet ?? null,
+          summary: row.summary ?? null,
+          topicTagsJson: row.topicTags ? toJson(row.topicTags) : null,
+          importanceScore: typeof row.importanceScore === "number" ? row.importanceScore : null,
+          payloadJson: row.payload ? toJson(row.payload) : null,
+          observedAt: snapshotAt,
+          createdAt: now,
         });
       }
     });
     tx(entries);
+
+    const urls = entries.map((item) => item.canonicalUrl);
+    if (urls.length > 0) {
+      const placeholders = urls.map(() => "?").join(", ");
+      this.db.prepare(`
+        DELETE FROM news_current
+        WHERE source_name = ?
+          AND canonical_url NOT IN (${placeholders})
+      `).run(sourceName, ...urls);
+    } else {
+      this.db.prepare(`DELETE FROM news_current WHERE source_name = ?`).run(sourceName);
+    }
     return snapshotId;
   }
 
   pruneNewsData(retentionDays: number): { entriesDeleted: number; snapshotsDeleted: number } {
-    const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 90;
+    const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 30;
     const cutoffIso = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString();
 
     const entriesDeleted = this.db.prepare(`
-      DELETE FROM news_entries
-      WHERE COALESCE(published_at, created_at) < @cutoffIso
+      DELETE FROM news_history
+      WHERE observed_at < @cutoffIso
     `).run({ cutoffIso }).changes;
+    return { entriesDeleted, snapshotsDeleted: 0 };
+  }
 
-    const snapshotsDeleted = this.db.prepare(`
-      DELETE FROM news_snapshots
-      WHERE id NOT IN (SELECT DISTINCT snapshot_id FROM news_entries)
-    `).run().changes;
-
-    return { entriesDeleted, snapshotsDeleted };
+  pruneHistoryData(retentionDays: number): void {
+    const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 30;
+    const cutoffIso = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString();
+    this.db.prepare(`DELETE FROM llm_history WHERE observed_at < ?`).run(cutoffIso);
+    this.db.prepare(`DELETE FROM vlm_history WHERE observed_at < ?`).run(cutoffIso);
+    this.db.prepare(`DELETE FROM tts_history WHERE observed_at < ?`).run(cutoffIso);
+    this.db.prepare(`DELETE FROM stt_history WHERE observed_at < ?`).run(cutoffIso);
+    this.db.prepare(`DELETE FROM embeddings_history WHERE observed_at < ?`).run(cutoffIso);
+    this.db.prepare(`DELETE FROM news_history WHERE observed_at < ?`).run(cutoffIso);
   }
 
   getNewsEntriesInWindow(windowStartIso: string, windowEndIso: string): NormalizedNewsEntry[] {
     const rows = this.db.prepare(`
       SELECT source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json
-      FROM news_entries
+      FROM news_current
       WHERE (published_at IS NOT NULL AND published_at >= ? AND published_at < ?)
-         OR (published_at IS NULL AND created_at >= ? AND created_at < ?)
-      ORDER BY COALESCE(published_at, created_at) DESC
+         OR (published_at IS NULL AND observed_at >= ? AND observed_at < ?)
+      ORDER BY COALESCE(published_at, observed_at) DESC
     `).all(windowStartIso, windowEndIso, windowStartIso, windowEndIso) as Array<{
       source_name: string;
       canonical_url: string;
@@ -389,50 +472,9 @@ export class MonitoringRepository {
     }));
   }
 
-  insertWeeklyDigest(
-    runId: string,
-    windowStartIso: string,
-    windowEndIso: string,
-    generatedAt: string,
-    items: WeeklyDigestItem[],
-  ): string {
-    const digestId = randomUUID();
-    this.db.prepare(`
-      INSERT INTO weekly_digests (id, run_id, window_start, window_end, generated_at)
-      VALUES (@id, @runId, @windowStart, @windowEnd, @generatedAt)
-    `).run({
-      id: digestId,
-      runId,
-      windowStart: windowStartIso,
-      windowEnd: windowEndIso,
-      generatedAt,
-    });
-
-    const insert = this.db.prepare(`
-      INSERT INTO weekly_digest_items
-      (id, digest_id, rank, canonical_url, title, source_name, published_at, importance_score, summary)
-      VALUES
-      (@id, @digestId, @rank, @canonicalUrl, @title, @sourceName, @publishedAt, @importanceScore, @summary)
-    `);
-    for (const item of items) {
-      insert.run({
-        id: randomUUID(),
-        digestId,
-        rank: item.rank,
-        canonicalUrl: item.canonicalUrl,
-        title: item.title,
-        sourceName: item.sourceName,
-        publishedAt: item.publishedAt ?? null,
-        importanceScore: item.importanceScore ?? null,
-        summary: item.summary ?? null,
-      });
-    }
-    return digestId;
-  }
-
   insertNotificationLog(params: {
     runId?: string;
-    notificationType: "top10_alert" | "weekly_digest";
+    notificationType: "top10_alert";
     category?: string;
     sourceName?: string;
     dedupeKey: string;

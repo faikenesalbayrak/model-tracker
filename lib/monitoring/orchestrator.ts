@@ -1,8 +1,7 @@
 import { getActiveLeaderboardSources } from "@/lib/monitoring/leaderboard-sources";
 import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
 import { diffTop10 } from "@/lib/monitoring/leaderboard-diff";
-import { selectWeeklyTopNews } from "@/lib/monitoring/news-selection";
-import { sendTop10AlertEmail, sendWeeklyDigestEmail } from "@/lib/monitoring/notifications";
+import { sendTop10AlertEmail } from "@/lib/monitoring/notifications";
 import { LEADERBOARD_CATEGORIES, type LeaderboardCategory } from "@/lib/monitoring/contracts";
 import { openMonitoringRuntime, type MonitoringRuntime, type MonitoringRuntimeOptions } from "@/lib/monitoring/runtime";
 import type { RunSummary } from "@/lib/monitoring/run-types";
@@ -73,10 +72,10 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
   const ingestWindowDays = Number.isFinite(ingestWindowDaysRaw) && ingestWindowDaysRaw > 0
     ? Math.floor(ingestWindowDaysRaw)
     : 14;
-  const retentionDaysRaw = Number(process.env.MONITORING_NEWS_RETENTION_DAYS ?? "90");
+  const retentionDaysRaw = Number(process.env.MONITORING_NEWS_RETENTION_DAYS ?? "30");
   const retentionDays = Number.isFinite(retentionDaysRaw) && retentionDaysRaw > 0
     ? Math.floor(retentionDaysRaw)
-    : 90;
+    : 30;
   const summary: RunSummary = {
     leaderboardSourcesChecked: 0,
     leaderboardSnapshotsWritten: 0,
@@ -135,7 +134,6 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
             adapter.priority,
             nowIso,
             currentEntries,
-            raw,
           );
           summary.leaderboardSnapshotsWritten += 1;
 
@@ -226,7 +224,7 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
         const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
         const entries = await adapter.normalizeNews(raw, nowIso);
         const filteredEntries = filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays);
-        await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries, raw);
+        await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
         summary.newsEntriesWritten += filteredEntries.length;
         await repository.upsertSourceHealth({
           sourceName: adapter.sourceName,
@@ -253,6 +251,7 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     }
 
     await repository.pruneNewsData(retentionDays);
+    await repository.pruneHistoryData(retentionDays);
 
     const runStatus = hadSourceErrors || summary.notificationsFailed > 0 ? "partial_success" : "success";
     await repository.updateRun(runId, runStatus, new Date().toISOString(), summary);
@@ -263,84 +262,6 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
       "failed",
       new Date().toISOString(),
       summary,
-      error instanceof Error ? error.message : String(error),
-    );
-    throw error;
-  } finally {
-    if (shouldClose) {
-      await runtime.close();
-    }
-  }
-}
-
-export async function runWeeklyDigestCycle(options: RunCycleOptions = {}): Promise<{ runId: string; digestCount: number }> {
-  const runtime = options.runtime ?? (await initializeMonitoringRuntime(options.runtimeOptions));
-  const shouldClose = !options.runtime;
-  const repository = runtime.repository;
-  const nowIso = options.nowIso ?? new Date().toISOString();
-  const recipients = isNotificationsEnabled() ? getRecipients() : [];
-
-  const runId = await repository.insertRun({
-    runType: "weekly_digest",
-    status: "running",
-    startedAt: nowIso,
-  });
-
-  try {
-    const windowEndIso = nowIso;
-    const windowStartIso = isoMinusDays(nowIso, 7);
-    const entries = await repository.getNewsEntriesInWindow(windowStartIso, windowEndIso);
-    const items = selectWeeklyTopNews(entries);
-    await repository.insertWeeklyDigest(runId, windowStartIso, windowEndIso, nowIso, items);
-
-    for (const recipient of recipients) {
-      const dedupeKey = `weekly:${windowStartIso}:${windowEndIso}:${recipient}`;
-      try {
-        const sent = await sendWeeklyDigestEmail({
-          to: [recipient],
-          windowStartIso,
-          windowEndIso,
-          items: items.map((item) => ({
-            title: item.title,
-            sourceName: item.sourceName,
-            canonicalUrl: item.canonicalUrl,
-            publishedAt: item.publishedAt,
-            importanceScore: item.importanceScore,
-          })),
-        });
-        await repository.insertNotificationLog({
-          runId,
-          notificationType: "weekly_digest",
-          dedupeKey,
-          recipient,
-          subject: "Weekly AI Digest",
-          status: "sent",
-          messageId: sent.messageId,
-          sentAt: nowIso,
-        });
-      } catch (error) {
-        await repository.insertNotificationLog({
-          runId,
-          notificationType: "weekly_digest",
-          dedupeKey,
-          recipient,
-          subject: "Weekly AI Digest",
-          status: "failed",
-          errorMessage: error instanceof Error ? error.message : String(error),
-        });
-      }
-    }
-
-    await repository.updateRun(runId, "success", new Date().toISOString(), {
-      weeklyDigestItems: items.length,
-    });
-    return { runId, digestCount: items.length };
-  } catch (error) {
-    await repository.updateRun(
-      runId,
-      "failed",
-      new Date().toISOString(),
-      undefined,
       error instanceof Error ? error.message : String(error),
     );
     throw error;
