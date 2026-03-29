@@ -82,7 +82,8 @@ export async function GET() {
   try {
     const now = new Date();
     const windowEndIso = now.toISOString();
-    const windowStartIso = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+    const recentWindowStartIso = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
+    const fallbackWindowStartIso = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
 
     const activeNewsSources = new Set(
       SOURCE_REGISTRY
@@ -90,17 +91,19 @@ export async function GET() {
         .map((item) => item.sourceName),
     );
 
-    let entries = pickVisibleEntries(
-      await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso),
-      activeNewsSources,
-    );
+    let rawEntries = await runtime.repository.getNewsEntriesInWindow(recentWindowStartIso, windowEndIso);
+    if (rawEntries.length === 0) {
+      rawEntries = await runtime.repository.getNewsEntriesInWindow(fallbackWindowStartIso, windowEndIso);
+    }
+    let entries = pickVisibleEntries(rawEntries, activeNewsSources);
 
     if (entries.length === 0) {
       await hydrateNewsIfEmpty(windowEndIso);
-      entries = pickVisibleEntries(
-        await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso),
-        activeNewsSources,
-      );
+      let refreshedEntries = await runtime.repository.getNewsEntriesInWindow(recentWindowStartIso, windowEndIso);
+      if (refreshedEntries.length === 0) {
+        refreshedEntries = await runtime.repository.getNewsEntriesInWindow(fallbackWindowStartIso, windowEndIso);
+      }
+      entries = pickVisibleEntries(refreshedEntries, activeNewsSources);
     }
 
     return NextResponse.json(
