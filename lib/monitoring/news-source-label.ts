@@ -12,6 +12,36 @@ const SOURCE_LABEL_OVERRIDES: Record<string, string> = {
   github_releases_api: "GitHub Releases",
 };
 
+const SOURCE_LOGO_OVERRIDES: Record<string, string> = {
+  hn_algolia: "https://logo.clearbit.com/ycombinator.com",
+  arxiv_ai: "https://logo.clearbit.com/arxiv.org",
+  arxiv_cl: "https://logo.clearbit.com/arxiv.org",
+  arxiv_lg: "https://logo.clearbit.com/arxiv.org",
+  reuters_technology: "https://logo.clearbit.com/reuters.com",
+  techcrunch_ai: "https://logo.clearbit.com/techcrunch.com",
+  the_verge_ai: "https://logo.clearbit.com/theverge.com",
+  venturebeat_ai: "https://logo.clearbit.com/venturebeat.com",
+  mit_tech_review_ai: "https://logo.clearbit.com/technologyreview.com",
+  openai_news: "https://logo.clearbit.com/openai.com",
+  anthropic_news: "https://logo.clearbit.com/anthropic.com",
+  deepmind_blog: "https://logo.clearbit.com/deepmind.google",
+  meta_ai_blog: "https://logo.clearbit.com/meta.com",
+  huggingface_blog: "https://logo.clearbit.com/huggingface.co",
+  cohere_blog: "https://logo.clearbit.com/cohere.com",
+  mistral_news: "https://logo.clearbit.com/mistral.ai",
+  aws_ml_blog: "https://logo.clearbit.com/aws.amazon.com",
+  google_cloud_ai_blog: "https://logo.clearbit.com/cloud.google.com",
+  azure_ai_blog: "https://logo.clearbit.com/microsoft.com",
+  nvidia_ai_blog: "https://logo.clearbit.com/nvidia.com",
+  semafor_tech: "https://logo.clearbit.com/semafor.com",
+  zdnet_ai: "https://logo.clearbit.com/zdnet.com",
+  computerworld_ai: "https://logo.clearbit.com/computerworld.com",
+  infoworld_ai: "https://logo.clearbit.com/infoworld.com",
+  siliconangle_ai: "https://logo.clearbit.com/siliconangle.com",
+  searchengineland_ai: "https://logo.clearbit.com/searchengineland.com",
+  google_news_ai: "https://logo.clearbit.com/news.google.com",
+};
+
 function toTitleCaseFromSlug(value: string): string {
   return value
     .split("_")
@@ -60,4 +90,8 @@ export function getNewsDisplayTitle(entry: Pick<NormalizedNewsEntry, "title" | "
     return cleaned;
   }
   return titleFromUrl(entry.canonicalUrl) ?? entry.canonicalUrl;
+}
+
+export function getNewsSourceLogo(entry: Pick<NormalizedNewsEntry, "sourceName">): string | null {
+  return SOURCE_LOGO_OVERRIDES[entry.sourceName] ?? null;
 }

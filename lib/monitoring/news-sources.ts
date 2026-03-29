@@ -181,6 +181,67 @@ function resolveGoogleNewsTargetUrl(block: string, link: string): string {
   return direct;
 }
 
+async function resolveGoogleNewsFinalUrl(url: string): Promise<string> {
+  const canonical = canonicalizeUrl(url);
+  if (!canonical.includes("news.google.com")) {
+    return canonical;
+  }
+
+  try {
+    const { data } = await fetchWithRetry<string>(
+      canonical,
+      {
+        method: "GET",
+        headers: {
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "User-Agent": "model-tracker-monitoring/1.0",
+        },
+      },
+      async (response) => {
+        const finalUrl = response.url;
+        await response.body?.cancel();
+        return finalUrl;
+      },
+      { timeoutMs: 6_000, retries: 1 },
+    );
+    return canonicalizeUrl(data);
+  } catch {
+    return canonical;
+  }
+}
+
+async function resolveGoogleNewsUrls(
+  rows: NormalizedNewsEntry[],
+  concurrency = 6,
+): Promise<NormalizedNewsEntry[]> {
+  const resolved = [...rows];
+  let index = 0;
+
+  async function worker(): Promise<void> {
+    while (index < resolved.length) {
+      const current = index;
+      index += 1;
+      const row = resolved[current];
+      const resolvedUrl = await resolveGoogleNewsFinalUrl(row.canonicalUrl);
+      resolved[current] = {
+        ...row,
+        canonicalUrl: resolvedUrl,
+      };
+    }
+  }
+
+  const workerCount = Math.max(1, Math.min(concurrency, resolved.length));
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+
+  const dedupe = new Set<string>();
+  return resolved.filter((item) => {
+    const key = item.canonicalUrl.trim();
+    if (!key || dedupe.has(key)) return false;
+    dedupe.add(key);
+    return true;
+  });
+}
+
 function keywordImportance(title: string): number {
   const text = title.toLowerCase();
   const weights: Array<[RegExp, number]> = [
@@ -235,7 +296,7 @@ function normalizeHnHits(raw: unknown, nowIso: string): NormalizedNewsEntry[] {
     .sort((a, b) => Date.parse(b.publishedAt ?? nowIso) - Date.parse(a.publishedAt ?? nowIso));
 }
 
-function normalizeRssXml(
+async function normalizeRssXml(
   sourceName: string,
   xml: string,
   nowIso: string,
@@ -243,7 +304,7 @@ function normalizeRssXml(
   topicTags: string[],
   importanceBoost = 1,
   minRelevanceScore = 0,
-): NormalizedNewsEntry[] {
+): Promise<NormalizedNewsEntry[]> {
   const dedupe = new Set<string>();
   const blocks = [
     ...(xml.match(/<item[\s\S]*?<\/item>/gi) ?? []),
@@ -298,7 +359,11 @@ function normalizeRssXml(
     });
   }
 
-  return rows.sort((a, b) => Date.parse(b.publishedAt ?? nowIso) - Date.parse(a.publishedAt ?? nowIso));
+  const sorted = rows.sort((a, b) => Date.parse(b.publishedAt ?? nowIso) - Date.parse(a.publishedAt ?? nowIso));
+  if (sourceName === "google_news_ai") {
+    return resolveGoogleNewsUrls(sorted);
+  }
+  return sorted;
 }
 
 const hnAlgoliaNewsAdapter: NewsAdapter = {

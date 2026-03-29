@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
-import { getNewsDisplayTitle, getNewsSourceLabel } from "@/lib/monitoring/news-source-label";
+import { getNewsDisplayTitle, getNewsSourceLabel, getNewsSourceLogo } from "@/lib/monitoring/news-source-label";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ function dedupeByCanonical(entries: NormalizedNewsEntry[]): NormalizedNewsEntry[
       byCanonical.set(key, entry);
     }
   }
-  return [...byCanonical.values()];
+    return [...byCanonical.values()].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
 }
 
 export async function GET() {
@@ -63,6 +63,7 @@ export async function GET() {
       entries.push(entry);
       if (entries.length >= 40) break;
     }
+    entries.sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
 
     return NextResponse.json(
       {
@@ -75,10 +76,7 @@ export async function GET() {
           source: getNewsSourceLabel(item),
           publishedAt: item.publishedAt ?? windowEndIso,
           timeAgo: item.summary ?? null,
-          imageUrl:
-            (item.payload?.image_url as string | undefined) ??
-            (item.payload?.imageUrl as string | undefined) ??
-            null,
+          imageUrl: getNewsSourceLogo(item),
         })),
       },
       { headers: { "Cache-Control": "no-store" } },

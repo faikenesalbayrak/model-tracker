@@ -3,7 +3,7 @@ import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
 import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
-import { getNewsDisplayTitle, getNewsSourceLabel } from "@/lib/monitoring/news-source-label";
+import { getNewsDisplayTitle, getNewsSourceLabel, getNewsSourceLogo } from "@/lib/monitoring/news-source-label";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +47,7 @@ function pickVisibleEntries(
     capped.push(entry);
     if (capped.length >= 40) break;
   }
-  return capped;
+  return capped.sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
 }
 
 async function hydrateNewsIfEmpty(nowIso: string) {
@@ -153,10 +153,7 @@ export async function GET() {
           source: getNewsSourceLabel(item),
           publishedAt: item.publishedAt ?? windowEndIso,
           timeAgo: item.summary ?? null,
-          imageUrl:
-            (item.payload?.image_url as string | undefined) ??
-            (item.payload?.imageUrl as string | undefined) ??
-            null,
+          imageUrl: getNewsSourceLogo(item),
         })),
       },
       { headers: { "Cache-Control": "no-store" } },
