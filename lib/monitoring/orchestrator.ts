@@ -56,6 +56,7 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     notificationsSent: 0,
     notificationsFailed: 0,
   };
+  let hadSourceErrors = false;
 
   const runId = await repository.insertRun({
     runType: "scheduled_12h",
@@ -182,7 +183,8 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
             lastCheckedAt: nowIso,
             lastErrorMessage: error instanceof Error ? error.message : String(error),
           });
-          throw error;
+          hadSourceErrors = true;
+          continue;
         }
       }
     }
@@ -214,11 +216,12 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
           lastCheckedAt: nowIso,
           lastErrorMessage: error instanceof Error ? error.message : String(error),
         });
-        throw error;
+        hadSourceErrors = true;
+        continue;
       }
     }
 
-    const runStatus = summary.notificationsFailed > 0 ? "partial_success" : "success";
+    const runStatus = hadSourceErrors || summary.notificationsFailed > 0 ? "partial_success" : "success";
     await repository.updateRun(runId, runStatus, new Date().toISOString(), summary);
     return { runId, summary };
   } catch (error) {
