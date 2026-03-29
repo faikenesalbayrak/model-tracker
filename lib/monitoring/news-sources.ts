@@ -242,9 +242,15 @@ async function resolveGoogleNewsUrls(
   await Promise.all(Array.from({ length: workerCount }, () => worker()));
 
   const dedupe = new Set<string>();
+  const googleFallbackDedupe = new Set<string>();
   return resolved.filter((item) => {
     const key = item.canonicalUrl.trim();
     if (!key || dedupe.has(key)) return false;
+    if (key.includes("news.google.com")) {
+      const fallbackKey = `${item.title.trim().toLowerCase()}|${item.publishedAt ?? ""}`;
+      if (googleFallbackDedupe.has(fallbackKey)) return false;
+      googleFallbackDedupe.add(fallbackKey);
+    }
     dedupe.add(key);
     return true;
   });
