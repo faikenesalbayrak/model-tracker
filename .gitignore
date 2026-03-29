@@ -42,4 +42,10 @@ yarn-error.log*
 next-env.d.ts
 
 # local sqlite
-data/monitoring.db
+data/*.db*
+data/*.json
+!data/.gitkeep
+
+# local automation/debug artifacts
+.playwright-mcp/
+output/
