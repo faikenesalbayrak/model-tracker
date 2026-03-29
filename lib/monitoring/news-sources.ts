@@ -191,7 +191,7 @@ async function resolveGoogleNewsFinalUrl(url: string): Promise<string> {
     const { data } = await fetchWithRetry<string>(
       canonical,
       {
-        method: "GET",
+        method: "HEAD",
         headers: {
           Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           "User-Agent": "model-tracker-monitoring/1.0",
@@ -199,10 +199,9 @@ async function resolveGoogleNewsFinalUrl(url: string): Promise<string> {
       },
       async (response) => {
         const finalUrl = response.url;
-        await response.body?.cancel();
         return finalUrl;
       },
-      { timeoutMs: 6_000, retries: 1 },
+      { timeoutMs: 2_500, retries: 0 },
     );
     return canonicalizeUrl(data);
   } catch {
@@ -215,12 +214,21 @@ async function resolveGoogleNewsUrls(
   concurrency = 6,
 ): Promise<NormalizedNewsEntry[]> {
   const resolved = [...rows];
+  const maxResolvesRaw = Number(process.env.MONITORING_GOOGLE_NEWS_MAX_RESOLVES ?? "8");
+  const maxResolves = Number.isFinite(maxResolvesRaw) && maxResolvesRaw > 0 ? Math.floor(maxResolvesRaw) : 8;
+  const resolveCandidates = resolved
+    .map((row, i) => ({ row, i }))
+    .filter(({ row }) => row.canonicalUrl.includes("news.google.com"))
+    .slice(0, maxResolves)
+    .map(({ i }) => i);
+  const resolveSet = new Set(resolveCandidates);
   let index = 0;
 
   async function worker(): Promise<void> {
     while (index < resolved.length) {
       const current = index;
       index += 1;
+      if (!resolveSet.has(current)) continue;
       const row = resolved[current];
       const resolvedUrl = await resolveGoogleNewsFinalUrl(row.canonicalUrl);
       resolved[current] = {
