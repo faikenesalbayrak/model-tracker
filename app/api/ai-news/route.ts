@@ -3,6 +3,7 @@ import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
 import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
+import { getNewsSourceLabel } from "@/lib/monitoring/news-source-label";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -124,7 +125,7 @@ export async function GET() {
           id: item.canonicalUrl,
           title: item.title,
           link: item.canonicalUrl,
-          source: item.sourceName,
+          source: getNewsSourceLabel(item),
           publishedAt: item.publishedAt ?? windowEndIso,
           timeAgo: item.summary ?? null,
           imageUrl:
