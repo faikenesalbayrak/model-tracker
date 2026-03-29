@@ -17,10 +17,10 @@ export async function GET() {
         .filter((item) => item.sourceType === "news" && item.status === "enabled")
         .map((item) => item.sourceName),
     );
-    const entries = (await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso))
-      .filter((item) => activeNewsSources.has(item.sourceName))
-      .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""))
-      .slice(0, 40);
+    const allEntries = (await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso))
+      .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
+    const filteredEntries = allEntries.filter((item) => activeNewsSources.has(item.sourceName));
+    const entries = (filteredEntries.length > 0 ? filteredEntries : allEntries).slice(0, 40);
 
     return NextResponse.json(
       {

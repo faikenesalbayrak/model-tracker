@@ -2,9 +2,19 @@ import { NextResponse } from "next/server";
 import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
+import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function pickVisibleEntries(
+  entries: NormalizedNewsEntry[],
+  activeNewsSources: Set<string>,
+) {
+  const sorted = [...entries].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
+  const filtered = sorted.filter((item) => activeNewsSources.has(item.sourceName));
+  return (filtered.length > 0 ? filtered : sorted).slice(0, 40);
+}
 
 async function hydrateNewsIfEmpty(nowIso: string) {
   const runtime = await openMonitoringRuntime();
@@ -80,17 +90,17 @@ export async function GET() {
         .map((item) => item.sourceName),
     );
 
-    let entries = (await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso))
-      .filter((item) => activeNewsSources.has(item.sourceName))
-      .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""))
-      .slice(0, 40);
+    let entries = pickVisibleEntries(
+      await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso),
+      activeNewsSources,
+    );
 
     if (entries.length === 0) {
       await hydrateNewsIfEmpty(windowEndIso);
-      entries = (await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso))
-        .filter((item) => activeNewsSources.has(item.sourceName))
-        .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""))
-        .slice(0, 40);
+      entries = pickVisibleEntries(
+        await runtime.repository.getNewsEntriesInWindow(windowStartIso, windowEndIso),
+        activeNewsSources,
+      );
     }
 
     return NextResponse.json(
