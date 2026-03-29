@@ -177,5 +177,8 @@ CREATE INDEX IF NOT EXISTS idx_news_snapshots_lookup
 CREATE INDEX IF NOT EXISTS idx_news_entries_published
   ON news_entries(published_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_news_entries_source_url
+  ON news_entries(source_name, canonical_url);
+
 CREATE INDEX IF NOT EXISTS idx_notification_status
   ON notification_log(status, created_at DESC);

@@ -37,6 +37,28 @@ function isoMinusDays(iso: string, days: number): string {
   return new Date(ts - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
+function filterEntriesForIngestWindow<T extends { publishedAt?: string }>(
+  entries: T[],
+  nowIso: string,
+  windowDays: number,
+): T[] {
+  const windowStartIso = isoMinusDays(nowIso, windowDays);
+  const windowStartTs = Date.parse(windowStartIso);
+  if (!Number.isFinite(windowStartTs)) {
+    return entries;
+  }
+  return entries.filter((entry) => {
+    if (!entry.publishedAt) {
+      return true;
+    }
+    const ts = Date.parse(entry.publishedAt);
+    if (!Number.isFinite(ts)) {
+      return true;
+    }
+    return ts >= windowStartTs;
+  });
+}
+
 export async function initializeMonitoringRuntime(options: MonitoringRuntimeOptions = {}): Promise<MonitoringRuntime> {
   return openMonitoringRuntime(options);
 }
@@ -47,6 +69,14 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
   const repository = runtime.repository;
   const nowIso = options.nowIso ?? new Date().toISOString();
   const timeoutMs = options.timeoutMs ?? 15_000;
+  const ingestWindowDaysRaw = Number(process.env.MONITORING_NEWS_INGEST_WINDOW_DAYS ?? "14");
+  const ingestWindowDays = Number.isFinite(ingestWindowDaysRaw) && ingestWindowDaysRaw > 0
+    ? Math.floor(ingestWindowDaysRaw)
+    : 14;
+  const retentionDaysRaw = Number(process.env.MONITORING_NEWS_RETENTION_DAYS ?? "90");
+  const retentionDays = Number.isFinite(retentionDaysRaw) && retentionDaysRaw > 0
+    ? Math.floor(retentionDaysRaw)
+    : 90;
   const summary: RunSummary = {
     leaderboardSourcesChecked: 0,
     leaderboardSnapshotsWritten: 0,
@@ -195,8 +225,9 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
         summary.newsSourcesChecked += 1;
         const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
         const entries = await adapter.normalizeNews(raw, nowIso);
-        await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, entries, raw);
-        summary.newsEntriesWritten += entries.length;
+        const filteredEntries = filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays);
+        await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries, raw);
+        summary.newsEntriesWritten += filteredEntries.length;
         await repository.upsertSourceHealth({
           sourceName: adapter.sourceName,
           sourceType: "news",
@@ -220,6 +251,8 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
         continue;
       }
     }
+
+    await repository.pruneNewsData(retentionDays);
 
     const runStatus = hadSourceErrors || summary.notificationsFailed > 0 ? "partial_success" : "success";
     await repository.updateRun(runId, runStatus, new Date().toISOString(), summary);

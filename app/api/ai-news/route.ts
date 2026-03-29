@@ -56,6 +56,32 @@ function pickVisibleEntries(
   return capped.sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
 }
 
+function isoMinusDays(iso: string, days: number): string {
+  const ts = Date.parse(iso);
+  if (!Number.isFinite(ts)) {
+    return iso;
+  }
+  return new Date(ts - days * 24 * 60 * 60 * 1000).toISOString();
+}
+
+function filterEntriesForIngestWindow(entries: NormalizedNewsEntry[], nowIso: string, windowDays: number) {
+  const windowStartIso = isoMinusDays(nowIso, windowDays);
+  const windowStartTs = Date.parse(windowStartIso);
+  if (!Number.isFinite(windowStartTs)) {
+    return entries;
+  }
+  return entries.filter((entry) => {
+    if (!entry.publishedAt) {
+      return true;
+    }
+    const ts = Date.parse(entry.publishedAt);
+    if (!Number.isFinite(ts)) {
+      return true;
+    }
+    return ts >= windowStartTs;
+  });
+}
+
 async function hydrateNewsIfEmpty(nowIso: string) {
   const runtime = await openMonitoringRuntime();
   const runId = await runtime.repository.insertRun({
@@ -66,6 +92,10 @@ async function hydrateNewsIfEmpty(nowIso: string) {
 
   let checked = 0;
   let written = 0;
+  const ingestWindowDaysRaw = Number(process.env.MONITORING_NEWS_INGEST_WINDOW_DAYS ?? "14");
+  const ingestWindowDays = Number.isFinite(ingestWindowDaysRaw) && ingestWindowDaysRaw > 0
+    ? Math.floor(ingestWindowDaysRaw)
+    : 14;
 
   try {
     const adapters = getActiveNewsSources();
@@ -73,8 +103,9 @@ async function hydrateNewsIfEmpty(nowIso: string) {
       checked += 1;
       const raw = await adapter.fetchRaw({ nowIso, timeoutMs: 15_000 });
       const entries = await adapter.normalizeNews(raw, nowIso);
-      written += entries.length;
-      await runtime.repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, entries, raw);
+      const filteredEntries = filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays);
+      written += filteredEntries.length;
+      await runtime.repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries, raw);
       await runtime.repository.upsertSourceHealth({
         sourceName: adapter.sourceName,
         sourceType: "news",

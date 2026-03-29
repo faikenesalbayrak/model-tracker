@@ -308,10 +308,16 @@ export class MonitoringRepository {
     });
 
     const insert = this.db.prepare(`
-      INSERT OR IGNORE INTO news_entries
+      INSERT INTO news_entries
       (id, snapshot_id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json)
-      VALUES
-      (@id, @snapshotId, @sourceName, @canonicalUrl, @title, @publishedAt, @authorOrOutlet, @summary, @topicTagsJson, @importanceScore, @payloadJson)
+      SELECT
+      @id, @snapshotId, @sourceName, @canonicalUrl, @title, @publishedAt, @authorOrOutlet, @summary, @topicTagsJson, @importanceScore, @payloadJson
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM news_entries existing
+        WHERE existing.source_name = @sourceName
+          AND existing.canonical_url = @canonicalUrl
+      )
     `);
     const tx = this.db.transaction((batch: NormalizedNewsEntry[]) => {
       for (const row of batch) {
@@ -332,6 +338,23 @@ export class MonitoringRepository {
     });
     tx(entries);
     return snapshotId;
+  }
+
+  pruneNewsData(retentionDays: number): { entriesDeleted: number; snapshotsDeleted: number } {
+    const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 90;
+    const cutoffIso = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString();
+
+    const entriesDeleted = this.db.prepare(`
+      DELETE FROM news_entries
+      WHERE COALESCE(published_at, created_at) < @cutoffIso
+    `).run({ cutoffIso }).changes;
+
+    const snapshotsDeleted = this.db.prepare(`
+      DELETE FROM news_snapshots
+      WHERE id NOT IN (SELECT DISTINCT snapshot_id FROM news_entries)
+    `).run().changes;
+
+    return { entriesDeleted, snapshotsDeleted };
   }
 
   getNewsEntriesInWindow(windowStartIso: string, windowEndIso: string): NormalizedNewsEntry[] {

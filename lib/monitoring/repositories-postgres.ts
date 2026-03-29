@@ -335,8 +335,13 @@ export class PostgresMonitoringRepository {
         `
         INSERT INTO public.news_entries
         (id, snapshot_id, source_name, canonical_url, title, published_at, author_or_outlet, summary, topic_tags_json, importance_score, payload_json)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11::jsonb)
-        ON CONFLICT (snapshot_id, canonical_url) DO NOTHING
+        SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11::jsonb
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM public.news_entries existing
+          WHERE existing.source_name = $3
+            AND existing.canonical_url = $4
+        )
         `,
         [
           randomUUID(),
@@ -355,6 +360,39 @@ export class PostgresMonitoringRepository {
     }
 
     return snapshotId;
+  }
+
+  async pruneNewsData(retentionDays: number): Promise<{ entriesDeleted: number; snapshotsDeleted: number }> {
+    const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 90;
+    const cutoffIso = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString();
+
+    const deletedEntries = await this.db.query<{ count: string }>(
+      `
+      WITH deleted AS (
+        DELETE FROM public.news_entries
+        WHERE COALESCE(published_at, created_at) < $1
+        RETURNING 1
+      )
+      SELECT COUNT(*)::text AS count FROM deleted
+      `,
+      [cutoffIso],
+    );
+
+    const deletedSnapshots = await this.db.query<{ count: string }>(`
+      WITH deleted AS (
+        DELETE FROM public.news_snapshots s
+        WHERE NOT EXISTS (
+          SELECT 1 FROM public.news_entries e WHERE e.snapshot_id = s.id
+        )
+        RETURNING 1
+      )
+      SELECT COUNT(*)::text AS count FROM deleted
+    `);
+
+    return {
+      entriesDeleted: Number(deletedEntries.rows[0]?.count ?? "0"),
+      snapshotsDeleted: Number(deletedSnapshots.rows[0]?.count ?? "0"),
+    };
   }
 
   async getNewsEntriesInWindow(windowStartIso: string, windowEndIso: string): Promise<NormalizedNewsEntry[]> {
