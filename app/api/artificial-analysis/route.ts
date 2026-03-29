@@ -1,19 +1,21 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import {
   extractArtificialAnalysisModels,
   type ArtificialAnalysisModel,
 } from "@/lib/normalize/artificial-analysis";
 import { fetchWithRetry, toApiErrorMeta } from "@/lib/fetcher";
+import {
+  readSnapshot,
+  refreshSnapshot as persistSnapshot,
+  startAutoRefresh,
+} from "@/lib/local-snapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SOURCE_URL = "https://artificialanalysis.ai/models";
 const REFRESH_MS = 12 * 60 * 60 * 1000;
-const DATA_DIR = path.join(process.cwd(), "data");
-const SNAPSHOT_FILE = path.join(DATA_DIR, "artificial-analysis-models.json");
+const CACHE_KEY = "artificial-analysis-models";
 
 type Snapshot = {
   last_success_at: string;
@@ -30,25 +32,6 @@ type Payload = Snapshot & {
 
 let memorySnapshot: Snapshot | null = null;
 let refreshInFlight: Promise<Snapshot> | null = null;
-let intervalStarted = false;
-
-async function readSnapshotFromDisk(): Promise<Snapshot | null> {
-  try {
-    const raw = await readFile(SNAPSHOT_FILE, "utf8");
-    const parsed = JSON.parse(raw) as Snapshot;
-    if (!Array.isArray(parsed.data) || typeof parsed.last_success_at !== "string") {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-async function writeSnapshotToDisk(snapshot: Snapshot): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
-  await writeFile(SNAPSHOT_FILE, JSON.stringify(snapshot, null, 2), "utf8");
-}
 
 function snapshotIsStale(lastSuccessAt: string): boolean {
   const last = Date.parse(lastSuccessAt);
@@ -93,8 +76,8 @@ async function refreshSnapshot(): Promise<Snapshot> {
 
   refreshInFlight = (async () => {
     const snapshot = await fetchFreshSnapshot();
-    await writeSnapshotToDisk(snapshot);
     memorySnapshot = snapshot;
+    await persistSnapshot<Snapshot>(CACHE_KEY, async () => snapshot);
     return snapshot;
   })().finally(() => {
     refreshInFlight = null;
@@ -104,18 +87,7 @@ async function refreshSnapshot(): Promise<Snapshot> {
 }
 
 function startAutoRefreshLoop(): void {
-  if (intervalStarted) {
-    return;
-  }
-  intervalStarted = true;
-
-  const timer = setInterval(() => {
-    void refreshSnapshot().catch(() => {
-      // Preserve last good snapshot if refresh fails.
-    });
-  }, REFRESH_MS);
-
-  timer.unref?.();
+  startAutoRefresh(CACHE_KEY, REFRESH_MS, refreshSnapshot);
 }
 
 async function ensureSnapshot(): Promise<Snapshot | null> {
@@ -123,7 +95,7 @@ async function ensureSnapshot(): Promise<Snapshot | null> {
     return memorySnapshot;
   }
 
-  const disk = await readSnapshotFromDisk();
+  const disk = await readSnapshot<Snapshot>(CACHE_KEY);
   if (disk) {
     memorySnapshot = disk;
     return disk;

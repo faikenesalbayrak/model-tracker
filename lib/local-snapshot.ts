@@ -1,13 +1,42 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+function resolveCacheRootDir(): string {
+  const explicit = process.env.MONITORING_CACHE_DIR?.trim();
+  if (explicit) {
+    return explicit;
+  }
+
+  const isServerlessProd =
+    process.env.NODE_ENV === "production" ||
+    Boolean(process.env.VERCEL) ||
+    Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+  if (isServerlessProd) {
+    return "/tmp/model-tracker";
+  }
+
+  return path.join(process.cwd(), "data");
+}
+
+const CACHE_DIR = resolveCacheRootDir();
 const memory = new Map<string, unknown>();
 const inflight = new Map<string, Promise<unknown>>();
 const loops = new Set<string>();
+const warnedPaths = new Set<string>();
 
 function filePathFor(key: string): string {
-  return path.join(DATA_DIR, `${key}.json`);
+  return path.join(CACHE_DIR, `${key}.json`);
+}
+
+function warnCachePersistenceIssue(filePath: string, error: unknown): void {
+  const signature = `${filePath}:${error instanceof Error ? error.name : typeof error}`;
+  if (warnedPaths.has(signature)) {
+    return;
+  }
+  warnedPaths.add(signature);
+  const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  console.warn(`Snapshot disk persistence disabled for ${filePath}; continuing with memory cache. ${detail}`);
 }
 
 export async function readSnapshot<T>(key: string): Promise<T | null> {
@@ -26,9 +55,14 @@ export async function readSnapshot<T>(key: string): Promise<T | null> {
 }
 
 export async function writeSnapshot<T>(key: string, value: T): Promise<void> {
-  await mkdir(DATA_DIR, { recursive: true });
-  await writeFile(filePathFor(key), JSON.stringify(value, null, 2), "utf8");
   memory.set(key, value);
+  const filePath = filePathFor(key);
+  try {
+    await mkdir(CACHE_DIR, { recursive: true });
+    await writeFile(filePath, JSON.stringify(value, null, 2), "utf8");
+  } catch (error) {
+    warnCachePersistenceIssue(filePath, error);
+  }
 }
 
 export async function refreshSnapshot<T>(
