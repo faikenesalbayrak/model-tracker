@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
-import { getNewsSourceLabel } from "@/lib/monitoring/news-source-label";
+import { getNewsDisplayTitle, getNewsSourceLabel } from "@/lib/monitoring/news-source-label";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,7 +59,7 @@ export async function GET() {
         snapshotAt: windowEndIso,
         data: entries.map((item) => ({
           id: item.canonicalUrl,
-          title: item.title,
+          title: getNewsDisplayTitle(item),
           link: item.canonicalUrl,
           source: getNewsSourceLabel(item),
           publishedAt: item.publishedAt ?? windowEndIso,

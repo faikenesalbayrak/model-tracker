@@ -19,6 +19,26 @@ function toTitleCaseFromSlug(value: string): string {
     .join(" ");
 }
 
+function titleFromUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const last = parsed.pathname.split("/").filter(Boolean).at(-1);
+    if (!last) return null;
+    const cleaned = decodeURIComponent(last)
+      .replace(/\.[a-z0-9]+$/i, "")
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!cleaned) return null;
+    return cleaned
+      .split(" ")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  } catch {
+    return null;
+  }
+}
+
 export function getNewsSourceLabel(entry: Pick<NormalizedNewsEntry, "sourceName" | "payload">): string {
   const outlet = entry.payload?.outlet;
   if (typeof outlet === "string" && outlet.trim().length > 0) {
@@ -31,4 +51,12 @@ export function getNewsSourceLabel(entry: Pick<NormalizedNewsEntry, "sourceName"
   }
 
   return toTitleCaseFromSlug(entry.sourceName);
+}
+
+export function getNewsDisplayTitle(entry: Pick<NormalizedNewsEntry, "title" | "canonicalUrl">): string {
+  const cleaned = entry.title.trim();
+  if (cleaned.length > 0) {
+    return cleaned;
+  }
+  return titleFromUrl(entry.canonicalUrl) ?? entry.canonicalUrl;
 }
