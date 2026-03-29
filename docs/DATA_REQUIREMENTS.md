@@ -121,38 +121,36 @@ Kalite kuralları:
 2. Aynı olay tekrarını engellemek için `event_fingerprint` kullanılır.
 3. Kaynak önceliklendirme: `primary_source`, ardından sağlıklı `secondary_sources`.
 
-### 2) Weekly Important AI News Digest
-Amaç: Haftalık olarak 10 önemli AI haberini tek e-posta halinde göndermek.
+### 2) AI News Pipeline
+Amaç: AI ile ilgili güncel haberleri düzenli toplayıp frontend’e taşımak.
 
 Kurallar:
-1. Zaman penceresi: son 7 gün
-2. Kaynak havuzu: LLM Stats + NewsAPI + NewsCatcher + GDELT + HN Algolia + arXiv
-3. Seçim: recency + source diversity + keyword importance
-4. Dedupe: canonical URL ve normalize başlık benzerliği
-5. Çıktı: sabit 10 haber
+1. Ingest penceresi: son 14 gün
+2. Dedupe: canonical URL + kaynak bazlı unique
+3. Relevance: AI keyword/context filtresi + commerce noise elemesi
+4. Sıralama: en yeni yayın tarihi en üstte
+5. Retention: `news_history` için 30 gün purge
 
 ### 3) Scheduler Requirements
 1. Local process içinde çalışmalı (serverless yok)
 2. Timezone: `Europe/Istanbul`
 3. Run saatleri:
-   - günlük `09:00` ve `21:00` (top-10 monitoring)
-   - haftalık `Pazartesi 09:15` (weekly digest)
+   - günlük `09:00` ve `21:00` (monitoring + news ingest)
 
-### 4) Persistence Requirements (SQLite)
+### 4) Persistence Requirements (Domain current/history)
 Gerekli tablolar:
 1. `monitor_runs`
-2. `leaderboard_snapshots`
-3. `leaderboard_entries`
-4. `leaderboard_changes`
-5. `news_snapshots`
-6. `news_entries`
-7. `weekly_digests`
-8. `weekly_digest_items`
-9. `notification_log`
-10. `source_health`
+2. `leaderboard_changes`
+3. `notification_log`
+4. `source_health`
+5. `llm_current`, `llm_history`
+6. `vlm_current`, `vlm_history`
+7. `tts_current`, `tts_history`
+8. `stt_current`, `stt_history`
+9. `embeddings_current`, `embeddings_history`
+10. `news_current`, `news_history`
 
 ### 5) Notification Requirements
 1. Mail gönderimi: kurumsal SMTP (`nodemailer`)
 2. Top-10 alert mail: python script ile üretilen görsel (PNG) e-posta içinde
-3. Weekly digest mail: 10 haber başlık/özet/link listesi
-4. Tüm gönderimler `notification_log` ile izlenmeli (sent/failed)
+3. Tüm gönderimler `notification_log` ile izlenmeli (sent/failed)

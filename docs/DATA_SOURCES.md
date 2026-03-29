@@ -4,19 +4,21 @@ Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen al
 
 ## Monitoring Pipeline (Yeni)
 - Çalışma modu: local-first, uygulama process’i içinde scheduler.
-- Frekans: günde 2 kez (`09:00`, `21:00`, Europe/Istanbul) + haftalık digest (`Pazartesi 09:15`).
-- Persistence: SQLite (`docs/sqlite_monitoring_schema.sql`).
+- Frekans: günde 2 kez (`09:00`, `21:00`, Europe/Istanbul).
+- Persistence:
+  - Local: SQLite (`docs/sqlite_monitoring_schema.sql`)
+  - Prod: Postgres/Neon (`docs/postgres_monitoring_schema.sql`)
 - Ana tablolar:
 1. `monitor_runs`
-2. `leaderboard_snapshots`
-3. `leaderboard_entries`
-4. `leaderboard_changes`
-5. `news_snapshots`
-6. `news_entries`
-7. `weekly_digests`
-8. `weekly_digest_items`
-9. `notification_log`
-10. `source_health`
+2. `leaderboard_changes`
+3. `source_health`
+4. `notification_log`
+5. `llm_current`, `llm_history`
+6. `vlm_current`, `vlm_history`
+7. `tts_current`, `tts_history`
+8. `stt_current`, `stt_history`
+9. `embeddings_current`, `embeddings_history`
+10. `news_current`, `news_history`
 
 ## Kategori Bazlı Leaderboard Kaynak Haritası (Planlanan/Active)
 1. `general_llm`
@@ -37,9 +39,9 @@ Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen al
    - Active: `llm_stats_embeddings` (`api.zeroeval.com` category: `search`, top benchmark subset aggregation)
    - Planned: `mteb_leaderboard`
 
-## Haber Kaynağı Politikası (Weekly Top-10 Digest)
-- Haber hattı tek kaynaktan beslenir (multi-source yok).
-- Haber kaynağı, leaderboard/metadata gibi veri kaynaklarıyla aynı olamaz.
+## Haber Kaynağı Politikası
+- Haber hattı multi-source çalışır, sonuçlar `news_current` tablosunda dedupe edilir.
+- Frontend yalnız AI relevance filtresini geçen kayıtları gösterir.
 - Active: `hn_algolia`
 - Disabled (policy nedeniyle): `llm_stats_ai_news`
 - Planned: `newsapi_everything`, `newscatcher_api`, `gdelt_doc_v2`, `arxiv_feed_news_lane`
@@ -225,9 +227,13 @@ Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen al
 
 ## Cache ve Güncelleme Politikası
 - Tüm endpointler local snapshot mantığıyla çalışır.
-- Snapshot dosyaları `data/` klasörüne yazılır.
+- Snapshot cache dosyaları:
+  - `MONITORING_CACHE_DIR` varsa oraya
+  - yoksa production/serverless ortamda `/tmp/model-tracker`
+  - local geliştirmede `data/`
+- Disk yazımı başarısız olursa endpoint memory cache ile çalışmaya devam eder.
 - Otomatik yenileme aralığı: 12 saat.
-- Cache yoksa endpoint boş fallback data üretmez; uygun durumda `503` dönebilir.
+- Cache yoksa endpoint uygun durumda `503` dönebilir.
 
 ## Monitoring İçin Normalize Alan Setleri
 ### Leaderboard Entry
@@ -241,8 +247,8 @@ Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen al
 8. `score`
 9. `score_unit`
 10. `model_url`
-11. `snapshot_at`
-12. `raw_payload_json`
+11. `observed_at`
+12. `payload_json`
 
 ### News Entry
 1. `source_name`
@@ -253,5 +259,5 @@ Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen al
 6. `summary`
 7. `topic_tags`
 8. `importance_score`
-9. `snapshot_at`
-10. `raw_payload_json`
+9. `observed_at`
+10. `payload_json`
