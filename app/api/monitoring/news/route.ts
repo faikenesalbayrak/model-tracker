@@ -23,7 +23,7 @@ function dedupeByCanonical(entries: NormalizedNewsEntry[]): NormalizedNewsEntry[
   for (const entry of entries) {
     const key = entry.canonicalUrl.trim();
     if (!key) continue;
-    if (entry.sourceName === "google_news_ai") {
+    if (entry.sourceName === "google_news_ai" || entry.canonicalUrl.includes("news.google.com")) {
       const fallbackKey = `${entry.title.trim().toLowerCase()}|${entry.publishedAt ?? ""}`;
       if (googleFallback.has(fallbackKey)) continue;
       googleFallback.add(fallbackKey);
