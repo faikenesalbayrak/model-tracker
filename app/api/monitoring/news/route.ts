@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 function dedupeByCanonical(entries: NormalizedNewsEntry[]): NormalizedNewsEntry[] {
   const byCanonical = new Map<string, NormalizedNewsEntry>();
+  const googleFallback = new Set<string>();
   const richnessScore = (entry: NormalizedNewsEntry): number => {
     const hasTitle = entry.title.trim().length > 0 ? 1 : 0;
     const hasImage =
@@ -22,6 +23,11 @@ function dedupeByCanonical(entries: NormalizedNewsEntry[]): NormalizedNewsEntry[
   for (const entry of entries) {
     const key = entry.canonicalUrl.trim();
     if (!key) continue;
+    if (entry.sourceName === "google_news_ai") {
+      const fallbackKey = `${entry.title.trim().toLowerCase()}|${entry.publishedAt ?? ""}`;
+      if (googleFallback.has(fallbackKey)) continue;
+      googleFallback.add(fallbackKey);
+    }
     const existing = byCanonical.get(key);
     if (!existing || richnessScore(entry) > richnessScore(existing)) {
       byCanonical.set(key, entry);
