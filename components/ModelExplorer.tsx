@@ -446,153 +446,6 @@ function describeCategoryScore(
     ? `Kaynak: ${source}. Bu kategori için birincil performans skorudur; yüksek değer daha iyi performansı ifade eder.`
     : `Source: ${source}. This is the primary performance score for this category; higher means better performance.`;
 }
-const MOCK_AI_NEWS: AiNewsItem[] = [
-  {
-    id: "mock-news-1",
-    title: "Open-source coding copilots race heats up with faster local inference stacks",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T09:00:00.000Z",
-    timeAgo: "now",
-    imageUrl: "/mock-news/open-source-copilot.svg",
-  },
-  {
-    id: "mock-news-2",
-    title: "New multimodal benchmark wave spotlights reasoning + vision consistency",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T08:00:00.000Z",
-    timeAgo: "1h",
-    imageUrl: "/mock-news/multimodal-benchmarks.svg",
-  },
-  {
-    id: "mock-news-3",
-    title: "AI infra teams optimize token latency with smarter routing strategies",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T07:00:00.000Z",
-    timeAgo: "2h",
-    imageUrl: "/mock-news/token-latency-routing.svg",
-  },
-  {
-    id: "mock-news-4",
-    title: "Frontier model pricing pressure pushes providers toward bundle plans",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T06:00:00.000Z",
-    timeAgo: "3h",
-    imageUrl: "/mock-news/pricing-bundles.svg",
-  },
-  {
-    id: "mock-news-5",
-    title: "Agent workflow templates become default in enterprise AI operations",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T05:00:00.000Z",
-    timeAgo: "4h",
-    imageUrl: "/mock-news/open-source-copilot.svg",
-  },
-  {
-    id: "mock-news-6",
-    title: "Smaller reasoning models gain traction thanks to lower latency targets",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T04:00:00.000Z",
-    timeAgo: "5h",
-    imageUrl: "/mock-news/token-latency-routing.svg",
-  },
-  {
-    id: "mock-news-7",
-    title: "Cloud AI teams roll out weekly benchmark snapshots for product planning",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T03:00:00.000Z",
-    timeAgo: "6h",
-    imageUrl: "/mock-news/multimodal-benchmarks.svg",
-  },
-  {
-    id: "mock-news-8",
-    title: "Model monitoring stacks adopt tighter alerting for output quality drift",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T02:00:00.000Z",
-    timeAgo: "7h",
-    imageUrl: "/mock-news/pricing-bundles.svg",
-  },
-  {
-    id: "mock-news-9",
-    title: "Prompt evaluation suites expand multilingual regression checks",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T01:00:00.000Z",
-    timeAgo: "8h",
-    imageUrl: "/mock-news/open-source-copilot.svg",
-  },
-  {
-    id: "mock-news-10",
-    title: "Teams combine retrieval and reasoning layers for faster support agents",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-24T00:00:00.000Z",
-    timeAgo: "9h",
-    imageUrl: "/mock-news/token-latency-routing.svg",
-  },
-  {
-    id: "mock-news-11",
-    title: "Evaluation dashboards add side-by-side quality trend diffing by release",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-23T23:00:00.000Z",
-    timeAgo: "10h",
-    imageUrl: "/mock-news/multimodal-benchmarks.svg",
-  },
-  {
-    id: "mock-news-12",
-    title: "Inference gateways cut costs with adaptive model-tier fallback policies",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-23T22:00:00.000Z",
-    timeAgo: "11h",
-    imageUrl: "/mock-news/pricing-bundles.svg",
-  },
-  {
-    id: "mock-news-13",
-    title: "Vision-language product teams prioritize temporal consistency tests",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-23T21:00:00.000Z",
-    timeAgo: "12h",
-    imageUrl: "/mock-news/token-latency-routing.svg",
-  },
-  {
-    id: "mock-news-14",
-    title: "Open model hosts roll out per-region failover for enterprise workloads",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-23T20:00:00.000Z",
-    timeAgo: "13h",
-    imageUrl: "/mock-news/open-source-copilot.svg",
-  },
-  {
-    id: "mock-news-15",
-    title: "Prompt libraries introduce stricter version pinning for reliability",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-23T19:00:00.000Z",
-    timeAgo: "14h",
-    imageUrl: "/mock-news/multimodal-benchmarks.svg",
-  },
-  {
-    id: "mock-news-16",
-    title: "Applied AI teams benchmark support agents on conversation resolution rate",
-    link: "",
-    source: "Mock Feed",
-    publishedAt: "2026-03-23T18:00:00.000Z",
-    timeAgo: "15h",
-    imageUrl: "/mock-news/pricing-bundles.svg",
-  },
-];
-
 export function ModelExplorer({
   aaModels,
   aaModelsLoading = false,
@@ -815,21 +668,9 @@ export function ModelExplorer({
     [aaModels],
   );
   const aiNewsPreview = useMemo(() => {
-    const primary = [...(aiNews.length > 0 ? aiNews : MOCK_AI_NEWS)]
-      .sort((left, right) => toMs(right.publishedAt) - toMs(left.publishedAt));
-    const merged = [...primary];
-    if (merged.length < AI_NEWS_LIMIT) {
-      for (const mock of MOCK_AI_NEWS) {
-        if (merged.length >= AI_NEWS_LIMIT) break;
-        if (merged.some((item) => item.id === mock.id || item.link === mock.link)) continue;
-        merged.push(mock);
-      }
-    }
-
-    return merged.slice(0, AI_NEWS_LIMIT).map((item, index) => ({
-      ...item,
-      imageUrl: item.imageUrl || MOCK_AI_NEWS[index % MOCK_AI_NEWS.length]?.imageUrl || null,
-    }));
+    return [...aiNews]
+      .sort((left, right) => toMs(right.publishedAt) - toMs(left.publishedAt))
+      .slice(0, AI_NEWS_LIMIT);
   }, [aiNews]);
   const showAiNewsScrollHint = aiNewsPreview.length > 4;
   const overallRankById = useMemo(() => {
@@ -1741,53 +1582,75 @@ export function ModelExplorer({
               </div>
               <div className="relative">
                 <div className="hide-scrollbar max-h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1">
-                  {aiNewsPreview.map((item) => (
-                    <article
-                      key={item.id}
-                      className="rounded-xl px-3 py-3"
+                  {aiNewsPreview.length === 0 ? (
+                    <div
+                      className="rounded-xl px-3 py-6 text-xs"
                       style={{
                         border: "1px solid var(--border)",
                         background: "var(--surface-subtle)",
+                        color: "var(--text-muted)",
                       }}
                     >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg"
-                          style={{ border: "1px solid var(--border)" }}
-                        >
-                          <Image
-                            alt={item.title}
-                            className="h-full w-full object-cover"
-                            height={56}
-                            src={item.imageUrl || "/mock-news/open-source-copilot.svg"}
-                            width={80}
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          {item.link && !BLOCKED_NEWS_DOMAIN_PATTERN.test(item.link) ? (
-                            <a
-                              className="line-clamp-2 text-xs font-semibold transition-colors duration-150"
-                              href={item.link}
-                              rel="noreferrer"
-                              target="_blank"
-                              style={{ color: "var(--text)" }}
-                              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--accent)"; }}
-                              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text)"; }}
-                            >
-                              {item.title}
-                            </a>
-                          ) : (
-                            <p className="line-clamp-2 text-xs font-semibold" style={{ color: "var(--text)" }}>
-                              {item.title}
+                      {locale === "tr" ? "Henüz haber yok." : "No news yet."}
+                    </div>
+                  ) : (
+                    aiNewsPreview.map((item) => (
+                      <article
+                        key={item.id}
+                        className="rounded-xl px-3 py-3"
+                        style={{
+                          border: "1px solid var(--border)",
+                          background: "var(--surface-subtle)",
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg"
+                            style={{ border: "1px solid var(--border)" }}
+                          >
+                            {item.imageUrl ? (
+                              <Image
+                                alt={item.title}
+                                className="h-full w-full object-cover"
+                                height={56}
+                                src={item.imageUrl}
+                                width={80}
+                              />
+                            ) : (
+                              <div
+                                className="grid h-full w-full place-items-center text-[10px] font-semibold uppercase tracking-[0.16em]"
+                                style={{ color: "var(--text-faint)" }}
+                              >
+                                News
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            {item.link && !BLOCKED_NEWS_DOMAIN_PATTERN.test(item.link) ? (
+                              <a
+                                className="line-clamp-2 text-xs font-semibold transition-colors duration-150"
+                                href={item.link}
+                                rel="noreferrer"
+                                target="_blank"
+                                style={{ color: "var(--text)" }}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--accent)"; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = "var(--text)"; }}
+                              >
+                                {item.title}
+                              </a>
+                            ) : (
+                              <p className="line-clamp-2 text-xs font-semibold" style={{ color: "var(--text)" }}>
+                                {item.title}
+                              </p>
+                            )}
+                            <p className="mt-0.5 text-[10px] sm:text-xs" style={{ color: "var(--text-faint)" }}>
+                              {item.source} <span className="px-1">·</span> {shortDate(item.publishedAt, locale)}
                             </p>
-                          )}
-                          <p className="mt-0.5 text-[10px] sm:text-xs" style={{ color: "var(--text-faint)" }}>
-                            {item.source} <span className="px-1">·</span> {shortDate(item.publishedAt, locale)}
-                          </p>
+                          </div>
                         </div>
-                      </div>
-                    </article>
-                  ))}
+                      </article>
+                    ))
+                  )}
                 </div>
                 {showAiNewsScrollHint ? (
                   <>

@@ -137,7 +137,7 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
       );
       const aiNewsPromise = loadFeed(
         "ai-news",
-        "/api/monitoring/news",
+        "/api/ai-news",
         [],
         sourceLabels.sourceAiNews,
         parseAiNewsFeed,

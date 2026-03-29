@@ -1,8 +1,8 @@
 {
   "route": "releases",
   "source": "hf_hub",
-  "generated_at": "2026-03-26T14:51:12.388Z",
-  "last_success_at": "2026-03-26T14:51:12.388Z",
+  "generated_at": "2026-03-27T02:56:52.749Z",
+  "last_success_at": "2026-03-27T02:56:52.749Z",
   "stale": false,
   "data": [
     {
@@ -16,7 +16,7 @@
       "url": "https://huggingface.co/nvidia/gpt-oss-puzzle-88B",
       "timestamp": "2026-03-25T08:43:30.000Z",
       "confidence": "medium",
-      "last_success_at": "2026-03-26T14:51:12.388Z",
+      "last_success_at": "2026-03-27T02:56:52.749Z",
       "payload": {
         "model_id": "nvidia/gpt-oss-puzzle-88B",
         "release_date": "2026-03-25T08:43:30.000Z",
@@ -44,7 +44,7 @@
           "mxfp4",
           "region:us"
         ],
-        "likes": 25,
+        "likes": 41,
         "downloads": 22,
         "pipeline_tag": "text-generation"
       }
