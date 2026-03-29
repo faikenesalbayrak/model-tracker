@@ -1608,22 +1608,24 @@ export function ModelExplorer({
                             className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg"
                             style={{ border: "1px solid var(--border)" }}
                           >
+                            <div
+                              className="absolute inset-0 grid place-items-center px-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-center"
+                              style={{ color: "var(--text-faint)", background: "var(--surface-card)" }}
+                            >
+                              {newsSourceMonogram(item.source)}
+                            </div>
                             {item.imageUrl ? (
-                              <Image
-                                alt={item.title}
-                                className="h-full w-full object-cover"
-                                height={56}
+                              <img
+                                alt={item.source}
+                                className="absolute inset-0 h-full w-full object-contain bg-[var(--surface-card)]"
+                                loading="lazy"
+                                referrerPolicy="no-referrer"
                                 src={item.imageUrl}
-                                width={80}
+                                onError={(event) => {
+                                  event.currentTarget.style.display = "none";
+                                }}
                               />
-                            ) : (
-                              <div
-                                className="grid h-full w-full place-items-center text-[10px] font-semibold uppercase tracking-[0.16em]"
-                                style={{ color: "var(--text-faint)" }}
-                              >
-                                News
-                              </div>
-                            )}
+                            ) : null}
                           </div>
                           <div className="min-w-0">
                             {item.link && !BLOCKED_NEWS_DOMAIN_PATTERN.test(item.link) ? (
@@ -2940,6 +2942,15 @@ function labMonogram(lab: string) {
     .slice(0, 2)
     .map((part) => part[0] ?? "")
     .join("");
+}
+
+function newsSourceMonogram(source: string) {
+  return source
+    .split(/[\s./-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => (part[0] ?? "").toUpperCase())
+    .join("") || "NEWS";
 }
 
 function getLabLogoPath(lab: string): string | null {
