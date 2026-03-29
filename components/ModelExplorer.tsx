@@ -1561,7 +1561,7 @@ export function ModelExplorer({
 
             <div
               id="ai-news"
-              className="flex flex-col overflow-hidden rounded-[var(--radius-panel)] p-5"
+              className="flex min-h-[34rem] flex-col overflow-hidden rounded-[var(--radius-panel)] p-5"
               style={{
                 border: "1px solid var(--border)",
                 background: "var(--surface-card)",
@@ -1581,7 +1581,7 @@ export function ModelExplorer({
                 ) : null}
               </div>
               <div className="relative">
-                <div className="hide-scrollbar max-h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1">
+                <div className="hide-scrollbar h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1">
                   {aiNewsPreview.length === 0 ? (
                     <div
                       className="rounded-xl px-3 py-6 text-xs"

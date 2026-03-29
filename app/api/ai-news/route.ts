@@ -12,8 +12,16 @@ function pickVisibleEntries(
   activeNewsSources: Set<string>,
 ) {
   const sorted = [...entries].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
-  const filtered = sorted.filter((item) => activeNewsSources.has(item.sourceName));
-  return (filtered.length > 0 ? filtered : sorted).slice(0, 40);
+  const seen = new Set<string>();
+  const deduped: NormalizedNewsEntry[] = [];
+  for (const entry of sorted) {
+    const key = entry.canonicalUrl.trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(entry);
+  }
+  const filtered = deduped.filter((item) => activeNewsSources.has(item.sourceName));
+  return (filtered.length > 0 ? filtered : deduped).slice(0, 40);
 }
 
 async function hydrateNewsIfEmpty(nowIso: string) {
@@ -83,7 +91,7 @@ export async function GET() {
     const now = new Date();
     const windowEndIso = now.toISOString();
     const recentWindowStartIso = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-    const fallbackWindowStartIso = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+    const fallbackWindowStartIso = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
     const activeNewsSources = new Set(
       SOURCE_REGISTRY

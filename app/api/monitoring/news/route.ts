@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server";
 import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
+import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function dedupeByCanonical(entries: NormalizedNewsEntry[]): NormalizedNewsEntry[] {
+  const seen = new Set<string>();
+  const unique: NormalizedNewsEntry[] = [];
+  for (const entry of entries) {
+    const key = entry.canonicalUrl.trim();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(entry);
+  }
+  return unique;
+}
 
 export async function GET() {
   const runtime = await openMonitoringRuntime();
@@ -12,7 +25,7 @@ export async function GET() {
     const now = new Date();
     const windowEndIso = now.toISOString();
     const recentWindowStartIso = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString();
-    const fallbackWindowStartIso = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
+    const fallbackWindowStartIso = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
     const activeNewsSources = new Set(
       SOURCE_REGISTRY
         .filter((item) => item.sourceType === "news" && item.status === "enabled")
@@ -24,8 +37,9 @@ export async function GET() {
       allEntries = (await runtime.repository.getNewsEntriesInWindow(fallbackWindowStartIso, windowEndIso))
         .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
     }
-    const filteredEntries = allEntries.filter((item) => activeNewsSources.has(item.sourceName));
-    const entries = (filteredEntries.length > 0 ? filteredEntries : allEntries).slice(0, 40);
+    const dedupedEntries = dedupeByCanonical(allEntries);
+    const filteredEntries = dedupedEntries.filter((item) => activeNewsSources.has(item.sourceName));
+    const entries = (filteredEntries.length > 0 ? filteredEntries : dedupedEntries).slice(0, 40);
 
     return NextResponse.json(
       {
