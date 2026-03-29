@@ -7,6 +7,7 @@ const SOURCE_LABEL_OVERRIDES: Record<string, string> = {
   gdelt_doc_v2: "GDELT",
   semantic_scholar_trending: "Semantic Scholar",
   arxiv_feed_news_lane: "arXiv",
+  google_news_ai: "Google News",
   openrouter_models_api: "OpenRouter",
   github_releases_api: "GitHub Releases",
 };

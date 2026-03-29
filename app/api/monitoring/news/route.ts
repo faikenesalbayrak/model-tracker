@@ -51,7 +51,18 @@ export async function GET() {
     }
     const dedupedEntries = dedupeByCanonical(allEntries);
     const filteredEntries = dedupedEntries.filter((item) => activeNewsSources.has(item.sourceName));
-    const entries = (filteredEntries.length > 0 ? filteredEntries : dedupedEntries).slice(0, 40);
+    const pool = filteredEntries.length > 0 ? filteredEntries : dedupedEntries;
+    const maxPerSourceRaw = Number(process.env.MONITORING_NEWS_MAX_PER_SOURCE ?? "6");
+    const maxPerSource = Number.isFinite(maxPerSourceRaw) && maxPerSourceRaw > 0 ? Math.floor(maxPerSourceRaw) : 6;
+    const sourceCounts = new Map<string, number>();
+    const entries: NormalizedNewsEntry[] = [];
+    for (const entry of pool) {
+      const seen = sourceCounts.get(entry.sourceName) ?? 0;
+      if (seen >= maxPerSource) continue;
+      sourceCounts.set(entry.sourceName, seen + 1);
+      entries.push(entry);
+      if (entries.length >= 40) break;
+    }
 
     return NextResponse.json(
       {

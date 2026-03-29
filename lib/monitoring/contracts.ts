@@ -374,6 +374,12 @@ export const SOURCE_REGISTRY: SourceRegistryItem[] = [
     priority: 65,
   },
   {
+    sourceName: "google_news_ai",
+    sourceType: "news",
+    status: "enabled",
+    priority: 66,
+  },
+  {
     sourceName: "newsapi_everything",
     sourceType: "news",
     status: "planned",

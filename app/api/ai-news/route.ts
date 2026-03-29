@@ -35,7 +35,19 @@ function pickVisibleEntries(
   }
   const deduped = [...byCanonical.values()].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
   const filtered = deduped.filter((item) => activeNewsSources.has(item.sourceName));
-  return (filtered.length > 0 ? filtered : deduped).slice(0, 40);
+  const pool = filtered.length > 0 ? filtered : deduped;
+  const maxPerSourceRaw = Number(process.env.MONITORING_NEWS_MAX_PER_SOURCE ?? "6");
+  const maxPerSource = Number.isFinite(maxPerSourceRaw) && maxPerSourceRaw > 0 ? Math.floor(maxPerSourceRaw) : 6;
+  const sourceCounts = new Map<string, number>();
+  const capped: NormalizedNewsEntry[] = [];
+  for (const entry of pool) {
+    const seen = sourceCounts.get(entry.sourceName) ?? 0;
+    if (seen >= maxPerSource) continue;
+    sourceCounts.set(entry.sourceName, seen + 1);
+    capped.push(entry);
+    if (capped.length >= 40) break;
+  }
+  return capped;
 }
 
 async function hydrateNewsIfEmpty(nowIso: string) {

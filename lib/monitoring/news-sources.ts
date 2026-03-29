@@ -15,6 +15,7 @@ const RSS_FEEDS: Array<{
   topicTags: string[];
   outlet: string;
   importanceBoost?: number;
+  minRelevanceScore?: number;
 }> = [
   { sourceName: "arxiv_ai", url: "https://export.arxiv.org/rss/cs.AI", topicTags: ["research", "arxiv"], outlet: "arXiv", importanceBoost: 2.2 },
   { sourceName: "arxiv_cl", url: "https://export.arxiv.org/rss/cs.CL", topicTags: ["research", "arxiv"], outlet: "arXiv", importanceBoost: 2.0 },
@@ -35,12 +36,20 @@ const RSS_FEEDS: Array<{
   { sourceName: "google_cloud_ai_blog", url: "https://cloud.google.com/blog/topics/ai-ml/rss", topicTags: ["cloud", "industry"], outlet: "Google Cloud", importanceBoost: 1.7 },
   { sourceName: "azure_ai_blog", url: "https://azure.microsoft.com/en-us/blog/topics/ai-machine-learning/feed/", topicTags: ["cloud", "industry"], outlet: "Microsoft Azure", importanceBoost: 1.7 },
   { sourceName: "nvidia_ai_blog", url: "https://blogs.nvidia.com/blog/category/ai/feed/", topicTags: ["hardware", "industry"], outlet: "NVIDIA", importanceBoost: 1.8 },
-  { sourceName: "semafor_tech", url: "https://www.semafor.com/feeds/technology", topicTags: ["market", "industry"], outlet: "Semafor", importanceBoost: 1.3 },
-  { sourceName: "zdnet_ai", url: "https://www.zdnet.com/topic/artificial-intelligence/rss.xml", topicTags: ["industry", "enterprise"], outlet: "ZDNET", importanceBoost: 1.4 },
-  { sourceName: "computerworld_ai", url: "https://www.computerworld.com/index.rss", topicTags: ["enterprise", "industry"], outlet: "Computerworld", importanceBoost: 1.2 },
-  { sourceName: "infoworld_ai", url: "https://www.infoworld.com/index.rss", topicTags: ["developer", "enterprise"], outlet: "InfoWorld", importanceBoost: 1.2 },
-  { sourceName: "siliconangle_ai", url: "https://siliconangle.com/feed/", topicTags: ["industry", "market"], outlet: "SiliconANGLE", importanceBoost: 1.2 },
-  { sourceName: "searchengineland_ai", url: "https://searchengineland.com/library/channel/ai/feed", topicTags: ["industry", "product"], outlet: "Search Engine Land", importanceBoost: 1.1 },
+  { sourceName: "semafor_tech", url: "https://www.semafor.com/feeds/technology", topicTags: ["market", "industry"], outlet: "Semafor", importanceBoost: 1.3, minRelevanceScore: 2.4 },
+  { sourceName: "zdnet_ai", url: "https://www.zdnet.com/topic/artificial-intelligence/rss.xml", topicTags: ["industry", "enterprise"], outlet: "ZDNET", importanceBoost: 1.4, minRelevanceScore: 2.4 },
+  { sourceName: "computerworld_ai", url: "https://www.computerworld.com/index.rss", topicTags: ["enterprise", "industry"], outlet: "Computerworld", importanceBoost: 1.2, minRelevanceScore: 2.4 },
+  { sourceName: "infoworld_ai", url: "https://www.infoworld.com/index.rss", topicTags: ["developer", "enterprise"], outlet: "InfoWorld", importanceBoost: 1.2, minRelevanceScore: 2.4 },
+  { sourceName: "siliconangle_ai", url: "https://siliconangle.com/feed/", topicTags: ["industry", "market"], outlet: "SiliconANGLE", importanceBoost: 1.2, minRelevanceScore: 1.8 },
+  { sourceName: "searchengineland_ai", url: "https://searchengineland.com/library/channel/ai/feed", topicTags: ["industry", "product"], outlet: "Search Engine Land", importanceBoost: 1.1, minRelevanceScore: 1.8 },
+  {
+    sourceName: "google_news_ai",
+    url: "https://news.google.com/rss/search?q=%28%22artificial+intelligence%22+OR+AI+OR+LLM+OR+OpenAI+OR+Anthropic+OR+Gemini+OR+Claude+OR+Mistral+OR+NVIDIA%29+when%3A7d&hl=en-US&gl=US&ceid=US:en",
+    topicTags: ["industry", "market", "aggregator"],
+    outlet: "Google News",
+    importanceBoost: 1.2,
+    minRelevanceScore: 2.6,
+  },
 ];
 
 type HnAlgoliaHit = {
@@ -61,7 +70,34 @@ type HnAlgoliaResponse = {
 
 function canonicalizeUrl(url: string): string {
   try {
+    const decoded = decodeURIComponent(url.trim());
+    if (/^https?:\/\//i.test(decoded) && decoded !== url) {
+      return canonicalizeUrl(decoded);
+    }
+
     const parsed = new URL(url);
+    if (parsed.hostname.includes("news.google.com")) {
+      const redirected = parsed.searchParams.get("url") ?? parsed.searchParams.get("q");
+      if (redirected && /^https?:\/\//i.test(redirected)) {
+        return canonicalizeUrl(redirected);
+      }
+    }
+
+    const trackingParams = [
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_term",
+      "utm_content",
+      "gclid",
+      "fbclid",
+      "mc_cid",
+      "mc_eid",
+      "ocid",
+    ];
+    for (const param of trackingParams) {
+      parsed.searchParams.delete(param);
+    }
     parsed.hash = "";
     return parsed.toString();
   } catch {
@@ -127,9 +163,28 @@ function extractImageUrl(block: string): string | null {
   return null;
 }
 
+function resolveGoogleNewsTargetUrl(block: string, link: string): string {
+  const direct = canonicalizeUrl(link);
+  if (!direct.includes("news.google.com")) {
+    return direct;
+  }
+
+  const desc = extractTagContent(block, "description") ?? "";
+  const hrefs = [...desc.matchAll(/<a[^>]+href=["']([^"']+)["']/gi)].map((match) => match[1]);
+  for (const href of hrefs) {
+    const candidate = canonicalizeUrl(href);
+    if (!candidate.includes("news.google.com")) {
+      return candidate;
+    }
+  }
+
+  return direct;
+}
+
 function keywordImportance(title: string): number {
   const text = title.toLowerCase();
   const weights: Array<[RegExp, number]> = [
+    [/\b(ai|artificial intelligence|llm|foundation model|genai|agentic|agents?)\b/, 2.8],
     [/\b(model|release|launch|announces?|preview|api)\b/, 2.6],
     [/\b(openai|anthropic|google|meta|mistral|xai|deepseek|nvidia|microsoft)\b/, 2.3],
     [/\b(funding|raises?|acquire|acquisition|ipo|market|earnings)\b/, 1.9],
@@ -187,6 +242,7 @@ function normalizeRssXml(
   outlet: string,
   topicTags: string[],
   importanceBoost = 1,
+  minRelevanceScore = 0,
 ): NormalizedNewsEntry[] {
   const dedupe = new Set<string>();
   const blocks = [
@@ -200,7 +256,10 @@ function normalizeRssXml(
     const link = extractLink(block);
     if (!titleRaw || !link) continue;
 
-    const canonicalUrl = canonicalizeUrl(link);
+    const canonicalUrl =
+      sourceName === "google_news_ai"
+        ? resolveGoogleNewsTargetUrl(block, link)
+        : canonicalizeUrl(link);
     if (!canonicalUrl || dedupe.has(canonicalUrl)) continue;
     dedupe.add(canonicalUrl);
 
@@ -218,16 +277,20 @@ function normalizeRssXml(
       "";
 
     const imageUrl = extractImageUrl(block);
+    const title = stripHtml(titleRaw);
+    const summary = stripHtml(summaryRaw).slice(0, 320);
+    const relevanceScore = keywordImportance(`${title} ${summary}`);
+    if (relevanceScore < minRelevanceScore) continue;
 
     rows.push({
       sourceName,
       canonicalUrl,
-      title: stripHtml(titleRaw),
+      title,
       publishedAt: toIsoDate(publishedRaw, nowIso),
       authorOrOutlet: extractTagContent(block, "author") ?? outlet,
-      summary: stripHtml(summaryRaw).slice(0, 320),
+      summary,
       topicTags,
-      importanceScore: keywordImportance(titleRaw) + importanceBoost,
+      importanceScore: relevanceScore + importanceBoost,
       payload: {
         image_url: imageUrl,
         outlet,
@@ -267,6 +330,7 @@ function makeRssAdapter(input: {
   topicTags: string[];
   outlet: string;
   importanceBoost?: number;
+  minRelevanceScore?: number;
   priority: number;
 }): NewsAdapter {
   return {
@@ -297,6 +361,7 @@ function makeRssAdapter(input: {
         input.outlet,
         input.topicTags,
         input.importanceBoost,
+        input.minRelevanceScore,
       );
     },
   };
