@@ -8,15 +8,26 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function dedupeByCanonical(entries: NormalizedNewsEntry[]): NormalizedNewsEntry[] {
-  const seen = new Set<string>();
-  const unique: NormalizedNewsEntry[] = [];
+  const byCanonical = new Map<string, NormalizedNewsEntry>();
+  const richnessScore = (entry: NormalizedNewsEntry): number => {
+    const hasTitle = entry.title.trim().length > 0 ? 1 : 0;
+    const hasImage =
+      typeof entry.payload?.image_url === "string" ||
+      typeof entry.payload?.imageUrl === "string"
+        ? 1
+        : 0;
+    return hasTitle * 10 + hasImage;
+  };
+
   for (const entry of entries) {
     const key = entry.canonicalUrl.trim();
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    unique.push(entry);
+    if (!key) continue;
+    const existing = byCanonical.get(key);
+    if (!existing || richnessScore(entry) > richnessScore(existing)) {
+      byCanonical.set(key, entry);
+    }
   }
-  return unique;
+  return [...byCanonical.values()];
 }
 
 export async function GET() {

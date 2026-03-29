@@ -83,7 +83,9 @@ function decodeXmlEntities(text: string): string {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
-    .replace(/&#x27;/g, "'");
+    .replace(/&#x27;/g, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(Number.parseInt(code, 16)));
 }
 
 function stripHtml(text: string): string {
@@ -91,10 +93,10 @@ function stripHtml(text: string): string {
 }
 
 function extractTagContent(block: string, tagName: string): string | null {
-  const direct = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, "i").exec(block);
-  if (direct?.[1]) return decodeXmlEntities(direct[1].trim());
   const cdata = new RegExp(`<${tagName}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tagName}>`, "i").exec(block);
   if (cdata?.[1]) return cdata[1].trim();
+  const direct = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, "i").exec(block);
+  if (direct?.[1]) return decodeXmlEntities(direct[1].trim());
   return null;
 }
 
@@ -113,10 +115,14 @@ function extractImageUrl(block: string): string | null {
   if (mediaContent) return mediaContent.trim();
   const mediaThumb = /<media:thumbnail[^>]+url=["']([^"']+)["']/i.exec(block)?.[1];
   if (mediaThumb) return mediaThumb.trim();
+  const contentUrl = /<content[^>]+url=["']([^"']+)["']/i.exec(block)?.[1];
+  if (contentUrl) return contentUrl.trim();
   const enclosure = /<enclosure[^>]+url=["']([^"']+)["'][^>]*>/i.exec(block)?.[1];
   if (enclosure) return enclosure.trim();
   const desc = extractTagContent(block, "description") ?? extractTagContent(block, "content:encoded") ?? "";
-  const imgInDesc = /<img[^>]+src=["']([^"']+)["']/i.exec(desc)?.[1];
+  const imgInDesc =
+    /<img[^>]+(?:src|data-src)=["']([^"']+)["']/i.exec(desc)?.[1] ??
+    /<img[^>]+srcset=["']([^"']+)["']/i.exec(desc)?.[1]?.split(",")[0]?.trim().split(" ")[0];
   if (imgInDesc) return imgInDesc.trim();
   return null;
 }
