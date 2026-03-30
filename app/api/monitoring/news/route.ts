@@ -7,6 +7,10 @@ import { getNewsDisplayTitle, getNewsSourceLabel, getNewsSourceLogo } from "@/li
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function shouldHideFromDisplay(sourceName: string): boolean {
+  return sourceName.startsWith("arxiv_") || sourceName === "arxiv_feed_news_lane";
+}
+
 function dedupeByCanonical(entries: NormalizedNewsEntry[]): NormalizedNewsEntry[] {
   const byCanonical = new Map<string, NormalizedNewsEntry>();
   const googleFallback = new Set<string>();
@@ -63,6 +67,7 @@ export async function GET() {
     const sourceCounts = new Map<string, number>();
     const entries: NormalizedNewsEntry[] = [];
     for (const entry of pool) {
+      if (shouldHideFromDisplay(entry.sourceName)) continue;
       const seen = sourceCounts.get(entry.sourceName) ?? 0;
       if (seen >= maxPerSource) continue;
       sourceCounts.set(entry.sourceName, seen + 1);
