@@ -82,3 +82,38 @@ export type FeedState<T> = {
   loading: boolean;
   sourceLabel: string;
 };
+
+export type AgentRow = {
+  id: string;
+  name: string;
+  provider: string;
+  score: number | null;
+  tasksCompleted: number | null;
+  successRate: number | null;
+  latencyMs: number | null;
+  source: string;
+  updatedAt: string | null;
+};
+
+export type SkillRow = {
+  id: string;
+  skill: string;
+  category: string;
+  score: number | null;
+  usageCount: number | null;
+  winRate: number | null;
+  source: string;
+  updatedAt: string | null;
+};
+
+export type McpServerRow = {
+  id: string;
+  server: string;
+  owner: string;
+  score: number | null;
+  reliability: number | null;
+  latencyMs: number | null;
+  integrations: number | null;
+  source: string;
+  updatedAt: string | null;
+};

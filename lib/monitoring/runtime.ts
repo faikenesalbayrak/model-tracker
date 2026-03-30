@@ -3,7 +3,7 @@ import type { PoolClient } from "pg";
 import { initDatabase, closeDatabase, type MonitoringDatabase } from "@/lib/monitoring/db";
 import { runMigrations } from "@/lib/monitoring/migrate";
 import { runPostgresMigrations } from "@/lib/monitoring/migrate-postgres";
-import { getMonitoringPool, isPostgresConfigured } from "@/lib/monitoring/postgres";
+import { getMonitoringPool, isMonitoringReadOnly, isPostgresConfigured } from "@/lib/monitoring/postgres";
 import { MonitoringRepository } from "@/lib/monitoring/repositories";
 import { PostgresMonitoringRepository } from "@/lib/monitoring/repositories-postgres";
 
@@ -42,7 +42,9 @@ async function openPostgresRuntime(options: MonitoringRuntimeOptions): Promise<M
   const client = (await pool.connect()) as PoolClient;
 
   try {
-    await runPostgresMigrations(options.postgresSchemaPath ?? defaultPostgresSchemaPath(), client);
+    if (!isMonitoringReadOnly()) {
+      await runPostgresMigrations(options.postgresSchemaPath ?? defaultPostgresSchemaPath(), client);
+    }
   } catch (error) {
     client.release();
     throw error;

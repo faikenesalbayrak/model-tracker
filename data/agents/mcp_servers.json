@@ -1,0 +1,7 @@
+[
+  {"id":"mcp-github","server":"GitHub MCP","owner":"GitHub","score":95.4,"reliability":99.1,"latencyMs":220,"integrations":142,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"mcp-notion","server":"Notion MCP","owner":"Notion","score":92.8,"reliability":98.4,"latencyMs":260,"integrations":113,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"mcp-slack","server":"Slack MCP","owner":"Slack","score":90.2,"reliability":97.9,"latencyMs":280,"integrations":104,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"mcp-jira","server":"Jira MCP","owner":"Atlassian","score":87.5,"reliability":97.1,"latencyMs":320,"integrations":93,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"mcp-google-drive","server":"Google Drive MCP","owner":"Google","score":86.9,"reliability":96.8,"latencyMs":340,"integrations":88,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"}
+]

@@ -17,6 +17,11 @@ function resolveConnectionString(): string | null {
   return null;
 }
 
+export function isMonitoringReadOnly(): boolean {
+  const value = process.env.MONITORING_READ_ONLY ?? process.env.MONITORING_READONLY;
+  return value?.trim().toLowerCase() === "true";
+}
+
 export function isPostgresConfigured(): boolean {
   return Boolean(resolveConnectionString());
 }
@@ -36,6 +41,7 @@ export function getMonitoringPool(): Pool {
     max: 5,
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 10_000,
+    ...(isMonitoringReadOnly() ? { options: "-c default_transaction_read_only=on" } : {}),
     ssl: connectionString.includes("localhost") || connectionString.includes("127.0.0.1")
       ? false
       : { rejectUnauthorized: false },

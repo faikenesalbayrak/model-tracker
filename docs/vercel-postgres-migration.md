@@ -34,3 +34,4 @@ Bu proje artık `monitoring` pipeline için iki backend destekler:
    - `MONITORING_DATABASE_URL`
    - `POSTGRES_URL`
    - `DATABASE_URL`
+4. Local dev için production DB kullanırken `MONITORING_READ_ONLY=true` önerilir.

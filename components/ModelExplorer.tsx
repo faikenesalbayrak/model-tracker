@@ -12,12 +12,16 @@ type ModelExplorerProps = {
   aaModels: AAModelRow[];
   aaModelsLoading?: boolean;
   aiNews: AiNewsItem[];
+  aiNewsLoading?: boolean;
   last30DaysCount: number;
   locale: Locale;
   modelCount: number;
   providerCount: number;
   sourceCount: number;
   onSectionChange?: (section: SectionKey) => void;
+  initialSection?: SectionKey;
+  statsLoading?: boolean;
+  showSectionTabs?: boolean;
 };
 
 type SummaryRow = {
@@ -70,7 +74,7 @@ type LlmSortKey =
 
 type ReleaseWindow = "all" | "30d" | "90d" | "180d";
 type OpenFilter = "all" | "open" | "closed";
-type SectionKey = "general" | "llm" | "image" | "video" | "tts" | "stt" | "embeddings";
+export type SectionKey = "general" | "llm" | "image" | "video" | "tts" | "stt" | "embeddings";
 type CategoryKey = Exclude<SectionKey, "general" | "llm">;
 
 type CategoryLeaderboardItem = {
@@ -450,12 +454,16 @@ export function ModelExplorer({
   aaModels,
   aaModelsLoading = false,
   aiNews,
+  aiNewsLoading = false,
   last30DaysCount,
   locale,
   modelCount,
   providerCount,
   sourceCount,
   onSectionChange,
+  initialSection = "general",
+  statsLoading = false,
+  showSectionTabs = true,
 }: ModelExplorerProps) {
   const strings = copy[locale];
   const headerHints = summaryHeaderHints[locale];
@@ -480,11 +488,10 @@ export function ModelExplorer({
   const [summarySortDirection, setSummarySortDirection] = useState<"asc" | "desc">("desc");
   const [llmSortKey, setLlmSortKey] = useState<LlmSortKey>("intelligenceIndex");
   const [llmSortDirection, setLlmSortDirection] = useState<"asc" | "desc">("desc");
-  const [activeSection, setActiveSection] = useState<SectionKey>("general");
+  const [activeSection, setActiveSection] = useState<SectionKey>(initialSection);
   const [categoryRows, setCategoryRows] = useState<CategoryLeaderboardItem[]>([]);
   const [categoryLoading, setCategoryLoading] = useState(false);
   const [categorySourceName, setCategorySourceName] = useState<string | null>(null);
-  const [categorySnapshotAt, setCategorySnapshotAt] = useState<string | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [categoryQuery, setCategoryQuery] = useState("");
   const [categoryProviderFilter, setCategoryProviderFilter] = useState("all");
@@ -622,14 +629,12 @@ export function ModelExplorer({
 
         setCategoryRows(normalized);
         setCategorySourceName(payload.sourceName ?? null);
-        setCategorySnapshotAt(payload.snapshotAt ?? null);
       })
       .catch((error) => {
         if (!alive) return;
         setCategoryError(error instanceof Error ? error.message : "Category feed unavailable");
         setCategoryRows([]);
         setCategorySourceName(null);
-        setCategorySnapshotAt(null);
       })
       .finally(() => {
         if (!alive) return;
@@ -1215,26 +1220,28 @@ export function ModelExplorer({
   return (
     <section className="min-w-0 space-y-4">
       {/* Tab bar */}
-      <div className="overflow-x-auto overscroll-x-none rounded-2xl border border-slate-200/70 bg-slate-950 p-2 shadow-[0_14px_40px_rgba(15,23,42,0.12)] dark:border-white/10">
-        <div className="flex min-w-max items-center gap-1.5">
-          {sections.map((section) => {
-            const active = activeSection === section.key;
-            return (
-              <button
-                key={section.key}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${active
-                  ? "bg-white/10 text-white"
-                  : "text-slate-300 hover:bg-white/5 hover:text-white"
-                  }`}
-                onClick={() => setActiveSection(section.key)}
-                type="button"
-              >
-                {section.label}
-              </button>
-            );
-          })}
+      {showSectionTabs ? (
+        <div className="overflow-x-auto overscroll-x-none rounded-2xl border border-slate-200/70 bg-slate-950 p-2 shadow-[0_14px_40px_rgba(15,23,42,0.12)] dark:border-white/10">
+          <div className="flex min-w-max items-center gap-1.5">
+            {sections.map((section) => {
+              const active = activeSection === section.key;
+              return (
+                <button
+                  key={section.key}
+                  className={`rounded-lg px-3 py-2 text-sm font-medium transition ${active
+                    ? "bg-white/10 text-white"
+                    : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    }`}
+                  onClick={() => setActiveSection(section.key)}
+                  type="button"
+                >
+                  {section.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {activeSection === "general" ? (
         <section className="grid w-full grid-cols-1 items-stretch gap-6 xl:grid-cols-[minmax(0,2.45fr)_minmax(280px,0.72fr)]">
@@ -1493,7 +1500,11 @@ export function ModelExplorer({
                     {label}
                   </div>
                   <div className="mt-2 text-3xl font-bold sm:text-4xl" style={{ color: "var(--text)" }}>
-                    {display}
+                    {statsLoading ? (
+                      <span className="inline-flex h-10 w-16 animate-pulse rounded-lg bg-slate-200/70 dark:bg-white/10" />
+                    ) : (
+                      display
+                    )}
                   </div>
                 </div>
               ))}
@@ -1519,43 +1530,49 @@ export function ModelExplorer({
                 </p>
               </div>
               <div className="space-y-2">
-                {latestModels.map((item) => {
-                  const logoPath = getLabLogoPath(item.lab);
-                  return (
-                    <article
-                      key={item.id}
-                      className="flex items-center gap-3 rounded-3xl px-5 py-4"
-                      style={{
-                        border: "1px solid var(--border)",
-                        background: "var(--surface-subtle)",
-                      }}
-                    >
-                      <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden">
-                        {logoPath ? (
-                          <Image
-                            alt={`${item.lab} logo`}
-                            className="h-5 w-5 object-contain"
-                            height={20}
-                            src={logoPath}
-                            width={20}
-                          />
-                        ) : (
-                          <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-                            {labMonogram(item.lab)}
-                          </span>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold" style={{ color: "var(--text)" }}>
-                          {item.model}
-                        </p>
-                        <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                          {item.lab} <span className="px-1">·</span> {shortDate(item.releaseDate, locale)}
-                        </p>
-                      </div>
-                    </article>
-                  );
-                })}
+                {aaModelsLoading ? (
+                  Array.from({ length: 4 }).map((_, idx) => (
+                    <div key={idx} className="h-16 animate-pulse rounded-3xl bg-slate-200/70 dark:bg-white/10" />
+                  ))
+                ) : (
+                  latestModels.map((item) => {
+                    const logoPath = getLabLogoPath(item.lab);
+                    return (
+                      <article
+                        key={item.id}
+                        className="flex items-center gap-3 rounded-3xl px-5 py-4"
+                        style={{
+                          border: "1px solid var(--border)",
+                          background: "var(--surface-subtle)",
+                        }}
+                      >
+                        <div className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden">
+                          {logoPath ? (
+                            <Image
+                              alt={`${item.lab} logo`}
+                              className="h-5 w-5 object-contain"
+                              height={20}
+                              src={logoPath}
+                              width={20}
+                            />
+                          ) : (
+                            <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+                              {labMonogram(item.lab)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold" style={{ color: "var(--text)" }}>
+                            {item.model}
+                          </p>
+                          <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                            {item.lab} <span className="px-1">·</span> {shortDate(item.releaseDate, locale)}
+                          </p>
+                        </div>
+                      </article>
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -1582,7 +1599,11 @@ export function ModelExplorer({
               </div>
               <div className="relative">
                 <div className="hide-scrollbar h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1">
-                  {aiNewsPreview.length === 0 ? (
+                  {aiNewsLoading ? (
+                    Array.from({ length: 8 }).map((_, idx) => (
+                      <div key={idx} className="h-24 animate-pulse rounded-xl bg-slate-200/70 dark:bg-white/10" />
+                    ))
+                  ) : aiNewsPreview.length === 0 ? (
                     <div
                       className="rounded-xl px-3 py-6 text-xs"
                       style={{
