@@ -1,0 +1,7 @@
+[
+  {"id":"agent-openai-operator","name":"Operator Pro","provider":"OpenAI","score":94.3,"tasksCompleted":1280,"successRate":92.1,"latencyMs":1280,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"agent-anthropic-claude-code","name":"Claude Code Agent","provider":"Anthropic","score":91.7,"tasksCompleted":1112,"successRate":90.3,"latencyMs":1420,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"agent-google-gemini-agent","name":"Gemini Agent Runtime","provider":"Google","score":89.9,"tasksCompleted":980,"successRate":88.4,"latencyMs":1360,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"agent-microsoft-autogen","name":"AutoGen Studio","provider":"Microsoft","score":86.8,"tasksCompleted":845,"successRate":85.6,"latencyMs":1510,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"agent-open-source-crewai","name":"CrewAI Ops","provider":"Open Source","score":84.1,"tasksCompleted":790,"successRate":82.2,"latencyMs":1630,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"}
+]

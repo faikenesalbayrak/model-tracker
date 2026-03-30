@@ -1,0 +1,7 @@
+[
+  {"id":"skill-retrieval-augmented","skill":"Retrieval Augmented QA","category":"Reasoning","score":93.2,"usageCount":4021,"winRate":91.5,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"skill-code-refactor","skill":"Code Refactor","category":"Coding","score":91.1,"usageCount":3370,"winRate":88.3,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"skill-web-navigation","skill":"Web Navigation","category":"Tool Use","score":88.7,"usageCount":2805,"winRate":84.7,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"skill-data-extraction","skill":"Data Extraction","category":"Automation","score":86.4,"usageCount":2502,"winRate":83.1,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"},
+  {"id":"skill-multimodal-analysis","skill":"Multimodal Analysis","category":"Vision","score":84.9,"usageCount":1920,"winRate":80.4,"source":"seed:internal+public","updatedAt":"2026-03-30T08:30:00.000Z"}
+]

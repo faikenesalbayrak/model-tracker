@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
-import { Languages } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   AAModelRow,
   AiNewsItem,
@@ -12,10 +10,9 @@ import type {
   PricePoint,
   ReleaseItem,
 } from "./dashboard-types";
-import { daysAgo, formatLocaleCode } from "./dashboard-utils";
+import { daysAgo } from "./dashboard-utils";
 import { CapabilityTierBoard } from "./CapabilityTierBoard";
-import { ModelExplorer } from "./ModelExplorer";
-import { CountUpStat } from "./ui/CountUpStat";
+import { ModelExplorer, type SectionKey } from "./ModelExplorer";
 
 type DashboardBundle = {
   artificialAnalysis: FeedState<AAModelRow[]>;
@@ -35,98 +32,65 @@ type MonitoringStats = {
 
 const copy = {
   en: {
-    title: "AI Intelligence Dashboard",
-    subtitle:
-      "Track fresh model releases, benchmark movement, and price-to-performance in one internal view.",
-    updated: "Updated",
-    locale: "TR / EN",
-    theme: "Theme",
-    loading: "Fetching internal feeds",
     sourceRelease: "Hugging Face Hub",
     sourceLeaderboard: "Hugging Face Leaderboard",
     sourcePricing: "Pricing Feed",
     sourceAA: "Artificial Analysis",
     sourceAiNews: "Hacker News (Algolia)",
-    overview: "Overview",
-    ready: "Snapshot ready",
   },
   tr: {
-    title: "AI Intelligence Dashboard",
-    subtitle: "",
-    updated: "Güncellendi",
-    locale: "TR / EN",
-    theme: "Tema",
-    loading: "İç veri kaynakları alınıyor",
     sourceRelease: "Hugging Face Hub",
     sourceLeaderboard: "Hugging Face Leaderboard",
     sourcePricing: "Fiyat Verisi",
     sourceAA: "Artificial Analysis",
     sourceAiNews: "Hacker News (Algolia)",
-    overview: "Genel Bakış",
-    ready: "Görünüm hazır",
   },
 } as const;
 
-const BRANDED_STYLE = {
-  "--tt-red": "#C90C0F",
-  "--tt-black": "#000000",
-  "--tt-white": "#FFFFFF",
-  "--tt-navy": "#000C54",
-  "--tt-deep-navy": "#1C1D52",
-  "--tt-blue": "#0035D6",
-  "--tt-purple": "#1E122F",
-  "--tt-pink": "#CB29AC",
-} as import("react").CSSProperties;
-
-type DashboardAppProps = {
+export type DashboardAppProps = {
+  locale: Locale;
+  initialSection?: SectionKey;
+  lockSection?: boolean;
   showCapabilityTiers?: boolean;
+  showSectionTabs?: boolean;
 };
 
-export default function DashboardApp({ showCapabilityTiers = false }: DashboardAppProps) {
-  return <DashboardShell showCapabilityTiers={showCapabilityTiers} />;
-}
-
-function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean }) {
-  const [locale, setLocale] = useState<Locale>("en");
-  const [activeSection, setActiveSection] = useState("general");
+export default function DashboardApp({
+  locale,
+  initialSection = "general",
+  lockSection = false,
+  showCapabilityTiers = false,
+  showSectionTabs = true,
+}: DashboardAppProps) {
+  const [activeSection, setActiveSection] = useState<SectionKey>(initialSection);
   const [feeds, setFeeds] = useState<DashboardBundle>(() => makeInitialFeeds());
   const [monitoringStats, setMonitoringStats] = useState<MonitoringStats | null>(null);
+  const [monitoringStatsLoading, setMonitoringStatsLoading] = useState(initialSection === "general");
+
+  useEffect(() => {
+    setActiveSection(initialSection);
+  }, [initialSection]);
 
   useEffect(() => {
     let alive = true;
-    const sourceLabels = copy.en;
+    const sourceLabels = copy[locale];
 
     async function run() {
       setFeeds((current) => ({
         ...current,
         artificialAnalysis: { ...current.artificialAnalysis, data: [], loading: true, error: null },
-        aiNews: { ...current.aiNews, data: [], loading: true, error: null },
-        leaderboard: { ...current.leaderboard, data: [], loading: true, error: null },
-        pricing: { ...current.pricing, data: [], loading: true, error: null },
-        releases: { ...current.releases, data: [], loading: true, error: null },
+        aiNews: { ...current.aiNews, data: [], loading: initialSection === "general", error: null },
+        leaderboard: { ...current.leaderboard, data: [], loading: false, error: null },
+        pricing: { ...current.pricing, data: [], loading: false, error: null },
+        releases: { ...current.releases, data: [], loading: false, error: null },
       }));
 
-      const releasesPromise = loadFeed(
-        "releases",
-        "/api/releases",
-        [],
-        sourceLabels.sourceRelease,
-        parseReleasesFeed,
-      );
-      const leaderboardPromise = loadFeed(
-        "leaderboard",
-        "/api/leaderboard",
-        [],
-        sourceLabels.sourceLeaderboard,
-        parseLeaderboardFeed,
-      );
-      const pricingPromise = loadFeed(
-        "pricing",
-        "/api/pricing",
-        [],
-        sourceLabels.sourcePricing,
-        parsePricingFeed,
-      );
+      if (initialSection === "general") {
+        setMonitoringStatsLoading(true);
+      } else {
+        setMonitoringStatsLoading(false);
+      }
+
       const aaPromise = loadFeed(
         "artificial-analysis",
         "/api/monitoring/leaderboard?category=general_llm",
@@ -135,41 +99,52 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
         parseAAModelsFeed,
         45_000,
       );
-      const aiNewsPromise = loadFeed(
-        "ai-news",
-        "/api/ai-news",
-        [],
-        sourceLabels.sourceAiNews,
-        parseAiNewsFeed,
-      );
-      const monitoringStatsPromise = requestJson("/api/monitoring/stats", 20_000)
-        .then((payload) => parseMonitoringStats(payload))
-        .catch(() => null);
 
-      void releasesPromise.then((releases) => {
-        if (!alive) return;
-        setFeeds((current) => ({ ...current, releases }));
-      });
-      void leaderboardPromise.then((leaderboard) => {
-        if (!alive) return;
-        setFeeds((current) => ({ ...current, leaderboard }));
-      });
-      void pricingPromise.then((pricing) => {
-        if (!alive) return;
-        setFeeds((current) => ({ ...current, pricing }));
-      });
+      const aiNewsPromise =
+        initialSection === "general"
+          ? loadFeed(
+              "ai-news",
+              "/api/ai-news",
+              [],
+              sourceLabels.sourceAiNews,
+              parseAiNewsFeed,
+            )
+          : Promise.resolve({
+              data: [] as AiNewsItem[],
+              error: null,
+              lastSuccessAt: new Date().toISOString(),
+              loading: false,
+              sourceLabel: sourceLabels.sourceAiNews,
+            } satisfies FeedState<AiNewsItem[]>);
+
+      const monitoringStatsPromise =
+        initialSection === "general"
+          ? requestJson("/api/monitoring/stats", 20_000)
+              .then((payload) => parseMonitoringStats(payload))
+              .catch(() => null)
+          : Promise.resolve(null);
+
       void aaPromise.then((artificialAnalysis) => {
         if (!alive) return;
         setFeeds((current) => ({ ...current, artificialAnalysis }));
       });
+
       void aiNewsPromise.then((aiNews) => {
         if (!alive) return;
         setFeeds((current) => ({ ...current, aiNews }));
       });
-      void monitoringStatsPromise.then((stats) => {
-        if (!alive || !stats) return;
-        setMonitoringStats(stats);
-      });
+
+      void monitoringStatsPromise
+        .then((stats) => {
+          if (!alive) return;
+          if (stats) {
+            setMonitoringStats(stats);
+          }
+        })
+        .finally(() => {
+          if (!alive) return;
+          setMonitoringStatsLoading(false);
+        });
     }
 
     void run();
@@ -177,14 +152,8 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
     return () => {
       alive = false;
     };
-  }, []);
+  }, [initialSection, locale]);
 
-  const fallbackSourceCount = new Set([
-    feeds.releases.sourceLabel,
-    feeds.leaderboard.sourceLabel,
-    feeds.pricing.sourceLabel,
-    feeds.artificialAnalysis.sourceLabel,
-  ]).size;
   const fallbackStats = useMemo<MonitoringStats>(() => {
     const nowTs = Date.parse(feeds.artificialAnalysis.lastSuccessAt);
     return {
@@ -199,143 +168,39 @@ function DashboardShell({ showCapabilityTiers }: { showCapabilityTiers: boolean 
           .map((row) => row.lab.trim())
           .filter(Boolean),
       ).size,
-      sources: fallbackSourceCount,
+      sources: 0,
       snapshotAt: feeds.artificialAnalysis.lastSuccessAt,
     };
-  }, [fallbackSourceCount, feeds.artificialAnalysis.data, feeds.artificialAnalysis.lastSuccessAt]);
+  }, [feeds.artificialAnalysis.data, feeds.artificialAnalysis.lastSuccessAt]);
 
   const statCards = monitoringStats ?? fallbackStats;
 
   return (
-    <div
-      className="min-h-full transition-colors duration-300"
-      style={{ color: "var(--text)" }}
-    >
-      <HeaderControlsPortal>
-        <LocaleToggle locale={locale} setLocale={setLocale} />
-      </HeaderControlsPortal>
-
+    <div className="min-h-full transition-colors duration-300" style={{ color: "var(--text)" }}>
       <main className="mx-auto flex w-full max-w-none flex-col gap-5 overflow-hidden px-4 pb-4 sm:px-6 lg:px-8">
         <ModelExplorer
+          key={`${initialSection}-${lockSection ? "locked" : "free"}`}
           aaModels={feeds.artificialAnalysis.data}
           aaModelsLoading={feeds.artificialAnalysis.loading}
           aiNews={feeds.aiNews.data}
+          aiNewsLoading={feeds.aiNews.loading}
           last30DaysCount={statCards.last30Days}
           locale={locale}
           modelCount={statCards.totalModels}
           providerCount={statCards.providers}
           sourceCount={statCards.sources}
           onSectionChange={setActiveSection}
+          initialSection={initialSection}
+          statsLoading={monitoringStatsLoading}
+          showSectionTabs={showSectionTabs}
         />
         {showCapabilityTiers && activeSection === "general" ? (
-          <CapabilityTierBoard
-            items={feeds.artificialAnalysis.data}
-            locale={locale}
-          />
+          <CapabilityTierBoard items={feeds.artificialAnalysis.data} locale={locale} />
         ) : null}
       </main>
     </div>
   );
 }
-
-function HeaderControlsPortal({ children }: { children: React.ReactNode }) {
-  const mounted = useSyncExternalStore(
-    () => () => undefined,
-    () => true,
-    () => false,
-  );
-
-  if (!mounted) {
-    return null;
-  }
-
-  const target = document.getElementById("dashboard-header-controls");
-  if (!target) {
-    return null;
-  }
-
-  return createPortal(children, target);
-}
-
-function LocaleToggle({
-  locale,
-  setLocale,
-}: {
-  locale: Locale;
-  setLocale: (value: Locale) => void;
-}) {
-  return (
-    <div
-      className="inline-flex rounded-full p-1"
-      style={{
-        border: "1px solid var(--border)",
-        background: "var(--surface-card)",
-      }}
-    >
-      {(["en", "tr"] as const).map((value) => (
-        <button
-          key={value}
-          aria-pressed={locale === value}
-          className="rounded-full px-3 py-1.5 text-xs font-semibold tracking-wide transition-all duration-150"
-          style={{
-            background: locale === value ? "var(--accent)" : "transparent",
-            color: locale === value ? "#fff" : "var(--text-muted)",
-          }}
-          onClick={() => setLocale(value)}
-          type="button"
-        >
-          {formatLocaleCode(value)}
-        </button>
-      ))}
-      <span className="sr-only">{locale === "tr" ? "Dil seçici" : "Language selector"}</span>
-      <Languages className="sr-only h-4 w-4" />
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  meta,
-  value,
-}: {
-  label: string;
-  meta?: string;
-  value: number;
-}) {
-  return (
-    <div
-      className="panel-interactive flex min-w-0 flex-1 flex-col rounded-xl px-4 py-3 sm:px-5 sm:py-4"
-      style={{
-        border: "1px solid var(--border)",
-        background: "var(--surface-card)",
-        boxShadow: "var(--shadow-sm)",
-      }}
-    >
-      <div
-        className="text-[10px] font-semibold uppercase tracking-[0.22em]"
-        style={{ color: "var(--text-faint)" }}
-      >
-        {label}
-      </div>
-      <div
-        className="mt-2 text-3xl font-bold sm:text-4xl"
-        style={{ color: "var(--text)" }}
-      >
-        <CountUpStat value={value} />
-      </div>
-      {meta ? (
-        <div
-          className="mt-1 max-w-[14rem] truncate text-[11px]"
-          style={{ color: "var(--text-faint)" }}
-          title={meta}
-        >
-          {meta}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 
 function makeInitialFeeds(): DashboardBundle {
   return {
@@ -357,21 +222,21 @@ function makeInitialFeeds(): DashboardBundle {
       data: [],
       error: null,
       lastSuccessAt: daysAgo(1),
-      loading: true,
+      loading: false,
       sourceLabel: copy.en.sourceRelease,
     },
     leaderboard: {
       data: [],
       error: null,
       lastSuccessAt: daysAgo(1),
-      loading: true,
+      loading: false,
       sourceLabel: copy.en.sourceLeaderboard,
     },
     pricing: {
       data: [],
       error: null,
       lastSuccessAt: daysAgo(1),
-      loading: true,
+      loading: false,
       sourceLabel: copy.en.sourcePricing,
     },
   };
@@ -401,6 +266,7 @@ async function loadFeed<T>(
       sourceLabel,
     };
   } catch (error) {
+    console.error(`Feed load failed: ${feedName}`, error);
     return {
       data: fallback,
       error: error instanceof Error ? error.message : "Internal feed unavailable.",
@@ -451,37 +317,16 @@ async function requestJson(url: string, timeoutMs = 15_000) {
   throw new Error("Request failed");
 }
 
-function parseReleasesFeed(payload: unknown) {
-  const data = extractList(payload, ["items", "releases", "data", "results"]);
-  const normalized = data.map(normalizeReleaseItem).filter(Boolean) as ReleaseItem[];
-
-  return normalized.length ? normalized : null;
-}
-
-function parseLeaderboardFeed(payload: unknown) {
-  const data = extractList(payload, ["items", "rows", "data", "results"]);
-  const normalized = data.map(normalizeLeaderboardItem).filter(Boolean) as LeaderboardRow[];
-
-  return normalized.length ? normalized : null;
-}
-
-function parsePricingFeed(payload: unknown) {
-  const data = extractList(payload, ["items", "points", "data", "results"]);
-  const normalized = data.map(normalizePriceItem).filter(Boolean) as PricePoint[];
-
-  return normalized.length ? normalized : null;
-}
-
 function parseAAModelsFeed(payload: unknown) {
   const data = extractList(payload, ["items", "rows", "data", "results"]);
   const normalized = data.map(normalizeAAModelItem).filter(Boolean) as AAModelRow[];
-  return normalized.length ? normalized : null;
+  return normalized;
 }
 
 function parseAiNewsFeed(payload: unknown) {
   const data = extractList(payload, ["items", "news", "rows", "data", "results"]);
   const normalized = data.map(normalizeAiNewsItem).filter(Boolean) as AiNewsItem[];
-  return normalized.length ? normalized : null;
+  return normalized;
 }
 
 function parseMonitoringStats(payload: unknown): MonitoringStats | null {
@@ -504,56 +349,6 @@ function parseMonitoringStats(payload: unknown): MonitoringStats | null {
     providers,
     sources,
     snapshotAt: pickString(payload, ["snapshotAt"], "") || null,
-  };
-}
-
-function normalizeReleaseItem(value: unknown): ReleaseItem | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  return {
-    id: pickString(value, ["id", "slug", "name"], crypto.randomUUID()),
-    lab: pickString(value, ["lab", "provider", "organization"], "Unknown"),
-    model: pickString(value, ["model", "name", "title"], "Unknown model"),
-    releasedAt: pickString(value, ["releasedAt", "publishedAt", "date"], new Date().toISOString()),
-    summary: pickString(value, ["summary", "description", "body"], "No summary available."),
-    url: pickString(value, ["url", "href", "link"], "https://huggingface.co"),
-  };
-}
-
-function normalizeLeaderboardItem(value: unknown): LeaderboardRow | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  return {
-    id: pickString(value, ["id", "slug", "name"], crypto.randomUUID()),
-    arc: pickNumber(value, ["arc", "ARC", "arc_score"], 0),
-    hellaswag: pickNumber(value, ["hellaswag", "HellaSwag"], 0),
-    humaneval: pickNumber(value, ["humaneval", "humanEval", "HumanEval"], 0),
-    lab: pickString(value, ["lab", "provider", "organization"], "Unknown"),
-    mmlu: pickNumber(value, ["mmlu", "MMLU"], 0),
-    model: pickString(value, ["model", "name", "title"], "Unknown model"),
-    openSource: pickBoolean(value, ["openSource", "open_source", "isOpenSource"]),
-    parameters: pickString(value, ["parameters", "params", "parameterCount"], "Unknown"),
-    releasedAt: pickString(value, ["releasedAt", "publishedAt", "date"], new Date().toISOString()),
-    mtBench: pickNumber(value, ["mtBench", "mt_bench", "MT-Bench"], 0),
-  };
-}
-
-function normalizePriceItem(value: unknown): PricePoint | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  return {
-    id: pickString(value, ["id", "slug", "name"], crypto.randomUUID()),
-    lab: pickString(value, ["lab", "provider", "organization"], "Unknown"),
-    model: pickString(value, ["model", "name", "title"], "Unknown model"),
-    params: pickNumber(value, ["params", "parameters", "parameterCount"], 0),
-    pricePer1m: pickNumber(value, ["pricePer1m", "pricePer1mTokens", "price"], 0),
-    score: pickNumber(value, ["score", "value", "mmlu", "humaneval"], 0),
   };
 }
 
@@ -586,9 +381,9 @@ function normalizeAAModelItem(value: unknown): AAModelRow | null {
     if (score >= 0 && score <= 1) return score * 100;
     return score;
   };
-  const normalizePositiveValue = (value: number | null): number | null => {
-    if (typeof value !== "number" || !Number.isFinite(value)) return null;
-    return value > 0 ? value : null;
+  const normalizePositiveValue = (val: number | null): number | null => {
+    if (typeof val !== "number" || !Number.isFinite(val)) return null;
+    return val > 0 ? val : null;
   };
 
   const gpqa = normalizeBenchmarkScore(pickNullableNumber(value, ["gpqa"]));
