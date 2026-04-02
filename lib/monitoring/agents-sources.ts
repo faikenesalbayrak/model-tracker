@@ -458,7 +458,7 @@ async function collectMcp(timeoutMs: number, sourceHealth: SourceHealthSample[])
 
   const mcpserversPagedStart = Date.now();
   try {
-    const maxPagesRaw = Number(process.env.MONITORING_MCPSERVERS_PAGES ?? "12");
+    const maxPagesRaw = Number(process.env.MONITORING_MCPSERVERS_PAGES ?? "30");
     const maxPages = Number.isFinite(maxPagesRaw) && maxPagesRaw > 0 ? Math.min(80, Math.floor(maxPagesRaw)) : 12;
     const seen = new Set<string>();
     for (let page = 1; page <= maxPages; page += 1) {
