@@ -519,6 +519,7 @@ function SkillsHeader({ board }: { board: BoardKey }) {
         "Skill",
         "Provider",
         "Repository",
+        "Description",
         "Installs",
         "Installs Yday",
         "24h Δ",
@@ -595,6 +596,7 @@ function SkillsRow({ row, board }: { row: SkillRow; board: BoardKey }) {
       <td className="px-4 py-2 font-semibold text-slate-900 dark:text-white">{name}</td>
       <td className="px-4 py-2">{row.provider ?? "-"}</td>
       <td className="px-4 py-2">{row.repository ?? "-"}</td>
+      <DescriptionCell value={row.description} />
       <td className="px-4 py-2 tabular-nums">{fmtInt(row.installs)}</td>
       <td className="px-4 py-2 tabular-nums">{fmtInt(row.installsYesterday)}</td>
       <td className="px-4 py-2">{renderDelta(row.change24h)}</td>
@@ -644,9 +646,33 @@ function McpRow({ row, board }: { row: McpServerRow; board: BoardKey }) {
       <td className="px-4 py-2">{row.officiality}</td>
       <td className="px-4 py-2">{row.primarySource}</td>
       <td className="px-4 py-2">{(row.enrichedBy ?? []).join(", ") || "-"}</td>
-      <td className="max-w-[360px] px-4 py-2">{row.description ?? "-"}</td>
+      <DescriptionCell value={row.description} />
       <td className="px-4 py-2">{formatTime(row.updatedAt ?? null)}</td>
     </tr>
+  );
+}
+
+function DescriptionCell({ value }: { value: string | null | undefined }) {
+  const text = (value ?? "").trim();
+  if (!text) {
+    return <td className="max-w-[360px] px-4 py-2">-</td>;
+  }
+  return (
+    <td className="max-w-[360px] px-4 py-2">
+      <span
+        className="block overflow-hidden text-ellipsis"
+        title={text}
+        style={{
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          lineHeight: 1.35,
+          maxHeight: "2.7em",
+        }}
+      >
+        {text}
+      </span>
+    </td>
   );
 }
 
