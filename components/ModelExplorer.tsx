@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpDown, ChevronsDown, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { Lock, LockOpen } from "lucide-react";
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Bar, BarChart, PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ColumnTooltipLabel } from "./ColumnTooltipLabel";
 import { CountUpStat } from "./ui/CountUpStat";
@@ -678,6 +678,29 @@ export function ModelExplorer({
       .slice(0, AI_NEWS_LIMIT);
   }, [aiNews]);
   const showAiNewsScrollHint = aiNewsPreview.length > 4;
+  const aiNewsScrollRef = useRef<HTMLDivElement | null>(null);
+  const [showAiNewsBottomHint, setShowAiNewsBottomHint] = useState(false);
+
+  useEffect(() => {
+    const el = aiNewsScrollRef.current;
+    if (!el) {
+      return;
+    }
+
+    const updateHintVisibility = () => {
+      const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
+      setShowAiNewsBottomHint(showAiNewsScrollHint && remaining > 12);
+    };
+
+    updateHintVisibility();
+    el.addEventListener("scroll", updateHintVisibility, { passive: true });
+    window.addEventListener("resize", updateHintVisibility);
+
+    return () => {
+      el.removeEventListener("scroll", updateHintVisibility);
+      window.removeEventListener("resize", updateHintVisibility);
+    };
+  }, [showAiNewsScrollHint, aiNewsLoading, aiNewsPreview.length]);
   const overallRankById = useMemo(() => {
     const ranked = [...aaModels].sort((left, right) => {
       const leftScore = numericSortValue(left.intelligenceIndex);
@@ -1598,7 +1621,7 @@ export function ModelExplorer({
                 ) : null}
               </div>
               <div className="relative">
-                <div className="hide-scrollbar h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1">
+                <div ref={aiNewsScrollRef} className="hide-scrollbar h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1 pb-3">
                   {aiNewsLoading ? (
                     Array.from({ length: 8 }).map((_, idx) => (
                       <div key={idx} className="h-24 animate-pulse rounded-xl bg-slate-200/70 dark:bg-white/10" />
@@ -1675,7 +1698,7 @@ export function ModelExplorer({
                     ))
                   )}
                 </div>
-                {showAiNewsScrollHint ? (
+                {showAiNewsBottomHint ? (
                   <>
                     <div
                       className="pointer-events-none absolute inset-x-0 bottom-0 h-12"
