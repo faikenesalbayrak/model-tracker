@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { derivePublisherFromUrl, formatNewsSourceDisplay, sanitizeNewsDescription } from "@/lib/news-display";
+import {
+  classifyImageKind,
+  derivePublisherFromUrl,
+  extractPublisherFromTitle,
+  formatNewsSourceDisplay,
+  isLikelyImageUrl,
+  sanitizeNewsDescription,
+} from "@/lib/news-display";
 
 describe("news-display", () => {
   it("sanitizes html entities and whitespace", () => {
@@ -12,6 +19,18 @@ describe("news-display", () => {
     expect(derivePublisherFromUrl("https://www.reuters.com/world/europe/sample")).toBe("Reuters");
     expect(derivePublisherFromUrl("https://www.the-verge.com/ai/story")).toBe("The Verge");
     expect(derivePublisherFromUrl("not-a-url")).toBeNull();
+  });
+
+  it("extracts publisher from title suffix when present", () => {
+    expect(extractPublisherFromTitle("AI Models Lie, Cheat - WIRED")).toBe("WIRED");
+    expect(extractPublisherFromTitle("No suffix title")).toBeNull();
+  });
+
+  it("validates image urls and rejects video urls", () => {
+    expect(isLikelyImageUrl("https://example.com/cover.jpg")).toBe(true);
+    expect(isLikelyImageUrl("https://example.com/video.mp4")).toBe(false);
+    expect(classifyImageKind("https://example.com/video.mp4", "/news-logos/source.png")).toBe("logo");
+    expect(classifyImageKind("/news-logos/google_news_ai.png", "/news-logos/google_news_ai.png")).toBe("logo");
   });
 
   it("formats google news source display with publisher", () => {

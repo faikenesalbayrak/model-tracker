@@ -439,6 +439,12 @@ function normalizeAiNewsItem(value: unknown): AiNewsItem | null {
     return null;
   }
 
+  const imageKindRaw = pickString(value, ["imageKind"], "");
+  const imageKind: AiNewsItem["imageKind"] =
+    imageKindRaw === "photo" || imageKindRaw === "logo" || imageKindRaw === "none"
+      ? imageKindRaw
+      : undefined;
+
   return {
     id: pickString(value, ["id"], link),
     title: pickString(value, ["title", "name"], "Untitled"),
@@ -447,6 +453,7 @@ function normalizeAiNewsItem(value: unknown): AiNewsItem | null {
     sourceDisplay: pickString(value, ["sourceDisplay"], "") || undefined,
     publisher: pickString(value, ["publisher"], "") || null,
     description: pickString(value, ["description", "summary"], "") || null,
+    imageKind,
     publishedAt: pickString(value, ["publishedAt", "pubDate", "date"], new Date().toISOString()),
     timeAgo: pickString(value, ["timeAgo"], "") || null,
     imageUrl: pickString(value, ["imageUrl", "image", "thumbnail", "image_url"], "") || null,

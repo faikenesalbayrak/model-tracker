@@ -73,6 +73,7 @@ export type AiNewsItem = {
   sourceDisplay?: string;
   publisher?: string | null;
   description?: string | null;
+  imageKind?: "photo" | "logo" | "none";
   publishedAt: string;
   timeAgo: string | null;
   imageUrl: string | null;

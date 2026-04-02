@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { buildNewsBento } from "@/lib/news-bento";
+import type { ScoredNewsItem } from "@/lib/news-bento";
 import { sanitizeNewsDescription } from "@/lib/news-display";
 
 export type NewsSection = "overview" | "ai" | "aviation" | "regulations" | "releases";
@@ -97,6 +98,24 @@ function sourceLabel(item: AiNewsItem): string {
   return item.source;
 }
 
+function titleLineClamp(item: ScoredNewsItem): number {
+  if (item.variant === "hero" || item.variant === "tall") return 3;
+  return 2;
+}
+
+function descriptionLineClamp(item: ScoredNewsItem): number {
+  if (item.rowSpan >= 5) return 5;
+  if (item.rowSpan >= 4) return 4;
+  if (item.rowSpan >= 3) return 3;
+  return 2;
+}
+
+function imageHeightClass(item: ScoredNewsItem): string {
+  if (item.imageKind === "logo" || item.imageKind === "none") return "h-20 md:h-24";
+  if (item.variant === "hero" || item.variant === "tall") return "h-32 md:h-40";
+  return "h-24 md:h-32";
+}
+
 function makeLoadingItems(count: number): AiNewsItem[] {
   return Array.from({ length: count }).map((_, idx) => ({
     id: `skeleton-${idx}`,
@@ -106,6 +125,7 @@ function makeLoadingItems(count: number): AiNewsItem[] {
     publishedAt: "2026-01-01T00:00:00.000Z",
     timeAgo: null,
     imageUrl: null,
+    imageKind: "none",
     description: null,
     publisher: null,
     sourceDisplay: "",
@@ -160,7 +180,7 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
       {loading ? (
         <div
           aria-label={strings.loading}
-          className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[8.25rem] md:grid-flow-dense"
+          className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[6.75rem] md:grid-flow-dense"
         >
           {loadingBento.map((item) => (
             <Skeleton
@@ -173,14 +193,15 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
       ) : bentoItems.length === 0 ? (
         <p style={{ color: "var(--text-muted)" }}>{strings.empty}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[8.25rem] md:grid-flow-dense">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[6.75rem] md:grid-flow-dense">
           {bentoItems.map((item) => {
             const imageUrl = item.imageUrl && item.imageUrl.trim().length > 0 ? item.imageUrl : null;
             const description = fallbackDescription(item, locale);
+            const isLogoLike = item.imageKind === "logo" || item.imageKind === "none";
             return (
               <Card
                 key={item.id}
-                className="col-span-1 overflow-hidden md:[grid-column:var(--news-col)] md:[grid-row:var(--news-row)]"
+                className="col-span-1 flex h-full min-h-0 flex-col overflow-hidden md:[grid-column:var(--news-col)] md:[grid-row:var(--news-row)]"
                 style={{
                   ...toGridStyle(item),
                   borderColor: "var(--border-strong)",
@@ -190,20 +211,20 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
               >
                 <div className="h-1 w-full" style={{ background: "var(--accent)" }} />
 
-                <CardHeader className="space-y-3 pb-2">
+                <CardHeader className="space-y-2 pb-2">
                   <div className="overflow-hidden rounded-[var(--radius-item)] border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
                     {imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={imageUrl}
                         alt={item.title}
-                        className="h-28 w-full object-cover md:h-32"
+                        className={`w-full ${imageHeightClass(item)} ${isLogoLike ? "object-contain p-2" : "object-cover"}`}
                         loading="lazy"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div
-                        className="h-28 w-full md:h-32"
+                        className={`w-full ${imageHeightClass(item)}`}
                         style={{
                           background:
                             "linear-gradient(135deg, var(--accent-muted) 0%, var(--surface) 52%, var(--navy-tint) 100%)",
@@ -232,14 +253,14 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
                     target="_blank"
                     rel="noreferrer"
                     className="text-sm font-semibold leading-snug underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                    style={{ color: "var(--text)" }}
+                    style={{ color: "var(--text)", ...clampStyle(titleLineClamp(item)) }}
                   >
                     {item.title}
                   </a>
                 </CardHeader>
 
-                <CardContent>
-                  <p className="text-xs" style={descriptionStyle}>
+                <CardContent className="min-h-0 flex-1">
+                  <p className="text-xs" style={clampStyle(descriptionLineClamp(item), 1.45)}>
                     {description}
                   </p>
                 </CardContent>
@@ -280,11 +301,13 @@ function formatDate(value: string, locale: Locale): string {
   });
 }
 
-const descriptionStyle: CSSProperties = {
-  color: "var(--text-faint)",
-  display: "-webkit-box",
-  WebkitLineClamp: 4,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-  lineHeight: 1.45,
-};
+function clampStyle(lines: number, lineHeight = 1.35): CSSProperties {
+  return {
+    color: "var(--text-faint)",
+    display: "-webkit-box",
+    WebkitLineClamp: lines,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    lineHeight,
+  };
+}

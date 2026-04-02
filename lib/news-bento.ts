@@ -43,10 +43,10 @@ const LAYOUT_PATTERN: NewsCardVariant[] = [
 ];
 
 const VARIANT_SIZE: Record<NewsCardVariant, VariantSize> = {
-  hero: { colSpan: 3, rowSpan: 2 },
-  wide: { colSpan: 2, rowSpan: 1 },
-  tall: { colSpan: 2, rowSpan: 2 },
-  standard: { colSpan: 1, rowSpan: 1 },
+  hero: { colSpan: 3, rowSpan: 4 },
+  wide: { colSpan: 2, rowSpan: 3 },
+  tall: { colSpan: 2, rowSpan: 4 },
+  standard: { colSpan: 1, rowSpan: 3 },
 };
 
 export function scoreNewsItem(item: AiNewsItem, nowMs = Date.now()): number {
@@ -65,6 +65,16 @@ function variantCandidates(variant: NewsCardVariant): NewsCardVariant[] {
   if (variant === "tall") return ["tall", "wide", "standard"];
   if (variant === "wide") return ["wide", "standard"];
   return ["standard"];
+}
+
+function resolveVariantSize(variant: NewsCardVariant, item: AiNewsItem): VariantSize {
+  const base = VARIANT_SIZE[variant];
+  const titleLen = item.title.trim().length;
+  const descriptionLen = (item.description ?? item.timeAgo ?? "").trim().length;
+  const imagePenalty = item.imageKind === "logo" || item.imageKind === "none" ? 0 : 1;
+  const textWeight = Math.floor((titleLen + descriptionLen) / 170);
+  const bonus = Math.max(0, Math.min(2, textWeight + imagePenalty - 1));
+  return { ...base, rowSpan: base.rowSpan + bonus };
 }
 
 type Placement = {
@@ -124,12 +134,12 @@ function nextFreeCell(occupancy: boolean[][], columns: number): { row: number; c
   }
 }
 
-function placeItem(occupancy: boolean[][], preferred: NewsCardVariant, columns: number): Placement {
+function placeItem(occupancy: boolean[][], preferred: NewsCardVariant, columns: number, item: AiNewsItem): Placement {
   const { row, col } = nextFreeCell(occupancy, columns);
   const candidates = variantCandidates(preferred);
 
   for (const variant of candidates) {
-    const size = VARIANT_SIZE[variant];
+    const size = resolveVariantSize(variant, item);
     if (fitsAt(occupancy, row, col, size, columns)) {
       occupy(occupancy, row, col, size, columns);
       return {
@@ -166,7 +176,7 @@ export function buildNewsBento(items: AiNewsItem[], nowMs = Date.now(), columns 
   const occupancy: boolean[][] = [];
   return withScores.map(({ item, score }, index) => {
     const preferred = variantForIndex(index);
-    const placed = placeItem(occupancy, preferred, columns);
+    const placed = placeItem(occupancy, preferred, columns, item);
     return {
       ...item,
       priorityScore: score,

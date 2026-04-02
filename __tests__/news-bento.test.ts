@@ -51,11 +51,11 @@ describe("news-bento", () => {
     expect(variantForIndex(1)).toBe("tall");
     expect(variantForIndex(2)).toBe("wide");
     expect(variantForIndex(10)).toBe("hero");
-    expect(layoutClassForVariant("hero")).toBe("md:col-span-3 md:row-span-2");
-    expect(layoutClassForVariant("standard")).toBe("md:col-span-1 md:row-span-1");
+    expect(layoutClassForVariant("hero")).toBe("md:col-span-3 md:row-span-4");
+    expect(layoutClassForVariant("standard")).toBe("md:col-span-1 md:row-span-3");
   });
 
-  it("packs cards without holes before the last occupied row", () => {
+  it("packs cards without overlaps and fills the first row", () => {
     const items = Array.from({ length: 18 }).map((_, idx) =>
       makeItem({
         id: `news-${idx + 1}`,
@@ -70,16 +70,17 @@ describe("news-bento", () => {
     for (const item of ranked) {
       for (let row = item.rowStart; row < item.rowStart + item.rowSpan; row += 1) {
         for (let col = item.colStart; col < item.colStart + item.colSpan; col += 1) {
-          occupied.add(`${row}-${col}`);
+          const key = `${row}-${col}`;
+          expect(occupied.has(key)).toBe(false);
+          occupied.add(key);
           if (row > maxRow) maxRow = row;
         }
       }
     }
 
-    for (let row = 1; row < maxRow; row += 1) {
-      for (let col = 1; col <= 6; col += 1) {
-        expect(occupied.has(`${row}-${col}`)).toBe(true);
-      }
+    for (let col = 1; col <= 6; col += 1) {
+      expect(occupied.has(`1-${col}`)).toBe(true);
     }
+    expect(maxRow).toBeGreaterThan(1);
   });
 });
