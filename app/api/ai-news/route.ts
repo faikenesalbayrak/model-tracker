@@ -3,86 +3,11 @@ import { openMonitoringRuntime } from "@/lib/monitoring/runtime";
 import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 import { getActiveNewsSources, isAiNewsRelevant } from "@/lib/monitoring/news-sources";
 import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
-import { getNewsDisplayTitle, getNewsSourceLabel, getNewsSourceLogo } from "@/lib/monitoring/news-source-label";
-import {
-  classifyImageKind,
-  derivePublisherFromUrl,
-  extractPublisherFromTitle,
-  formatNewsSourceDisplay,
-  isLikelyImageUrl,
-  sanitizeNewsDescription,
-} from "@/lib/news-display";
+import { pickVisibleEntries, toNewsApiItem } from "@/lib/news-feed";
+import { enrichNewsEntriesWithOgImages } from "@/lib/monitoring/news-enrichment";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function pickEntryImageData(entry: NormalizedNewsEntry): {
-  imageUrl: string | null;
-  imageKind: "photo" | "logo" | "none";
-} {
-  const sourceLogo = getNewsSourceLogo(entry);
-  const rawImage =
-    typeof entry.payload?.image_url === "string"
-      ? entry.payload.image_url
-      : typeof entry.payload?.imageUrl === "string"
-        ? entry.payload.imageUrl
-        : null;
-  const imageCandidate = rawImage?.trim() ?? "";
-  const imageKind = classifyImageKind(imageCandidate, sourceLogo);
-  if (imageKind === "photo" && isLikelyImageUrl(imageCandidate)) {
-    return { imageUrl: imageCandidate, imageKind: "photo" };
-  }
-  if (sourceLogo) {
-    return { imageUrl: sourceLogo, imageKind: "logo" };
-  }
-  return { imageUrl: null, imageKind: "none" };
-}
-
-function shouldHideFromDisplay(sourceName: string): boolean {
-  return sourceName.startsWith("arxiv_") || sourceName === "arxiv_feed_news_lane";
-}
-
-function pickVisibleEntries(
-  entries: NormalizedNewsEntry[],
-  activeNewsSources: Set<string>,
-) {
-  const sorted = [...entries].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
-  const byCanonical = new Map<string, NormalizedNewsEntry>();
-  const googleFallback = new Set<string>();
-
-  const richnessScore = (entry: NormalizedNewsEntry): number => {
-    const hasTitle = entry.title.trim().length > 0 ? 1 : 0;
-    const hasImage =
-      typeof entry.payload?.image_url === "string" ||
-      typeof entry.payload?.imageUrl === "string"
-        ? 1
-        : 0;
-    return hasTitle * 10 + hasImage;
-  };
-
-  for (const entry of sorted) {
-    const key = entry.canonicalUrl.trim();
-    if (!key) continue;
-    if (entry.sourceName === "google_news_ai" || entry.canonicalUrl.includes("news.google.com")) {
-      const fallbackKey = `${entry.title.trim().toLowerCase()}|${entry.publishedAt ?? ""}`;
-      if (googleFallback.has(fallbackKey)) continue;
-      googleFallback.add(fallbackKey);
-    }
-    const existing = byCanonical.get(key);
-    if (!existing || richnessScore(entry) > richnessScore(existing)) {
-      byCanonical.set(key, entry);
-    }
-  }
-  const deduped = [...byCanonical.values()].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
-  const filtered = deduped.filter((item) => activeNewsSources.has(item.sourceName));
-  const pool = filtered.length > 0 ? filtered : deduped;
-  const visible: NormalizedNewsEntry[] = [];
-  for (const entry of pool) {
-    if (shouldHideFromDisplay(entry.sourceName)) continue;
-    visible.push(entry);
-  }
-  return visible.sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""));
-}
 
 function isoMinusDays(iso: string, days: number): string {
   const ts = Date.parse(iso);
@@ -142,9 +67,9 @@ async function hydrateNewsIfEmpty(nowIso: string) {
       checked += 1;
       const raw = await adapter.fetchRaw({ nowIso, timeoutMs: 15_000 });
       const entries = await adapter.normalizeNews(raw, nowIso);
-      const filteredEntries = filterEntriesForAiRelevance(
+      const filteredEntries = await enrichNewsEntriesWithOgImages(filterEntriesForAiRelevance(
         filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays),
-      );
+      ));
       written += filteredEntries.length;
       await runtime.repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
       await runtime.repository.upsertSourceHealth({
@@ -232,35 +157,7 @@ export async function GET() {
         generated_at: windowEndIso,
         last_success_at: entries[0]?.publishedAt ?? null,
         stale: false,
-        data: entries.map((item) => {
-          const source = getNewsSourceLabel(item);
-          const publisherCandidate =
-            extractPublisherFromTitle(item.title) ||
-            (typeof item.authorOrOutlet === "string" && item.authorOrOutlet.trim().length > 0
-              ? item.authorOrOutlet.trim()
-              : null) ||
-            derivePublisherFromUrl(item.canonicalUrl);
-          const publisher =
-            item.sourceName === "google_news_ai" &&
-            (publisherCandidate?.toLowerCase() === "google" || publisherCandidate?.toLowerCase() === "google news")
-              ? derivePublisherFromUrl(item.canonicalUrl)
-              : publisherCandidate;
-          const description = sanitizeNewsDescription(item.summary ?? null);
-          const image = pickEntryImageData(item);
-          return {
-            id: item.canonicalUrl,
-            title: getNewsDisplayTitle(item),
-            link: item.canonicalUrl,
-            source,
-            publisher,
-            sourceDisplay: formatNewsSourceDisplay(source, publisher),
-            description,
-            publishedAt: item.publishedAt ?? windowEndIso,
-            timeAgo: description,
-            imageUrl: image.imageUrl,
-            imageKind: image.imageKind,
-          };
-        }),
+        data: entries.map((item) => toNewsApiItem(item, windowEndIso)),
       },
       { headers: { "Cache-Control": "no-store" } },
     );

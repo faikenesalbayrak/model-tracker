@@ -43,10 +43,10 @@ const LAYOUT_PATTERN: NewsCardVariant[] = [
 ];
 
 const VARIANT_SIZE: Record<NewsCardVariant, VariantSize> = {
-  hero: { colSpan: 3, rowSpan: 4 },
-  wide: { colSpan: 2, rowSpan: 3 },
-  tall: { colSpan: 2, rowSpan: 4 },
-  standard: { colSpan: 1, rowSpan: 3 },
+  hero: { colSpan: 3, rowSpan: 3 },
+  wide: { colSpan: 2, rowSpan: 2 },
+  tall: { colSpan: 2, rowSpan: 3 },
+  standard: { colSpan: 1, rowSpan: 2 },
 };
 
 export function scoreNewsItem(item: AiNewsItem, nowMs = Date.now()): number {
@@ -71,9 +71,9 @@ function resolveVariantSize(variant: NewsCardVariant, item: AiNewsItem): Variant
   const base = VARIANT_SIZE[variant];
   const titleLen = item.title.trim().length;
   const descriptionLen = (item.description ?? item.timeAgo ?? "").trim().length;
-  const imagePenalty = item.imageKind === "logo" || item.imageKind === "none" ? 0 : 1;
-  const textWeight = Math.floor((titleLen + descriptionLen) / 170);
-  const bonus = Math.max(0, Math.min(2, textWeight + imagePenalty - 1));
+  const imageBoost = item.imageKind === "photo" ? 1 : 0;
+  const textWeight = Math.floor((titleLen + descriptionLen) / 260);
+  const bonus = Math.max(0, Math.min(1, textWeight + imageBoost));
   return { ...base, rowSpan: base.rowSpan + bonus };
 }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { AiNewsItem, Locale } from "@/components/dashboard-types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,16 +14,40 @@ import { sanitizeNewsDescription } from "@/lib/news-display";
 
 export type NewsSection = "overview" | "ai" | "aviation" | "regulations" | "releases";
 
+type TimeRange = "today" | "7d" | "30d" | "all";
+type ImageFilter = "all" | "photo" | "logo" | "none";
+type SortMode = "newest" | "importance";
+
 const copy = {
   en: {
     empty: "No news records available.",
     loading: "Loading news...",
     readMore: "Open Story",
+    search: "Search headlines",
+    source: "Source",
+    time: "Time",
+    image: "Image",
+    sort: "Sort",
+    reset: "Reset",
+    today: "Today",
+    week: "7d",
+    month: "30d",
+    all: "All",
   },
   tr: {
     empty: "Haber kaydı bulunamadı.",
     loading: "Haberler yükleniyor...",
     readMore: "Haberi Aç",
+    search: "Başlık ara",
+    source: "Kaynak",
+    time: "Zaman",
+    image: "Görsel",
+    sort: "Sıralama",
+    reset: "Sıfırla",
+    today: "Bugün",
+    week: "7g",
+    month: "30g",
+    all: "Tümü",
   },
 } as const;
 
@@ -98,24 +123,6 @@ function sourceLabel(item: AiNewsItem): string {
   return item.source;
 }
 
-function titleLineClamp(item: ScoredNewsItem): number {
-  if (item.variant === "hero" || item.variant === "tall") return 3;
-  return 2;
-}
-
-function descriptionLineClamp(item: ScoredNewsItem): number {
-  if (item.rowSpan >= 5) return 5;
-  if (item.rowSpan >= 4) return 4;
-  if (item.rowSpan >= 3) return 3;
-  return 2;
-}
-
-function imageHeightClass(item: ScoredNewsItem): string {
-  if (item.imageKind === "logo" || item.imageKind === "none") return "h-20 md:h-24";
-  if (item.variant === "hero" || item.variant === "tall") return "h-32 md:h-40";
-  return "h-24 md:h-32";
-}
-
 function makeLoadingItems(count: number): AiNewsItem[] {
   return Array.from({ length: count }).map((_, idx) => ({
     id: `skeleton-${idx}`,
@@ -129,12 +136,75 @@ function makeLoadingItems(count: number): AiNewsItem[] {
     description: null,
     publisher: null,
     sourceDisplay: "",
+    importanceScore: 0,
   }));
+}
+
+function parseDate(value: string): number {
+  const ts = Date.parse(value);
+  return Number.isFinite(ts) ? ts : 0;
+}
+
+function isWithinRange(item: AiNewsItem, range: TimeRange): boolean {
+  if (range === "all") return true;
+  const ts = parseDate(item.publishedAt);
+  if (!ts) return false;
+  const now = Date.now();
+  if (range === "today") return now - ts <= 24 * 60 * 60 * 1000;
+  if (range === "7d") return now - ts <= 7 * 24 * 60 * 60 * 1000;
+  return now - ts <= 30 * 24 * 60 * 60 * 1000;
+}
+
+function isImageMatch(item: AiNewsItem, filter: ImageFilter): boolean {
+  if (filter === "all") return true;
+  const kind = item.imageKind ?? "none";
+  if (filter === "photo") return kind === "photo";
+  if (filter === "logo") return kind === "logo";
+  return kind === "none";
+}
+
+function mediaAspect(item: ScoredNewsItem): string {
+  if (item.imageKind === "logo" || item.imageKind === "none") return "4 / 1";
+  if (item.variant === "hero") return "16 / 7";
+  if (item.variant === "tall") return "4 / 3";
+  return "16 / 9";
+}
+
+function titleLineClamp(item: ScoredNewsItem): number {
+  if (item.variant === "hero" || item.variant === "tall") return 3;
+  return 2;
+}
+
+function descriptionLineClamp(item: ScoredNewsItem): number {
+  if (item.rowSpan >= 5) return 6;
+  if (item.rowSpan >= 4) return 5;
+  if (item.rowSpan >= 3) return 4;
+  return 3;
 }
 
 export function NewsPage({ locale, section = "overview" }: { locale: Locale; section?: NewsSection }) {
   const [items, setItems] = useState<AiNewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+
+  const [search, setSearch] = useState(() => params.get("q") ?? "");
+  const [source, setSource] = useState(() => params.get("source") ?? "all");
+  const [timeRange, setTimeRange] = useState<TimeRange>(() => {
+    const value = params.get("time");
+    if (value === "today" || value === "7d" || value === "30d" || value === "all") return value;
+    return "all";
+  });
+  const [imageFilter, setImageFilter] = useState<ImageFilter>(() => {
+    const value = params.get("image");
+    if (value === "all" || value === "photo" || value === "logo" || value === "none") return value;
+    return "all";
+  });
+  const [sortMode, setSortMode] = useState<SortMode>(() => {
+    const value = params.get("sort");
+    return value === "importance" ? "importance" : "newest";
+  });
 
   useEffect(() => {
     let alive = true;
@@ -162,10 +232,59 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
     };
   }, []);
 
+  useEffect(() => {
+    const query = new URLSearchParams();
+    if (search.trim()) query.set("q", search.trim()); else query.delete("q");
+    if (source !== "all") query.set("source", source); else query.delete("source");
+    if (timeRange !== "all") query.set("time", timeRange); else query.delete("time");
+    if (imageFilter !== "all") query.set("image", imageFilter); else query.delete("image");
+    if (sortMode !== "newest") query.set("sort", sortMode); else query.delete("sort");
+    const next = query.toString();
+    router.replace(next ? `${pathname}?${next}` : pathname);
+  }, [imageFilter, pathname, router, search, sortMode, source, timeRange]);
+
   const strings = copy[locale];
   const sectionCopy = sectionText(locale, section);
-  const bentoItems = useMemo(() => buildNewsBento(items), [items]);
+
+  const sourceOptions = useMemo(() => {
+    const values = new Set<string>();
+    for (const item of items) values.add(sourceLabel(item));
+    return ["all", ...Array.from(values).sort((a, b) => a.localeCompare(b))];
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const rows = items.filter((item) => {
+      const sourceText = sourceLabel(item);
+      const haystack = `${item.title} ${item.description ?? ""} ${sourceText}`.toLowerCase();
+      const searchMatch = !q || haystack.includes(q);
+      const sourceMatch = source === "all" || sourceText === source;
+      const timeMatch = isWithinRange(item, timeRange);
+      const imageMatch = isImageMatch(item, imageFilter);
+      return searchMatch && sourceMatch && timeMatch && imageMatch;
+    });
+
+    rows.sort((left, right) => {
+      if (sortMode === "importance") {
+        const iLeft = typeof left.importanceScore === "number" ? left.importanceScore : 0;
+        const iRight = typeof right.importanceScore === "number" ? right.importanceScore : 0;
+        if (iRight !== iLeft) return iRight - iLeft;
+      }
+      return parseDate(right.publishedAt) - parseDate(left.publishedAt);
+    });
+    return rows;
+  }, [imageFilter, items, search, sortMode, source, timeRange]);
+
+  const bentoItems = useMemo(() => buildNewsBento(filtered), [filtered]);
   const loadingBento = useMemo(() => buildNewsBento(makeLoadingItems(12)), []);
+
+  const resetFilters = () => {
+    setSearch("");
+    setSource("all");
+    setTimeRange("all");
+    setImageFilter("all");
+    setSortMode("newest");
+  };
 
   return (
     <section
@@ -177,10 +296,80 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
         <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>{sectionCopy.subtitle}</p>
       </div>
 
+      <div
+        className="mb-4 grid grid-cols-1 gap-2 rounded-[var(--radius-card)] border p-3 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]"
+        style={{ borderColor: "var(--border)", background: "var(--surface-subtle)" }}
+      >
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder={strings.search}
+          className="h-9 rounded-[var(--radius-item)] border px-3 text-sm"
+          style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text)" }}
+        />
+
+        <select
+          value={source}
+          onChange={(event) => setSource(event.target.value)}
+          className="h-9 rounded-[var(--radius-item)] border px-2 text-sm"
+          style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text)" }}
+          aria-label={strings.source}
+        >
+          {sourceOptions.map((option) => (
+            <option key={option} value={option}>{option === "all" ? strings.all : option}</option>
+          ))}
+        </select>
+
+        <select
+          value={timeRange}
+          onChange={(event) => setTimeRange(event.target.value as TimeRange)}
+          className="h-9 rounded-[var(--radius-item)] border px-2 text-sm"
+          style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text)" }}
+          aria-label={strings.time}
+        >
+          <option value="all">{strings.all}</option>
+          <option value="today">{strings.today}</option>
+          <option value="7d">{strings.week}</option>
+          <option value="30d">{strings.month}</option>
+        </select>
+
+        <select
+          value={imageFilter}
+          onChange={(event) => setImageFilter(event.target.value as ImageFilter)}
+          className="h-9 rounded-[var(--radius-item)] border px-2 text-sm"
+          style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text)" }}
+          aria-label={strings.image}
+        >
+          <option value="all">{strings.all}</option>
+          <option value="photo">Photo</option>
+          <option value="logo">Logo</option>
+          <option value="none">None</option>
+        </select>
+
+        <select
+          value={sortMode}
+          onChange={(event) => setSortMode(event.target.value as SortMode)}
+          className="h-9 rounded-[var(--radius-item)] border px-2 text-sm"
+          style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--text)" }}
+          aria-label={strings.sort}
+        >
+          <option value="newest">Newest</option>
+          <option value="importance">Importance</option>
+        </select>
+
+        <Button
+          className="h-9"
+          style={{ borderColor: "var(--accent)", color: "var(--accent)", background: "var(--surface)" }}
+          onClick={resetFilters}
+        >
+          {strings.reset}
+        </Button>
+      </div>
+
       {loading ? (
         <div
           aria-label={strings.loading}
-          className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[6.75rem] md:grid-flow-dense"
+          className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[6rem] md:grid-flow-dense"
         >
           {loadingBento.map((item) => (
             <Skeleton
@@ -193,7 +382,7 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
       ) : bentoItems.length === 0 ? (
         <p style={{ color: "var(--text-muted)" }}>{strings.empty}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[6.75rem] md:grid-flow-dense">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[6rem] md:grid-flow-dense">
           {bentoItems.map((item) => {
             const imageUrl = item.imageUrl && item.imageUrl.trim().length > 0 ? item.imageUrl : null;
             const description = fallbackDescription(item, locale);
@@ -218,14 +407,16 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
                       <img
                         src={imageUrl}
                         alt={item.title}
-                        className={`w-full ${imageHeightClass(item)} ${isLogoLike ? "object-contain p-2" : "object-cover"}`}
+                        className={`w-full ${isLogoLike ? "object-contain p-2" : "object-cover"}`}
+                        style={{ aspectRatio: mediaAspect(item) }}
                         loading="lazy"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div
-                        className={`w-full ${imageHeightClass(item)}`}
+                        className="w-full"
                         style={{
+                          aspectRatio: mediaAspect(item),
                           background:
                             "linear-gradient(135deg, var(--accent-muted) 0%, var(--surface) 52%, var(--navy-tint) 100%)",
                         }}
@@ -235,7 +426,7 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
 
                   <div className="flex items-center justify-between gap-2 text-[11px]" style={{ color: "var(--text-faint)" }}>
                     <Badge
-                      className="max-w-[75%] truncate"
+                      className="max-w-[68%] truncate"
                       style={{
                         borderColor: "var(--accent)",
                         background: "var(--accent-muted)",
@@ -245,7 +436,12 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
                     >
                       {sourceLabel(item)}
                     </Badge>
-                    <span className="tabular-nums">{formatDate(item.publishedAt, locale)}</span>
+                    <span
+                      className="tabular-nums rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      style={{ background: "rgba(0,0,0,0.08)", color: "var(--text)" }}
+                    >
+                      {formatDate(item.publishedAt, locale)}
+                    </span>
                   </div>
 
                   <a
@@ -253,14 +449,14 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
                     target="_blank"
                     rel="noreferrer"
                     className="text-sm font-semibold leading-snug underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                    style={{ color: "var(--text)", ...clampStyle(titleLineClamp(item)) }}
+                    style={{ color: "var(--text)", ...clampStyle(titleLineClamp(item), 1.3) }}
                   >
                     {item.title}
                   </a>
                 </CardHeader>
 
                 <CardContent className="min-h-0 flex-1">
-                  <p className="text-xs" style={clampStyle(descriptionLineClamp(item), 1.45)}>
+                  <p className="text-xs" style={clampStyle(descriptionLineClamp(item), 1.46)}>
                     {description}
                   </p>
                 </CardContent>

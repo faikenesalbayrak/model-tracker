@@ -70,10 +70,12 @@ export type AiNewsItem = {
   title: string;
   link: string;
   source: string;
+  sourceName?: string;
   sourceDisplay?: string;
   publisher?: string | null;
   description?: string | null;
   imageKind?: "photo" | "logo" | "none";
+  importanceScore?: number | null;
   publishedAt: string;
   timeAgo: string | null;
   imageUrl: string | null;

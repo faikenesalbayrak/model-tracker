@@ -51,8 +51,8 @@ describe("news-bento", () => {
     expect(variantForIndex(1)).toBe("tall");
     expect(variantForIndex(2)).toBe("wide");
     expect(variantForIndex(10)).toBe("hero");
-    expect(layoutClassForVariant("hero")).toBe("md:col-span-3 md:row-span-4");
-    expect(layoutClassForVariant("standard")).toBe("md:col-span-1 md:row-span-3");
+    expect(layoutClassForVariant("hero")).toBe("md:col-span-3 md:row-span-3");
+    expect(layoutClassForVariant("standard")).toBe("md:col-span-1 md:row-span-2");
   });
 
   it("packs cards without overlaps and fills the first row", () => {

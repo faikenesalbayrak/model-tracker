@@ -1,5 +1,6 @@
 import { getActiveLeaderboardSources } from "@/lib/monitoring/leaderboard-sources";
 import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
+import { enrichNewsEntriesWithOgImages } from "@/lib/monitoring/news-enrichment";
 import { diffTop10 } from "@/lib/monitoring/leaderboard-diff";
 import { sendTop10AlertEmail } from "@/lib/monitoring/notifications";
 import { collectMcpCatalogSnapshot, collectSkillsCatalogSnapshot } from "@/lib/monitoring/agents-sources";
@@ -310,7 +311,9 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
         summary.newsSourcesChecked += 1;
         const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
         const entries = await adapter.normalizeNews(raw, nowIso);
-        const filteredEntries = filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays);
+        const filteredEntries = await enrichNewsEntriesWithOgImages(
+          filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays),
+        );
         await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
         summary.newsEntriesWritten += filteredEntries.length;
         await repository.upsertSourceHealth({
