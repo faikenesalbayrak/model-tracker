@@ -222,17 +222,10 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       </header>
 
       <nav
-        className="mx-4 mb-5 mt-[-0.25rem] overflow-hidden rounded-[var(--radius-panel)] bg-slate-950 px-4 py-2 shadow-[0_14px_40px_rgba(15,23,42,0.12)] sm:mx-6 lg:mx-8"
+        className="mx-4 mb-5 mt-0 overflow-hidden rounded-[var(--radius-panel)] bg-slate-950 px-4 py-2 shadow-[0_14px_40px_rgba(15,23,42,0.12)] sm:mx-6 lg:mx-8"
         style={{ borderRadius: "var(--radius-panel)" }}
       >
         <div className="hide-scrollbar flex min-w-0 items-center gap-3 overflow-x-auto">
-          <SubNavGroup
-            title="Overview"
-            rootHref={links.overview}
-            items={[]}
-            pathname={pathname}
-            active={isActive(pathname, links.overview)}
-          />
           <SubNavGroup title="Models" rootHref={links.modelsRoot} items={links.models} pathname={pathname} active={modelsActive} />
           <SubNavGroup title="Add-Ons" rootHref={links.agentsRoot} items={links.agents} pathname={pathname} active={agentsActive} />
           <SubNavGroup title="News" rootHref={links.newsRoot} items={links.news} pathname={pathname} active={newsActive} />

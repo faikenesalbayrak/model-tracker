@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpDown, ChevronsDown, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { Lock, LockOpen } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -1610,15 +1611,28 @@ export function ModelExplorer({
                 boxShadow: "var(--shadow-md)",
               }}
             >
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-                  {strings.aiNewsTitle}
-                </h2>
-                {strings.aiNewsSubtitle ? (
-                  <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                    {strings.aiNewsSubtitle}
-                  </p>
-                ) : null}
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+                    {strings.aiNewsTitle}
+                  </h2>
+                  {strings.aiNewsSubtitle ? (
+                    <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                      {strings.aiNewsSubtitle}
+                    </p>
+                  ) : null}
+                </div>
+                <Link
+                  href={`/${locale}/news/ai`}
+                  className="inline-flex shrink-0 items-center rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-200"
+                  style={{
+                    border: "1px solid var(--border)",
+                    background: "var(--surface-subtle)",
+                    color: "var(--text)",
+                  }}
+                >
+                  {strings.aiNewsLinkLabel}
+                </Link>
               </div>
               <div className="relative">
                 <div ref={aiNewsScrollRef} className="hide-scrollbar h-[min(600px,60vh)] space-y-2 overflow-y-auto pr-1 pb-3">
