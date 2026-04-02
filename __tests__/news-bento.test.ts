@@ -13,6 +13,9 @@ function makeItem(overrides: Partial<AiNewsItem>): AiNewsItem {
     publishedAt: overrides.publishedAt ?? "2026-04-02T09:00:00.000Z",
     timeAgo: overrides.timeAgo ?? "3h ago",
     imageUrl: overrides.imageUrl ?? null,
+    description: overrides.description ?? null,
+    publisher: overrides.publisher ?? null,
+    sourceDisplay: overrides.sourceDisplay ?? "",
   };
 }
 
@@ -45,10 +48,38 @@ describe("news-bento", () => {
 
   it("applies stable layout variants and repeats the pattern", () => {
     expect(variantForIndex(0)).toBe("hero");
-    expect(variantForIndex(1)).toBe("wide");
-    expect(variantForIndex(2)).toBe("tall");
+    expect(variantForIndex(1)).toBe("tall");
+    expect(variantForIndex(2)).toBe("wide");
     expect(variantForIndex(10)).toBe("hero");
-    expect(layoutClassForVariant("hero")).toBe("md:col-span-4 md:row-span-2");
-    expect(layoutClassForVariant("standard")).toBe("md:col-span-2 md:row-span-1");
+    expect(layoutClassForVariant("hero")).toBe("md:col-span-3 md:row-span-2");
+    expect(layoutClassForVariant("standard")).toBe("md:col-span-1 md:row-span-1");
+  });
+
+  it("packs cards without holes before the last occupied row", () => {
+    const items = Array.from({ length: 18 }).map((_, idx) =>
+      makeItem({
+        id: `news-${idx + 1}`,
+        title: `Story ${idx + 1}`,
+        publishedAt: `2026-04-${String((idx % 9) + 1).padStart(2, "0")}T10:00:00.000Z`,
+      }),
+    );
+    const ranked = buildNewsBento(items, NOW_MS, 6);
+
+    let maxRow = 0;
+    const occupied = new Set<string>();
+    for (const item of ranked) {
+      for (let row = item.rowStart; row < item.rowStart + item.rowSpan; row += 1) {
+        for (let col = item.colStart; col < item.colStart + item.colSpan; col += 1) {
+          occupied.add(`${row}-${col}`);
+          if (row > maxRow) maxRow = row;
+        }
+      }
+    }
+
+    for (let row = 1; row < maxRow; row += 1) {
+      for (let col = 1; col <= 6; col += 1) {
+        expect(occupied.has(`${row}-${col}`)).toBe(true);
+      }
+    }
   });
 });

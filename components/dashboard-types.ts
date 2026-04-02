@@ -70,6 +70,9 @@ export type AiNewsItem = {
   title: string;
   link: string;
   source: string;
+  sourceDisplay?: string;
+  publisher?: string | null;
+  description?: string | null;
   publishedAt: string;
   timeAgo: string | null;
   imageUrl: string | null;

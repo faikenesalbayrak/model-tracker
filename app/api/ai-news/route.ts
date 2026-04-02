@@ -4,9 +4,23 @@ import { SOURCE_REGISTRY } from "@/lib/monitoring/contracts";
 import { getActiveNewsSources, isAiNewsRelevant } from "@/lib/monitoring/news-sources";
 import type { NormalizedNewsEntry } from "@/lib/monitoring/contracts";
 import { getNewsDisplayTitle, getNewsSourceLabel, getNewsSourceLogo } from "@/lib/monitoring/news-source-label";
+import { derivePublisherFromUrl, formatNewsSourceDisplay, sanitizeNewsDescription } from "@/lib/news-display";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function pickEntryImageUrl(entry: NormalizedNewsEntry): string | null {
+  const rawImage =
+    typeof entry.payload?.image_url === "string"
+      ? entry.payload.image_url
+      : typeof entry.payload?.imageUrl === "string"
+        ? entry.payload.imageUrl
+        : null;
+  if (rawImage && rawImage.trim().length > 0) {
+    return rawImage.trim();
+  }
+  return getNewsSourceLogo(entry);
+}
 
 function shouldHideFromDisplay(sourceName: string): boolean {
   return sourceName.startsWith("arxiv_") || sourceName === "arxiv_feed_news_lane";
@@ -209,15 +223,23 @@ export async function GET() {
         generated_at: windowEndIso,
         last_success_at: entries[0]?.publishedAt ?? null,
         stale: false,
-        data: entries.map((item) => ({
-          id: item.canonicalUrl,
-          title: getNewsDisplayTitle(item),
-          link: item.canonicalUrl,
-          source: getNewsSourceLabel(item),
-          publishedAt: item.publishedAt ?? windowEndIso,
-          timeAgo: item.summary ?? null,
-          imageUrl: getNewsSourceLogo(item),
-        })),
+        data: entries.map((item) => {
+          const source = getNewsSourceLabel(item);
+          const publisher = derivePublisherFromUrl(item.canonicalUrl);
+          const description = sanitizeNewsDescription(item.summary ?? null);
+          return {
+            id: item.canonicalUrl,
+            title: getNewsDisplayTitle(item),
+            link: item.canonicalUrl,
+            source,
+            publisher,
+            sourceDisplay: formatNewsSourceDisplay(source, publisher),
+            description,
+            publishedAt: item.publishedAt ?? windowEndIso,
+            timeAgo: description,
+            imageUrl: pickEntryImageUrl(item),
+          };
+        }),
       },
       { headers: { "Cache-Control": "no-store" } },
     );

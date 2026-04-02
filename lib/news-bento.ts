@@ -2,11 +2,18 @@ import type { AiNewsItem } from "@/components/dashboard-types";
 
 export type NewsCardVariant = "hero" | "wide" | "tall" | "standard";
 
+type VariantSize = {
+  colSpan: number;
+  rowSpan: number;
+};
+
 export type ScoredNewsItem = AiNewsItem & {
   priorityScore: number;
   variant: NewsCardVariant;
-  layoutClass: string;
-  accentIndex: number;
+  colStart: number;
+  rowStart: number;
+  colSpan: number;
+  rowSpan: number;
 };
 
 const SOURCE_WEIGHT: Array<{ matcher: RegExp; weight: number }> = [
@@ -24,22 +31,22 @@ const TITLE_SIGNAL: Array<{ matcher: RegExp; weight: number }> = [
 
 const LAYOUT_PATTERN: NewsCardVariant[] = [
   "hero",
-  "wide",
   "tall",
   "wide",
-  "standard",
+  "wide",
   "standard",
   "tall",
+  "standard",
   "wide",
   "standard",
   "standard",
 ];
 
-const LAYOUT_CLASS: Record<NewsCardVariant, string> = {
-  hero: "md:col-span-4 md:row-span-2",
-  wide: "md:col-span-3 md:row-span-1",
-  tall: "md:col-span-2 md:row-span-2",
-  standard: "md:col-span-2 md:row-span-1",
+const VARIANT_SIZE: Record<NewsCardVariant, VariantSize> = {
+  hero: { colSpan: 3, rowSpan: 2 },
+  wide: { colSpan: 2, rowSpan: 1 },
+  tall: { colSpan: 2, rowSpan: 2 },
+  standard: { colSpan: 1, rowSpan: 1 },
 };
 
 export function scoreNewsItem(item: AiNewsItem, nowMs = Date.now()): number {
@@ -53,11 +60,100 @@ export function variantForIndex(index: number): NewsCardVariant {
   return LAYOUT_PATTERN[index % LAYOUT_PATTERN.length] ?? "standard";
 }
 
-export function layoutClassForVariant(variant: NewsCardVariant): string {
-  return LAYOUT_CLASS[variant];
+function variantCandidates(variant: NewsCardVariant): NewsCardVariant[] {
+  if (variant === "hero") return ["hero", "tall", "wide", "standard"];
+  if (variant === "tall") return ["tall", "wide", "standard"];
+  if (variant === "wide") return ["wide", "standard"];
+  return ["standard"];
 }
 
-export function buildNewsBento(items: AiNewsItem[], nowMs = Date.now()): ScoredNewsItem[] {
+type Placement = {
+  rowStart: number;
+  colStart: number;
+  colSpan: number;
+  rowSpan: number;
+  variant: NewsCardVariant;
+};
+
+function ensureRow(occupancy: boolean[][], rowIndex: number, columns: number): void {
+  while (occupancy.length <= rowIndex) {
+    occupancy.push(Array.from({ length: columns }, () => false));
+  }
+}
+
+function fitsAt(
+  occupancy: boolean[][],
+  rowIndex: number,
+  colIndex: number,
+  size: VariantSize,
+  columns: number,
+): boolean {
+  if (colIndex + size.colSpan > columns) return false;
+  for (let r = rowIndex; r < rowIndex + size.rowSpan; r += 1) {
+    ensureRow(occupancy, r, columns);
+    for (let c = colIndex; c < colIndex + size.colSpan; c += 1) {
+      if (occupancy[r]?.[c]) return false;
+    }
+  }
+  return true;
+}
+
+function occupy(
+  occupancy: boolean[][],
+  rowIndex: number,
+  colIndex: number,
+  size: VariantSize,
+  columns: number,
+): void {
+  for (let r = rowIndex; r < rowIndex + size.rowSpan; r += 1) {
+    ensureRow(occupancy, r, columns);
+    for (let c = colIndex; c < colIndex + size.colSpan; c += 1) {
+      occupancy[r][c] = true;
+    }
+  }
+}
+
+function nextFreeCell(occupancy: boolean[][], columns: number): { row: number; col: number } {
+  let row = 0;
+  while (true) {
+    ensureRow(occupancy, row, columns);
+    for (let col = 0; col < columns; col += 1) {
+      if (!occupancy[row]?.[col]) return { row, col };
+    }
+    row += 1;
+  }
+}
+
+function placeItem(occupancy: boolean[][], preferred: NewsCardVariant, columns: number): Placement {
+  const { row, col } = nextFreeCell(occupancy, columns);
+  const candidates = variantCandidates(preferred);
+
+  for (const variant of candidates) {
+    const size = VARIANT_SIZE[variant];
+    if (fitsAt(occupancy, row, col, size, columns)) {
+      occupy(occupancy, row, col, size, columns);
+      return {
+        rowStart: row + 1,
+        colStart: col + 1,
+        colSpan: size.colSpan,
+        rowSpan: size.rowSpan,
+        variant,
+      };
+    }
+  }
+
+  const fallback = VARIANT_SIZE.standard;
+  occupy(occupancy, row, col, fallback, columns);
+  return {
+    rowStart: row + 1,
+    colStart: col + 1,
+    colSpan: fallback.colSpan,
+    rowSpan: fallback.rowSpan,
+    variant: "standard",
+  };
+}
+
+export function buildNewsBento(items: AiNewsItem[], nowMs = Date.now(), columns = 6): ScoredNewsItem[] {
   const withScores = items.map((item) => ({ item, score: scoreNewsItem(item, nowMs) }));
 
   withScores.sort((left, right) => {
@@ -67,16 +163,25 @@ export function buildNewsBento(items: AiNewsItem[], nowMs = Date.now()): ScoredN
     return (Number.isFinite(r) ? r : 0) - (Number.isFinite(l) ? l : 0);
   });
 
+  const occupancy: boolean[][] = [];
   return withScores.map(({ item, score }, index) => {
-    const variant = variantForIndex(index);
+    const preferred = variantForIndex(index);
+    const placed = placeItem(occupancy, preferred, columns);
     return {
       ...item,
       priorityScore: score,
-      variant,
-      layoutClass: layoutClassForVariant(variant),
-      accentIndex: hashKey(`${item.source}|${item.id}`) % 6,
+      variant: placed.variant,
+      colStart: placed.colStart,
+      rowStart: placed.rowStart,
+      colSpan: placed.colSpan,
+      rowSpan: placed.rowSpan,
     };
   });
+}
+
+export function layoutClassForVariant(variant: NewsCardVariant): string {
+  const size = VARIANT_SIZE[variant];
+  return `md:col-span-${size.colSpan} md:row-span-${size.rowSpan}`;
 }
 
 function recencyScore(publishedAt: string, nowMs: number): number {
@@ -109,12 +214,4 @@ function titleSignalScore(title: string): number {
   if (len >= 38 && len <= 125) score += 0.2;
   if (len > 125) score += 0.08;
   return Math.min(1.2, Number(score.toFixed(6)));
-}
-
-function hashKey(input: string): number {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
-  }
-  return hash;
 }

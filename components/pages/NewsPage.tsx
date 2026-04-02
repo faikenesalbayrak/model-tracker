@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import type { AiNewsItem, Locale } from "@/components/dashboard-types";
-import { buildNewsBento, layoutClassForVariant, variantForIndex } from "@/lib/news-bento";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { buildNewsBento } from "@/lib/news-bento";
+import { sanitizeNewsDescription } from "@/lib/news-display";
 
 export type NewsSection = "overview" | "ai" | "aviation" | "regulations" | "releases";
 
@@ -11,23 +16,14 @@ const copy = {
   en: {
     empty: "No news records available.",
     loading: "Loading news...",
-    readMore: "Open story",
+    readMore: "Open Story",
   },
   tr: {
     empty: "Haber kaydı bulunamadı.",
     loading: "Haberler yükleniyor...",
-    readMore: "Haberi aç",
+    readMore: "Haberi Aç",
   },
 } as const;
-
-const ACCENT_PALETTES: Array<{ top: string; wash: string; badge: string }> = [
-  { top: "linear-gradient(90deg,#22d3ee,#3b82f6)", wash: "linear-gradient(135deg, rgba(34,211,238,.12), rgba(59,130,246,.08))", badge: "rgba(34,211,238,.18)" },
-  { top: "linear-gradient(90deg,#38bdf8,#14b8a6)", wash: "linear-gradient(135deg, rgba(56,189,248,.12), rgba(20,184,166,.08))", badge: "rgba(56,189,248,.18)" },
-  { top: "linear-gradient(90deg,#f59e0b,#f97316)", wash: "linear-gradient(135deg, rgba(245,158,11,.12), rgba(249,115,22,.08))", badge: "rgba(245,158,11,.18)" },
-  { top: "linear-gradient(90deg,#a78bfa,#6366f1)", wash: "linear-gradient(135deg, rgba(167,139,250,.12), rgba(99,102,241,.08))", badge: "rgba(167,139,250,.18)" },
-  { top: "linear-gradient(90deg,#fb7185,#ef4444)", wash: "linear-gradient(135deg, rgba(251,113,133,.12), rgba(239,68,68,.08))", badge: "rgba(251,113,133,.18)" },
-  { top: "linear-gradient(90deg,#84cc16,#22c55e)", wash: "linear-gradient(135deg, rgba(132,204,22,.12), rgba(34,197,94,.08))", badge: "rgba(132,204,22,.18)" },
-];
 
 function sectionText(locale: Locale, section: NewsSection) {
   const map = {
@@ -80,6 +76,42 @@ function sectionText(locale: Locale, section: NewsSection) {
   return map[locale][section];
 }
 
+function toGridStyle(item: { colStart: number; rowStart: number; colSpan: number; rowSpan: number }): CSSProperties {
+  return {
+    "--news-col": `${item.colStart} / span ${item.colSpan}`,
+    "--news-row": `${item.rowStart} / span ${item.rowSpan}`,
+  } as CSSProperties;
+}
+
+function fallbackDescription(item: AiNewsItem, locale: Locale): string {
+  const fromPayload = sanitizeNewsDescription(item.description ?? null);
+  if (fromPayload) return fromPayload;
+  const fromLegacy = sanitizeNewsDescription(item.timeAgo ?? null);
+  if (fromLegacy) return fromLegacy;
+  return locale === "tr" ? "Detaylar için haberi açabilirsiniz." : "Open the story for full details.";
+}
+
+function sourceLabel(item: AiNewsItem): string {
+  const sourceDisplay = (item.sourceDisplay ?? "").trim();
+  if (sourceDisplay) return sourceDisplay;
+  return item.source;
+}
+
+function makeLoadingItems(count: number): AiNewsItem[] {
+  return Array.from({ length: count }).map((_, idx) => ({
+    id: `skeleton-${idx}`,
+    title: `Loading ${idx + 1}`,
+    link: "#",
+    source: "Loading",
+    publishedAt: "2026-01-01T00:00:00.000Z",
+    timeAgo: null,
+    imageUrl: null,
+    description: null,
+    publisher: null,
+    sourceDisplay: "",
+  }));
+}
+
 export function NewsPage({ locale, section = "overview" }: { locale: Locale; section?: NewsSection }) {
   const [items, setItems] = useState<AiNewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,6 +145,7 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
   const strings = copy[locale];
   const sectionCopy = sectionText(locale, section);
   const bentoItems = useMemo(() => buildNewsBento(items), [items]);
+  const loadingBento = useMemo(() => buildNewsBento(makeLoadingItems(12)), []);
 
   return (
     <section
@@ -125,62 +158,111 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
       </div>
 
       {loading ? (
-        <div aria-label={strings.loading} className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[8.75rem]">
-          {Array.from({ length: 10 }).map((_, idx) => {
-            const variant = variantForIndex(idx);
-            return (
-              <div
-                key={idx}
-                className={`${layoutClassForVariant(variant)} animate-pulse rounded-[var(--radius-card)]`}
-                style={{ border: "1px solid var(--border)", background: "var(--surface-subtle)" }}
-              />
-            );
-          })}
+        <div
+          aria-label={strings.loading}
+          className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[8.25rem] md:grid-flow-dense"
+        >
+          {loadingBento.map((item) => (
+            <Skeleton
+              key={item.id}
+              className="col-span-1 border md:[grid-column:var(--news-col)] md:[grid-row:var(--news-row)]"
+              style={{ ...toGridStyle(item), borderColor: "var(--border)", background: "var(--surface-subtle)" }}
+            />
+          ))}
         </div>
       ) : bentoItems.length === 0 ? (
         <p style={{ color: "var(--text-muted)" }}>{strings.empty}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[8.75rem]">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[8.25rem] md:grid-flow-dense">
           {bentoItems.map((item) => {
-            const palette = ACCENT_PALETTES[item.accentIndex % ACCENT_PALETTES.length];
+            const imageUrl = item.imageUrl && item.imageUrl.trim().length > 0 ? item.imageUrl : null;
+            const description = fallbackDescription(item, locale);
             return (
-              <a
+              <Card
                 key={item.id}
-                href={item.link}
-                target="_blank"
-                rel="noreferrer"
-                className={`${item.layoutClass} group relative block overflow-hidden rounded-[var(--radius-card)] border p-4 transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70`}
+                className="col-span-1 overflow-hidden md:[grid-column:var(--news-col)] md:[grid-row:var(--news-row)]"
                 style={{
-                  borderColor: "var(--border)",
-                  backgroundColor: "var(--surface-subtle)",
-                  backgroundImage: palette.wash,
+                  ...toGridStyle(item),
+                  borderColor: "var(--border-strong)",
+                  background: "var(--surface-subtle)",
+                  boxShadow: "var(--shadow-sm)",
                 }}
-                aria-label={item.title}
               >
-                <span className="absolute inset-x-0 top-0 h-1" style={{ background: palette.top }} />
+                <div className="h-1 w-full" style={{ background: "var(--accent)" }} />
 
-                <div className="mb-2 flex items-center justify-between gap-2 text-[11px]" style={{ color: "var(--text-faint)" }}>
-                  <span
-                    className="inline-flex max-w-[70%] truncate rounded-full px-2 py-0.5"
-                    style={{ background: palette.badge, color: "var(--text-muted)" }}
+                <CardHeader className="space-y-3 pb-2">
+                  <div className="overflow-hidden rounded-[var(--radius-item)] border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+                    {imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={imageUrl}
+                        alt={item.title}
+                        className="h-28 w-full object-cover md:h-32"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div
+                        className="h-28 w-full md:h-32"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, var(--accent-muted) 0%, var(--surface) 52%, var(--navy-tint) 100%)",
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 text-[11px]" style={{ color: "var(--text-faint)" }}>
+                    <Badge
+                      className="max-w-[75%] truncate"
+                      style={{
+                        borderColor: "var(--accent)",
+                        background: "var(--accent-muted)",
+                        color: "var(--accent)",
+                      }}
+                      title={sourceLabel(item)}
+                    >
+                      {sourceLabel(item)}
+                    </Badge>
+                    <span className="tabular-nums">{formatDate(item.publishedAt, locale)}</span>
+                  </div>
+
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-semibold leading-snug underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    style={{ color: "var(--text)" }}
                   >
-                    {item.source}
+                    {item.title}
+                  </a>
+                </CardHeader>
+
+                <CardContent>
+                  <p className="text-xs" style={descriptionStyle}>
+                    {description}
+                  </p>
+                </CardContent>
+
+                <CardFooter className="mt-auto flex items-center justify-between gap-2 pt-0">
+                  <span className="truncate text-[11px]" style={{ color: "var(--text-muted)" }} title={item.publisher ?? item.source}>
+                    {item.publisher ? `${locale === "tr" ? "Kaynak" : "Publisher"}: ${item.publisher}` : item.source}
                   </span>
-                  <span className="tabular-nums">{formatDate(item.publishedAt, locale)}</span>
-                </div>
 
-                <h3 className="text-sm font-semibold leading-snug" style={{ color: "var(--text)" }}>
-                  {item.title}
-                </h3>
-
-                <p className="mt-2 hidden text-xs sm:block" style={summaryClampStyle}>
-                  {item.timeAgo ?? (locale === "tr" ? "Yeni haber" : "Fresh story")}
-                </p>
-
-                <span className="mt-3 inline-flex text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                  {strings.readMore}
-                </span>
-              </a>
+                  <Button
+                    className="border"
+                    style={{
+                      borderColor: "var(--accent)",
+                      background: "var(--accent)",
+                      color: "#fff",
+                    }}
+                    aria-label={strings.readMore}
+                    onClick={() => window.open(item.link, "_blank", "noopener,noreferrer")}
+                  >
+                    {strings.readMore}
+                  </Button>
+                </CardFooter>
+              </Card>
             );
           })}
         </div>
@@ -198,10 +280,11 @@ function formatDate(value: string, locale: Locale): string {
   });
 }
 
-const summaryClampStyle: CSSProperties = {
+const descriptionStyle: CSSProperties = {
   color: "var(--text-faint)",
   display: "-webkit-box",
-  WebkitLineClamp: 2,
+  WebkitLineClamp: 4,
   WebkitBoxOrient: "vertical",
   overflow: "hidden",
+  lineHeight: 1.45,
 };
