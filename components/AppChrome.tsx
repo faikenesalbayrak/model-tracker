@@ -32,6 +32,7 @@ function topLinks(locale: Locale) {
   return {
     overview: `/${locale}/overview`,
     modelsRoot: `/${locale}/models/overview`,
+    agentsRoot: `/${locale}/agents/overview`,
     newsRoot: `/${locale}/news`,
     models: [
       { label: "LLM", href: `/${locale}/models/llm` },
@@ -40,6 +41,10 @@ function topLinks(locale: Locale) {
       { label: "TTS", href: `/${locale}/models/tts` },
       { label: "STT", href: `/${locale}/models/stt` },
       { label: "Embeddings", href: `/${locale}/models/embeddings` },
+    ] satisfies NavItem[],
+    agents: [
+      { label: "Skills", href: `/${locale}/agents/skills` },
+      { label: "MCP Servers", href: `/${locale}/agents/mcp-servers` },
     ] satisfies NavItem[],
     news: [
       { label: "AI", href: `/${locale}/news/ai` },
@@ -147,6 +152,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   const links = useMemo(() => topLinks(locale), [locale]);
   const currentYear = new Date().getFullYear();
   const modelsActive = isGroupActive(pathname, locale, "models");
+  const agentsActive = isGroupActive(pathname, locale, "agents");
   const newsActive = isGroupActive(pathname, locale, "news");
 
   return (
@@ -228,6 +234,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
             active={isActive(pathname, links.overview)}
           />
           <SubNavGroup title="Models" rootHref={links.modelsRoot} items={links.models} pathname={pathname} active={modelsActive} />
+          <SubNavGroup title="Add-Ons" rootHref={links.agentsRoot} items={links.agents} pathname={pathname} active={agentsActive} />
           <SubNavGroup title="News" rootHref={links.newsRoot} items={links.news} pathname={pathname} active={newsActive} />
         </div>
       </nav>
