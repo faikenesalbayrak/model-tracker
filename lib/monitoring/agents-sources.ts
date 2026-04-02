@@ -106,23 +106,28 @@ async function fetchHtml(url: string, allowedHosts: string[], timeoutMs: number)
 
 function parseSkillsShRows(html: string): RawSkillSeed[] {
   const rows: RawSkillSeed[] = [];
-  const rowPattern = /\{"source":"([^"\\]+)","skillId":"([^"\\]+)","name":"([^"\\]+)","installs":(\d+)(?:,"installsYesterday":(\d+),"change":(-?\d+))?\}/g;
+  const patterns = [
+    /\{"source":"([^"\\]+)","skillId":"([^"\\]+)","name":"([^"\\]+)","installs":(\d+)(?:,"installsYesterday":(\d+),"change":(-?\d+))?\}/g,
+    /\{\\"source\\":\\"([^"\\]+)\\",\\"skillId\\":\\"([^"\\]+)\\",\\"name\\":\\"([^"\\]+)\\",\\"installs\\":(\d+)(?:,\\"installsYesterday\\":(\d+),\\"change\\":(-?\d+))?\}/g,
+  ];
 
-  for (const match of html.matchAll(rowPattern)) {
-    const source = match[1]?.trim();
-    const skillId = match[2]?.trim();
-    const name = match[3]?.trim();
-    const installs = Number(match[4]);
-    if (!source || !skillId || !name || !Number.isFinite(installs)) continue;
-
-    rows.push({
-      source,
-      skillId,
-      name,
-      installs,
-      installsYesterday: match[5] ? Number(match[5]) : undefined,
-      change: match[6] ? Number(match[6]) : undefined,
-    });
+  for (const pattern of patterns) {
+    for (const match of html.matchAll(pattern)) {
+      const source = match[1]?.trim();
+      const skillId = match[2]?.trim();
+      const name = match[3]?.trim();
+      const installs = Number(match[4]);
+      if (!source || !skillId || !name || !Number.isFinite(installs)) continue;
+      rows.push({
+        source,
+        skillId,
+        name,
+        installs,
+        installsYesterday: match[5] ? Number(match[5]) : undefined,
+        change: match[6] ? Number(match[6]) : undefined,
+      });
+    }
+    if (rows.length > 0) break;
   }
 
   return rows;
@@ -275,7 +280,7 @@ async function collectSkills(nowIso: string, timeoutMs: number, sourceHealth: So
   for (const item of views) {
     const startedAt = Date.now();
     try {
-      const html = await fetchHtml(item.url, ["skills.sh"], timeoutMs);
+      const html = await fetchHtml(item.url, ["skills.sh", "www.skills.sh"], timeoutMs);
       const rows = parseSkillsShRows(html);
       for (const [index, row] of rows.entries()) {
         const canonicalSkillKey = `${toCanonicalToken(row.source)}::${toCanonicalToken(row.skillId)}`;
