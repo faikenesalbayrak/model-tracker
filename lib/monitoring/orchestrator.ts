@@ -101,6 +101,57 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     const recipients = isNotificationsEnabled() ? getRecipients() : [];
     const newsAdapters = getActiveNewsSources();
 
+    // Metadata lane first: prioritize skills/MCP persistence even when
+    // serverless executions are interrupted later by runtime budgets.
+    try {
+      const agentResult = await collectAgentCatalogSnapshot({ nowIso, timeoutMs });
+      summary.skillEntriesWritten = agentResult.skills.length;
+      summary.mcpEntriesWritten = agentResult.mcp.length;
+      summary.metadataSourcesChecked = agentResult.sourceHealth.length;
+
+      await repository.insertSkillsSnapshot(
+        runId,
+        "skills_sh",
+        100,
+        nowIso,
+        agentResult.skills,
+      );
+      await repository.insertMcpSnapshot(
+        runId,
+        "mcpmarket_catalog",
+        120,
+        nowIso,
+        agentResult.mcp,
+      );
+
+      for (const item of agentResult.sourceHealth) {
+        await repository.upsertSourceHealth({
+          sourceName: item.sourceName,
+          sourceType: "metadata",
+          enabled: true,
+          success: item.success,
+          latencyMs: item.latencyMs,
+          lastCheckedAt: nowIso,
+          lastSuccessAt: item.success ? nowIso : undefined,
+          lastErrorMessage: item.success ? undefined : item.errorMessage,
+        });
+        if (!item.success) {
+          hadSourceErrors = true;
+        }
+      }
+    } catch (error) {
+      hadSourceErrors = true;
+      await repository.upsertSourceHealth({
+        sourceName: "agent_catalog_pipeline",
+        sourceType: "metadata",
+        enabled: true,
+        success: false,
+        latencyMs: 0,
+        lastCheckedAt: nowIso,
+        lastErrorMessage: error instanceof Error ? error.message : String(error),
+      });
+    }
+
     for (const category of LEADERBOARD_CATEGORIES) {
       const adapters = getActiveLeaderboardSources(category);
       for (const adapter of adapters) {
@@ -219,57 +270,6 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
           continue;
         }
       }
-    }
-
-    // Metadata lane is intentionally executed before news so MCP/skills snapshots
-    // are not starved when runtime budgets are tight in serverless environments.
-    try {
-      const agentResult = await collectAgentCatalogSnapshot({ nowIso, timeoutMs });
-      summary.skillEntriesWritten = agentResult.skills.length;
-      summary.mcpEntriesWritten = agentResult.mcp.length;
-      summary.metadataSourcesChecked = agentResult.sourceHealth.length;
-
-      await repository.insertSkillsSnapshot(
-        runId,
-        "skills_sh",
-        100,
-        nowIso,
-        agentResult.skills,
-      );
-      await repository.insertMcpSnapshot(
-        runId,
-        "mcpmarket_catalog",
-        120,
-        nowIso,
-        agentResult.mcp,
-      );
-
-      for (const item of agentResult.sourceHealth) {
-        await repository.upsertSourceHealth({
-          sourceName: item.sourceName,
-          sourceType: "metadata",
-          enabled: true,
-          success: item.success,
-          latencyMs: item.latencyMs,
-          lastCheckedAt: nowIso,
-          lastSuccessAt: item.success ? nowIso : undefined,
-          lastErrorMessage: item.success ? undefined : item.errorMessage,
-        });
-        if (!item.success) {
-          hadSourceErrors = true;
-        }
-      }
-    } catch (error) {
-      hadSourceErrors = true;
-      await repository.upsertSourceHealth({
-        sourceName: "agent_catalog_pipeline",
-        sourceType: "metadata",
-        enabled: true,
-        success: false,
-        latencyMs: 0,
-        lastCheckedAt: nowIso,
-        lastErrorMessage: error instanceof Error ? error.message : String(error),
-      });
     }
 
     for (const adapter of newsAdapters) {
