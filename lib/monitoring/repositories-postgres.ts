@@ -3,7 +3,9 @@ import type { PoolClient } from "pg";
 import type {
   LeaderboardCategory,
   NormalizedLeaderboardEntry,
+  NormalizedMcpEntry,
   NormalizedNewsEntry,
+  NormalizedSkillEntry,
   SourceType,
 } from "@/lib/monitoring/contracts";
 import type {
@@ -11,7 +13,7 @@ import type {
   MonitorRunStatus,
   MonitorRunType,
 } from "@/lib/monitoring/run-types";
-import type { LatestCategorySnapshotRef, SnapshotRef } from "@/lib/monitoring/repositories";
+import type { AgentListQuery, LatestCategorySnapshotRef, SnapshotRef } from "@/lib/monitoring/repositories";
 
 export interface InsertRunInput {
   runType: MonitorRunType;
@@ -50,6 +52,10 @@ function fromJsonArray(value: unknown): string[] | undefined {
     return value as string[];
   }
   return undefined;
+}
+
+function fromJsonArraySafe(value: unknown): string[] {
+  return fromJsonArray(value) ?? [];
 }
 
 type LeaderboardDomain = "llm" | "vlm" | "tts" | "stt" | "embeddings";
@@ -479,7 +485,7 @@ export class PostgresMonitoringRepository {
   async pruneHistoryData(retentionDays: number): Promise<void> {
     const safeDays = Number.isFinite(retentionDays) && retentionDays > 0 ? Math.floor(retentionDays) : 30;
     const cutoffIso = new Date(Date.now() - safeDays * 24 * 60 * 60 * 1000).toISOString();
-    for (const table of ["llm_history", "vlm_history", "tts_history", "stt_history", "embeddings_history", "news_history"] as const) {
+    for (const table of ["llm_history", "vlm_history", "tts_history", "stt_history", "embeddings_history", "skills_history", "mcp_history", "news_history"] as const) {
       await this.db.query(`DELETE FROM public.${table} WHERE observed_at < $1`, [cutoffIso]);
     }
   }
@@ -517,6 +523,422 @@ export class PostgresMonitoringRepository {
       importanceScore: typeof row.importance_score === "number" ? row.importance_score : undefined,
       payload: fromJsonObject(row.payload_json),
     }));
+  }
+
+  async insertSkillsSnapshot(
+    runId: string,
+    sourceName: string,
+    sourcePriority: number,
+    snapshotAt: string,
+    entries: NormalizedSkillEntry[],
+  ): Promise<string> {
+    const snapshotId = randomUUID();
+
+    for (const row of entries) {
+      const fieldSourceMap = {
+        primary_source: row.primarySource,
+        description: row.enrichedBy?.includes("skills_rank") ? "skills_rank" : row.primarySource,
+      };
+
+      await this.db.query(
+        `
+        INSERT INTO public.skills_current
+        (id, source_name, source_priority, view, rank, source_skill_id, canonical_skill_key, skill_name, provider, repository, description, category, officiality, installs, installs_yesterday, change_24h, match_confidence, match_method, primary_source, enriched_by_json, field_source_map_json, payload_json, observed_at, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20::jsonb, $21::jsonb, $22::jsonb, $23, NOW(), NOW())
+        ON CONFLICT (view, canonical_skill_key) DO UPDATE SET
+          source_name = EXCLUDED.source_name,
+          source_priority = EXCLUDED.source_priority,
+          rank = EXCLUDED.rank,
+          source_skill_id = EXCLUDED.source_skill_id,
+          skill_name = EXCLUDED.skill_name,
+          provider = EXCLUDED.provider,
+          repository = EXCLUDED.repository,
+          description = EXCLUDED.description,
+          category = EXCLUDED.category,
+          officiality = EXCLUDED.officiality,
+          installs = EXCLUDED.installs,
+          installs_yesterday = EXCLUDED.installs_yesterday,
+          change_24h = EXCLUDED.change_24h,
+          match_confidence = EXCLUDED.match_confidence,
+          match_method = EXCLUDED.match_method,
+          primary_source = EXCLUDED.primary_source,
+          enriched_by_json = EXCLUDED.enriched_by_json,
+          field_source_map_json = EXCLUDED.field_source_map_json,
+          payload_json = EXCLUDED.payload_json,
+          observed_at = EXCLUDED.observed_at,
+          updated_at = NOW()
+        `,
+        [
+          randomUUID(),
+          sourceName,
+          sourcePriority,
+          row.view,
+          row.rank ?? null,
+          row.sourceSkillId,
+          row.canonicalSkillKey,
+          row.name,
+          row.provider ?? null,
+          row.repository ?? null,
+          row.description ?? null,
+          row.category ?? null,
+          row.officiality,
+          row.installs ?? null,
+          row.installsYesterday ?? null,
+          row.change24h ?? null,
+          row.matchConfidence ?? null,
+          row.matchMethod ?? null,
+          row.primarySource,
+          row.enrichedBy ? toJson(row.enrichedBy) : null,
+          toJson(fieldSourceMap),
+          row.payload ? toJson(row.payload) : null,
+          snapshotAt,
+        ],
+      );
+
+      await this.db.query(
+        `
+        INSERT INTO public.skills_history
+        (id, run_id, source_name, source_priority, view, rank, source_skill_id, canonical_skill_key, skill_name, provider, repository, description, category, officiality, installs, installs_yesterday, change_24h, match_confidence, match_method, primary_source, enriched_by_json, field_source_map_json, payload_json, observed_at, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21::jsonb, $22::jsonb, $23::jsonb, $24, NOW())
+        `,
+        [
+          randomUUID(),
+          runId,
+          sourceName,
+          sourcePriority,
+          row.view,
+          row.rank ?? null,
+          row.sourceSkillId,
+          row.canonicalSkillKey,
+          row.name,
+          row.provider ?? null,
+          row.repository ?? null,
+          row.description ?? null,
+          row.category ?? null,
+          row.officiality,
+          row.installs ?? null,
+          row.installsYesterday ?? null,
+          row.change24h ?? null,
+          row.matchConfidence ?? null,
+          row.matchMethod ?? null,
+          row.primarySource,
+          row.enrichedBy ? toJson(row.enrichedBy) : null,
+          toJson(fieldSourceMap),
+          row.payload ? toJson(row.payload) : null,
+          snapshotAt,
+        ],
+      );
+    }
+
+    return snapshotId;
+  }
+
+  async insertMcpSnapshot(
+    runId: string,
+    sourceName: string,
+    sourcePriority: number,
+    snapshotAt: string,
+    entries: NormalizedMcpEntry[],
+  ): Promise<string> {
+    const snapshotId = randomUUID();
+
+    for (const row of entries) {
+      const fieldSourceMap = {
+        primary_source: row.primarySource,
+        description: row.primarySource,
+      };
+
+      await this.db.query(
+        `
+        INSERT INTO public.mcp_current
+        (id, source_name, source_priority, rank, source_server_id, canonical_mcp_key, server_name, provider, repository, description, category, officiality, installs, primary_source, enriched_by_json, field_source_map_json, payload_json, observed_at, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::jsonb, $16::jsonb, $17::jsonb, $18, NOW(), NOW())
+        ON CONFLICT (canonical_mcp_key) DO UPDATE SET
+          source_name = EXCLUDED.source_name,
+          source_priority = EXCLUDED.source_priority,
+          rank = EXCLUDED.rank,
+          source_server_id = EXCLUDED.source_server_id,
+          server_name = EXCLUDED.server_name,
+          provider = EXCLUDED.provider,
+          repository = EXCLUDED.repository,
+          description = EXCLUDED.description,
+          category = EXCLUDED.category,
+          officiality = EXCLUDED.officiality,
+          installs = EXCLUDED.installs,
+          primary_source = EXCLUDED.primary_source,
+          enriched_by_json = EXCLUDED.enriched_by_json,
+          field_source_map_json = EXCLUDED.field_source_map_json,
+          payload_json = EXCLUDED.payload_json,
+          observed_at = EXCLUDED.observed_at,
+          updated_at = NOW()
+        `,
+        [
+          randomUUID(),
+          sourceName,
+          sourcePriority,
+          row.rank ?? null,
+          row.sourceServerId,
+          row.canonicalMcpKey,
+          row.name,
+          row.provider ?? null,
+          row.repository ?? null,
+          row.description ?? null,
+          row.category ?? null,
+          row.officiality,
+          row.installs ?? null,
+          row.primarySource,
+          row.enrichedBy ? toJson(row.enrichedBy) : null,
+          toJson(fieldSourceMap),
+          row.payload ? toJson(row.payload) : null,
+          snapshotAt,
+        ],
+      );
+
+      await this.db.query(
+        `
+        INSERT INTO public.mcp_history
+        (id, run_id, source_name, source_priority, rank, source_server_id, canonical_mcp_key, server_name, provider, repository, description, category, officiality, installs, primary_source, enriched_by_json, field_source_map_json, payload_json, observed_at, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::jsonb, $17::jsonb, $18::jsonb, $19, NOW())
+        `,
+        [
+          randomUUID(),
+          runId,
+          sourceName,
+          sourcePriority,
+          row.rank ?? null,
+          row.sourceServerId,
+          row.canonicalMcpKey,
+          row.name,
+          row.provider ?? null,
+          row.repository ?? null,
+          row.description ?? null,
+          row.category ?? null,
+          row.officiality,
+          row.installs ?? null,
+          row.primarySource,
+          row.enrichedBy ? toJson(row.enrichedBy) : null,
+          toJson(fieldSourceMap),
+          row.payload ? toJson(row.payload) : null,
+          snapshotAt,
+        ],
+      );
+    }
+
+    return snapshotId;
+  }
+
+  async getLatestAgentSnapshotAt(): Promise<string | null> {
+    const [skills, mcp] = await Promise.all([
+      this.db.query<{ observed_at: string }>(`SELECT observed_at FROM public.skills_current ORDER BY observed_at DESC LIMIT 1`),
+      this.db.query<{ observed_at: string }>(`SELECT observed_at FROM public.mcp_current ORDER BY observed_at DESC LIMIT 1`),
+    ]);
+
+    const candidates = [skills.rows[0]?.observed_at, mcp.rows[0]?.observed_at].filter((item): item is string => Boolean(item));
+    if (candidates.length === 0) return null;
+    return candidates.sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+  }
+
+  async getAgentsOverviewCounts(): Promise<{ skills: number; mcpServers: number }> {
+    const [skills, mcp] = await Promise.all([
+      this.db.query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM public.skills_current`),
+      this.db.query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM public.mcp_current`),
+    ]);
+    return {
+      skills: Number(skills.rows[0]?.count ?? "0"),
+      mcpServers: Number(mcp.rows[0]?.count ?? "0"),
+    };
+  }
+
+  async getSkillEntries(query: AgentListQuery): Promise<{ total: number; data: Array<Record<string, unknown>> }> {
+    const page = Math.max(1, Math.floor(query.page ?? 1));
+    const pageSize = Math.min(200, Math.max(1, Math.floor(query.pageSize ?? 50)));
+    const sort = query.sort ?? "installs";
+    const order = query.order === "asc" ? "ASC" : "DESC";
+    const where: string[] = [];
+    const values: Array<string | number> = [];
+    let i = 1;
+
+    if (query.view) {
+      where.push(`view = $${i++}`);
+      values.push(query.view);
+    }
+    if (query.officiality) {
+      where.push(`officiality = $${i++}`);
+      values.push(query.officiality);
+    }
+    if (query.category) {
+      where.push(`LOWER(COALESCE(category, '')) = LOWER($${i++})`);
+      values.push(query.category);
+    }
+    if (query.source) {
+      where.push(`(LOWER(primary_source) = LOWER($${i}) OR LOWER(source_name) = LOWER($${i + 1}))`);
+      values.push(query.source, query.source);
+      i += 2;
+    }
+    if (query.q?.trim()) {
+      const needle = `%${query.q.trim().toLowerCase()}%`;
+      where.push(`(LOWER(skill_name) LIKE $${i} OR LOWER(COALESCE(description, '')) LIKE $${i + 1} OR LOWER(COALESCE(repository, '')) LIKE $${i + 2})`);
+      values.push(needle, needle, needle);
+      i += 3;
+    }
+
+    const whereSql = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+    const sortSql =
+      sort === "name"
+        ? `skill_name ${order}`
+        : sort === "rank"
+          ? `COALESCE(rank, 999999) ${order}`
+          : `COALESCE(installs, -1) ${order}`;
+
+    const totalRes = await this.db.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM public.skills_current ${whereSql}`,
+      values,
+    );
+
+    const rows = await this.db.query<{
+      view: string;
+      rank: number | null;
+      source_skill_id: string;
+      canonical_skill_key: string;
+      skill_name: string;
+      provider: string | null;
+      repository: string | null;
+      description: string | null;
+      category: string | null;
+      officiality: "official" | "unofficial" | "unknown";
+      installs: number | null;
+      installs_yesterday: number | null;
+      change_24h: number | null;
+      match_confidence: number | null;
+      match_method: "strict" | "fuzzy" | "none" | null;
+      primary_source: string;
+      enriched_by_json: unknown;
+      payload_json: unknown;
+      observed_at: string;
+    }>(
+      `
+      SELECT view, rank, source_skill_id, canonical_skill_key, skill_name, provider, repository, description, category, officiality, installs, installs_yesterday, change_24h, match_confidence, match_method, primary_source, enriched_by_json, payload_json, observed_at
+      FROM public.skills_current
+      ${whereSql}
+      ORDER BY ${sortSql}, skill_name ASC
+      LIMIT $${i} OFFSET $${i + 1}
+      `,
+      [...values, pageSize, (page - 1) * pageSize],
+    );
+
+    return {
+      total: Number(totalRes.rows[0]?.count ?? "0"),
+      data: rows.rows.map((row) => ({
+        id: row.canonical_skill_key,
+        view: row.view,
+        rank: row.rank,
+        skillId: row.source_skill_id,
+        skill: row.skill_name,
+        provider: row.provider,
+        repository: row.repository,
+        description: row.description,
+        category: row.category,
+        officiality: row.officiality,
+        installs: row.installs,
+        installsYesterday: row.installs_yesterday,
+        change24h: row.change_24h,
+        matchConfidence: row.match_confidence,
+        matchMethod: row.match_method,
+        primarySource: row.primary_source,
+        enrichedBy: fromJsonArraySafe(row.enriched_by_json),
+        payload: fromJsonObject(row.payload_json) ?? {},
+        updatedAt: row.observed_at,
+      })),
+    };
+  }
+
+  async getMcpEntries(query: AgentListQuery): Promise<{ total: number; data: Array<Record<string, unknown>> }> {
+    const page = Math.max(1, Math.floor(query.page ?? 1));
+    const pageSize = Math.min(200, Math.max(1, Math.floor(query.pageSize ?? 50)));
+    const sort = query.sort ?? "installs";
+    const order = query.order === "asc" ? "ASC" : "DESC";
+    const where: string[] = [];
+    const values: Array<string | number> = [];
+    let i = 1;
+
+    if (query.officiality) {
+      where.push(`officiality = $${i++}`);
+      values.push(query.officiality);
+    }
+    if (query.category) {
+      where.push(`LOWER(COALESCE(category, '')) = LOWER($${i++})`);
+      values.push(query.category);
+    }
+    if (query.source) {
+      where.push(`(LOWER(primary_source) = LOWER($${i}) OR LOWER(source_name) = LOWER($${i + 1}))`);
+      values.push(query.source, query.source);
+      i += 2;
+    }
+    if (query.q?.trim()) {
+      const needle = `%${query.q.trim().toLowerCase()}%`;
+      where.push(`(LOWER(server_name) LIKE $${i} OR LOWER(COALESCE(description, '')) LIKE $${i + 1} OR LOWER(COALESCE(repository, '')) LIKE $${i + 2})`);
+      values.push(needle, needle, needle);
+      i += 3;
+    }
+
+    const whereSql = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+    const sortSql =
+      sort === "name"
+        ? `server_name ${order}`
+        : sort === "rank"
+          ? `COALESCE(rank, 999999) ${order}`
+          : `COALESCE(installs, -1) ${order}`;
+
+    const totalRes = await this.db.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM public.mcp_current ${whereSql}`,
+      values,
+    );
+
+    const rows = await this.db.query<{
+      rank: number | null;
+      source_server_id: string;
+      canonical_mcp_key: string;
+      server_name: string;
+      provider: string | null;
+      repository: string | null;
+      description: string | null;
+      category: string | null;
+      officiality: "official" | "unofficial" | "unknown";
+      installs: number | null;
+      primary_source: string;
+      enriched_by_json: unknown;
+      payload_json: unknown;
+      observed_at: string;
+    }>(
+      `
+      SELECT rank, source_server_id, canonical_mcp_key, server_name, provider, repository, description, category, officiality, installs, primary_source, enriched_by_json, payload_json, observed_at
+      FROM public.mcp_current
+      ${whereSql}
+      ORDER BY ${sortSql}, server_name ASC
+      LIMIT $${i} OFFSET $${i + 1}
+      `,
+      [...values, pageSize, (page - 1) * pageSize],
+    );
+
+    return {
+      total: Number(totalRes.rows[0]?.count ?? "0"),
+      data: rows.rows.map((row) => ({
+        id: row.canonical_mcp_key,
+        rank: row.rank,
+        serverId: row.source_server_id,
+        server: row.server_name,
+        owner: row.provider,
+        repository: row.repository,
+        description: row.description,
+        category: row.category,
+        officiality: row.officiality,
+        installs: row.installs,
+        primarySource: row.primary_source,
+        enrichedBy: fromJsonArraySafe(row.enriched_by_json),
+        payload: fromJsonObject(row.payload_json) ?? {},
+        updatedAt: row.observed_at,
+      })),
+    };
   }
 
   async insertNotificationLog(params: {

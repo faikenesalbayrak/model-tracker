@@ -11,6 +11,9 @@ export interface RunSummary {
   newsEntriesWritten: number;
   notificationsSent: number;
   notificationsFailed: number;
+  metadataSourcesChecked?: number;
+  skillEntriesWritten?: number;
+  mcpEntriesWritten?: number;
 }
 
 export interface LeaderboardCycleResult {

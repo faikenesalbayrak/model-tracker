@@ -40,6 +40,46 @@ export interface NormalizedNewsEntry {
   payload?: Record<string, unknown>;
 }
 
+export type Officiality = "official" | "unofficial" | "unknown";
+export type MatchMethod = "strict" | "fuzzy" | "none";
+
+export interface NormalizedSkillEntry {
+  canonicalSkillKey: string;
+  sourceSkillId: string;
+  name: string;
+  provider?: string;
+  repository?: string;
+  description?: string;
+  category?: string;
+  view: "all_time" | "trending" | "hot";
+  installs?: number;
+  installsYesterday?: number;
+  change24h?: number;
+  officiality: Officiality;
+  rank?: number;
+  matchConfidence?: number;
+  matchMethod?: MatchMethod;
+  primarySource: string;
+  enrichedBy?: string[];
+  payload?: Record<string, unknown>;
+}
+
+export interface NormalizedMcpEntry {
+  canonicalMcpKey: string;
+  sourceServerId: string;
+  name: string;
+  provider?: string;
+  repository?: string;
+  description?: string;
+  category?: string;
+  officiality: Officiality;
+  rank?: number;
+  installs?: number;
+  primarySource: string;
+  enrichedBy?: string[];
+  payload?: Record<string, unknown>;
+}
+
 export interface LeaderboardAdapter {
   sourceName: string;
   sourceType: "leaderboard";
@@ -420,6 +460,49 @@ export const SOURCE_REGISTRY: SourceRegistryItem[] = [
     sourceType: "metadata",
     status: "planned",
     priority: 20,
+  },
+  // ── Skills + MCP catalogs ───────────────────────────────────────────────────
+  {
+    sourceName: "skills_sh",
+    sourceType: "metadata",
+    status: "enabled",
+    priority: 100,
+    note: "Primary skills lane source: all-time/trending/hot snapshots.",
+  },
+  {
+    sourceName: "skills_rank",
+    sourceType: "metadata",
+    status: "enabled",
+    priority: 110,
+    note: "Skills enrichment lane: detail pages and ranking metadata.",
+  },
+  {
+    sourceName: "mcpmarket_catalog",
+    sourceType: "metadata",
+    status: "enabled",
+    priority: 120,
+    note: "MCP primary/secondary catalog source with optional skills surface.",
+  },
+  {
+    sourceName: "getmymcp_catalog",
+    sourceType: "metadata",
+    status: "enabled",
+    priority: 130,
+    note: "MCP secondary catalog source.",
+  },
+  {
+    sourceName: "mcpservers_catalog",
+    sourceType: "metadata",
+    status: "enabled",
+    priority: 140,
+    note: "MCP secondary catalog source.",
+  },
+  {
+    sourceName: "mcpsmith_catalog",
+    sourceType: "metadata",
+    status: "enabled",
+    priority: 150,
+    note: "Best-effort enrichment source; fail-open when blocked.",
   },
 ];
 

@@ -307,6 +307,112 @@ CREATE TABLE IF NOT EXISTS news_history (
   FOREIGN KEY (run_id) REFERENCES monitor_runs(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS skills_current (
+  id TEXT PRIMARY KEY,
+  source_name TEXT NOT NULL,
+  source_priority INTEGER NOT NULL DEFAULT 100,
+  view TEXT NOT NULL CHECK (view IN ('all_time', 'trending', 'hot')),
+  rank INTEGER,
+  source_skill_id TEXT NOT NULL,
+  canonical_skill_key TEXT NOT NULL,
+  skill_name TEXT NOT NULL,
+  provider TEXT,
+  repository TEXT,
+  description TEXT,
+  category TEXT,
+  officiality TEXT NOT NULL CHECK (officiality IN ('official', 'unofficial', 'unknown')),
+  installs INTEGER,
+  installs_yesterday INTEGER,
+  change_24h INTEGER,
+  match_confidence REAL,
+  match_method TEXT CHECK (match_method IN ('strict', 'fuzzy', 'none')),
+  primary_source TEXT NOT NULL,
+  enriched_by_json TEXT,
+  field_source_map_json TEXT,
+  payload_json TEXT,
+  observed_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  UNIQUE (view, canonical_skill_key)
+);
+
+CREATE TABLE IF NOT EXISTS skills_history (
+  id TEXT PRIMARY KEY,
+  run_id TEXT,
+  source_name TEXT NOT NULL,
+  source_priority INTEGER NOT NULL DEFAULT 100,
+  view TEXT NOT NULL CHECK (view IN ('all_time', 'trending', 'hot')),
+  rank INTEGER,
+  source_skill_id TEXT NOT NULL,
+  canonical_skill_key TEXT NOT NULL,
+  skill_name TEXT NOT NULL,
+  provider TEXT,
+  repository TEXT,
+  description TEXT,
+  category TEXT,
+  officiality TEXT NOT NULL CHECK (officiality IN ('official', 'unofficial', 'unknown')),
+  installs INTEGER,
+  installs_yesterday INTEGER,
+  change_24h INTEGER,
+  match_confidence REAL,
+  match_method TEXT CHECK (match_method IN ('strict', 'fuzzy', 'none')),
+  primary_source TEXT NOT NULL,
+  enriched_by_json TEXT,
+  field_source_map_json TEXT,
+  payload_json TEXT,
+  observed_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  FOREIGN KEY (run_id) REFERENCES monitor_runs(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS mcp_current (
+  id TEXT PRIMARY KEY,
+  source_name TEXT NOT NULL,
+  source_priority INTEGER NOT NULL DEFAULT 100,
+  rank INTEGER,
+  source_server_id TEXT NOT NULL,
+  canonical_mcp_key TEXT NOT NULL,
+  server_name TEXT NOT NULL,
+  provider TEXT,
+  repository TEXT,
+  description TEXT,
+  category TEXT,
+  officiality TEXT NOT NULL CHECK (officiality IN ('official', 'unofficial', 'unknown')),
+  installs INTEGER,
+  primary_source TEXT NOT NULL,
+  enriched_by_json TEXT,
+  field_source_map_json TEXT,
+  payload_json TEXT,
+  observed_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  UNIQUE (canonical_mcp_key)
+);
+
+CREATE TABLE IF NOT EXISTS mcp_history (
+  id TEXT PRIMARY KEY,
+  run_id TEXT,
+  source_name TEXT NOT NULL,
+  source_priority INTEGER NOT NULL DEFAULT 100,
+  rank INTEGER,
+  source_server_id TEXT NOT NULL,
+  canonical_mcp_key TEXT NOT NULL,
+  server_name TEXT NOT NULL,
+  provider TEXT,
+  repository TEXT,
+  description TEXT,
+  category TEXT,
+  officiality TEXT NOT NULL CHECK (officiality IN ('official', 'unofficial', 'unknown')),
+  installs INTEGER,
+  primary_source TEXT NOT NULL,
+  enriched_by_json TEXT,
+  field_source_map_json TEXT,
+  payload_json TEXT,
+  observed_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  FOREIGN KEY (run_id) REFERENCES monitor_runs(id) ON DELETE SET NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_monitor_runs_started_at
   ON monitor_runs(started_at DESC);
 
@@ -331,6 +437,12 @@ CREATE INDEX IF NOT EXISTS idx_news_current_published
 CREATE INDEX IF NOT EXISTS idx_news_current_source_url
   ON news_current(source_name, canonical_url);
 
+CREATE INDEX IF NOT EXISTS idx_skills_current_lookup
+  ON skills_current(view, rank, installs DESC);
+
+CREATE INDEX IF NOT EXISTS idx_mcp_current_lookup
+  ON mcp_current(rank, installs DESC);
+
 CREATE INDEX IF NOT EXISTS idx_llm_history_observed
   ON llm_history(observed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_vlm_history_observed
@@ -343,3 +455,9 @@ CREATE INDEX IF NOT EXISTS idx_embeddings_history_observed
   ON embeddings_history(observed_at DESC);
 CREATE INDEX IF NOT EXISTS idx_news_history_observed
   ON news_history(observed_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_skills_history_observed
+  ON skills_history(observed_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_mcp_history_observed
+  ON mcp_history(observed_at DESC);

@@ -97,23 +97,39 @@ export type AgentRow = {
 
 export type SkillRow = {
   id: string;
+  view: "all_time" | "trending" | "hot";
+  rank: number | null;
+  skillId: string;
   skill: string;
-  category: string;
-  score: number | null;
-  usageCount: number | null;
-  winRate: number | null;
-  source: string;
+  provider: string | null;
+  repository: string | null;
+  description: string | null;
+  category: string | null;
+  officiality: "official" | "unofficial" | "unknown";
+  installs: number | null;
+  installsYesterday: number | null;
+  change24h: number | null;
+  matchConfidence: number | null;
+  matchMethod: "strict" | "fuzzy" | "none" | null;
+  primarySource: string;
+  enrichedBy: string[];
+  payload: Record<string, unknown>;
   updatedAt: string | null;
 };
 
 export type McpServerRow = {
   id: string;
+  rank: number | null;
+  serverId: string;
   server: string;
-  owner: string;
-  score: number | null;
-  reliability: number | null;
-  latencyMs: number | null;
-  integrations: number | null;
-  source: string;
+  owner: string | null;
+  repository: string | null;
+  description: string | null;
+  category: string | null;
+  officiality: "official" | "unofficial" | "unknown";
+  installs: number | null;
+  primarySource: string;
+  enrichedBy: string[];
+  payload: Record<string, unknown>;
   updatedAt: string | null;
 };

@@ -3,7 +3,9 @@ import type { MonitoringDatabase } from "@/lib/monitoring/db";
 import type {
   LeaderboardCategory,
   NormalizedLeaderboardEntry,
+  NormalizedMcpEntry,
   NormalizedNewsEntry,
+  NormalizedSkillEntry,
   SourceType,
 } from "@/lib/monitoring/contracts";
 import type {
@@ -29,6 +31,18 @@ export interface SnapshotRef {
 export interface LatestCategorySnapshotRef extends SnapshotRef {
   sourceName: string;
   snapshotAt: string;
+}
+
+export interface AgentListQuery {
+  q?: string;
+  view?: "all_time" | "trending" | "hot";
+  officiality?: "official" | "unofficial" | "unknown";
+  category?: string;
+  source?: string;
+  sort?: "installs" | "rank" | "name";
+  order?: "asc" | "desc";
+  page?: number;
+  pageSize?: number;
 }
 
 function toJson(value: unknown): string {
@@ -437,6 +451,8 @@ export class MonitoringRepository {
     this.db.prepare(`DELETE FROM tts_history WHERE observed_at < ?`).run(cutoffIso);
     this.db.prepare(`DELETE FROM stt_history WHERE observed_at < ?`).run(cutoffIso);
     this.db.prepare(`DELETE FROM embeddings_history WHERE observed_at < ?`).run(cutoffIso);
+    this.db.prepare(`DELETE FROM skills_history WHERE observed_at < ?`).run(cutoffIso);
+    this.db.prepare(`DELETE FROM mcp_history WHERE observed_at < ?`).run(cutoffIso);
     this.db.prepare(`DELETE FROM news_history WHERE observed_at < ?`).run(cutoffIso);
   }
 
@@ -470,6 +486,395 @@ export class MonitoringRepository {
       importanceScore: typeof row.importance_score === "number" ? row.importance_score : undefined,
       payload: row.payload_json ? (JSON.parse(row.payload_json) as Record<string, unknown>) : undefined,
     }));
+  }
+
+  insertSkillsSnapshot(
+    runId: string,
+    sourceName: string,
+    sourcePriority: number,
+    snapshotAt: string,
+    entries: NormalizedSkillEntry[],
+  ): string {
+    const snapshotId = randomUUID();
+    const upsertCurrent = this.db.prepare(`
+      INSERT INTO skills_current
+      (id, source_name, source_priority, view, rank, source_skill_id, canonical_skill_key, skill_name, provider, repository, description, category, officiality, installs, installs_yesterday, change_24h, match_confidence, match_method, primary_source, enriched_by_json, field_source_map_json, payload_json, observed_at, created_at, updated_at)
+      VALUES
+      (@id, @sourceName, @sourcePriority, @view, @rank, @sourceSkillId, @canonicalSkillKey, @skillName, @provider, @repository, @description, @category, @officiality, @installs, @installsYesterday, @change24h, @matchConfidence, @matchMethod, @primarySource, @enrichedByJson, @fieldSourceMapJson, @payloadJson, @observedAt, @createdAt, @updatedAt)
+      ON CONFLICT(view, canonical_skill_key) DO UPDATE SET
+        source_name = excluded.source_name,
+        source_priority = excluded.source_priority,
+        rank = excluded.rank,
+        source_skill_id = excluded.source_skill_id,
+        skill_name = excluded.skill_name,
+        provider = excluded.provider,
+        repository = excluded.repository,
+        description = excluded.description,
+        category = excluded.category,
+        officiality = excluded.officiality,
+        installs = excluded.installs,
+        installs_yesterday = excluded.installs_yesterday,
+        change_24h = excluded.change_24h,
+        match_confidence = excluded.match_confidence,
+        match_method = excluded.match_method,
+        primary_source = excluded.primary_source,
+        enriched_by_json = excluded.enriched_by_json,
+        field_source_map_json = excluded.field_source_map_json,
+        payload_json = excluded.payload_json,
+        observed_at = excluded.observed_at,
+        updated_at = excluded.updated_at
+    `);
+    const insertHistory = this.db.prepare(`
+      INSERT INTO skills_history
+      (id, run_id, source_name, source_priority, view, rank, source_skill_id, canonical_skill_key, skill_name, provider, repository, description, category, officiality, installs, installs_yesterday, change_24h, match_confidence, match_method, primary_source, enriched_by_json, field_source_map_json, payload_json, observed_at, created_at)
+      VALUES
+      (@id, @runId, @sourceName, @sourcePriority, @view, @rank, @sourceSkillId, @canonicalSkillKey, @skillName, @provider, @repository, @description, @category, @officiality, @installs, @installsYesterday, @change24h, @matchConfidence, @matchMethod, @primarySource, @enrichedByJson, @fieldSourceMapJson, @payloadJson, @observedAt, @createdAt)
+    `);
+    const tx = this.db.transaction((batch: NormalizedSkillEntry[]) => {
+      const now = new Date().toISOString();
+      for (const row of batch) {
+        const fieldSourceMap = {
+          primary_source: row.primarySource,
+          description: row.enrichedBy?.includes("skills_rank") ? "skills_rank" : row.primarySource,
+        };
+        upsertCurrent.run({
+          id: randomUUID(),
+          sourceName,
+          sourcePriority,
+          view: row.view,
+          rank: row.rank ?? null,
+          sourceSkillId: row.sourceSkillId,
+          canonicalSkillKey: row.canonicalSkillKey,
+          skillName: row.name,
+          provider: row.provider ?? null,
+          repository: row.repository ?? null,
+          description: row.description ?? null,
+          category: row.category ?? null,
+          officiality: row.officiality,
+          installs: row.installs ?? null,
+          installsYesterday: row.installsYesterday ?? null,
+          change24h: row.change24h ?? null,
+          matchConfidence: row.matchConfidence ?? null,
+          matchMethod: row.matchMethod ?? null,
+          primarySource: row.primarySource,
+          enrichedByJson: row.enrichedBy ? toJson(row.enrichedBy) : null,
+          fieldSourceMapJson: toJson(fieldSourceMap),
+          payloadJson: row.payload ? toJson(row.payload) : null,
+          observedAt: snapshotAt,
+          createdAt: now,
+          updatedAt: now,
+        });
+        insertHistory.run({
+          id: randomUUID(),
+          runId,
+          sourceName,
+          sourcePriority,
+          view: row.view,
+          rank: row.rank ?? null,
+          sourceSkillId: row.sourceSkillId,
+          canonicalSkillKey: row.canonicalSkillKey,
+          skillName: row.name,
+          provider: row.provider ?? null,
+          repository: row.repository ?? null,
+          description: row.description ?? null,
+          category: row.category ?? null,
+          officiality: row.officiality,
+          installs: row.installs ?? null,
+          installsYesterday: row.installsYesterday ?? null,
+          change24h: row.change24h ?? null,
+          matchConfidence: row.matchConfidence ?? null,
+          matchMethod: row.matchMethod ?? null,
+          primarySource: row.primarySource,
+          enrichedByJson: row.enrichedBy ? toJson(row.enrichedBy) : null,
+          fieldSourceMapJson: toJson(fieldSourceMap),
+          payloadJson: row.payload ? toJson(row.payload) : null,
+          observedAt: snapshotAt,
+          createdAt: now,
+        });
+      }
+    });
+    tx(entries);
+    return snapshotId;
+  }
+
+  insertMcpSnapshot(
+    runId: string,
+    sourceName: string,
+    sourcePriority: number,
+    snapshotAt: string,
+    entries: NormalizedMcpEntry[],
+  ): string {
+    const snapshotId = randomUUID();
+    const upsertCurrent = this.db.prepare(`
+      INSERT INTO mcp_current
+      (id, source_name, source_priority, rank, source_server_id, canonical_mcp_key, server_name, provider, repository, description, category, officiality, installs, primary_source, enriched_by_json, field_source_map_json, payload_json, observed_at, created_at, updated_at)
+      VALUES
+      (@id, @sourceName, @sourcePriority, @rank, @sourceServerId, @canonicalMcpKey, @serverName, @provider, @repository, @description, @category, @officiality, @installs, @primarySource, @enrichedByJson, @fieldSourceMapJson, @payloadJson, @observedAt, @createdAt, @updatedAt)
+      ON CONFLICT(canonical_mcp_key) DO UPDATE SET
+        source_name = excluded.source_name,
+        source_priority = excluded.source_priority,
+        rank = excluded.rank,
+        source_server_id = excluded.source_server_id,
+        server_name = excluded.server_name,
+        provider = excluded.provider,
+        repository = excluded.repository,
+        description = excluded.description,
+        category = excluded.category,
+        officiality = excluded.officiality,
+        installs = excluded.installs,
+        primary_source = excluded.primary_source,
+        enriched_by_json = excluded.enriched_by_json,
+        field_source_map_json = excluded.field_source_map_json,
+        payload_json = excluded.payload_json,
+        observed_at = excluded.observed_at,
+        updated_at = excluded.updated_at
+    `);
+    const insertHistory = this.db.prepare(`
+      INSERT INTO mcp_history
+      (id, run_id, source_name, source_priority, rank, source_server_id, canonical_mcp_key, server_name, provider, repository, description, category, officiality, installs, primary_source, enriched_by_json, field_source_map_json, payload_json, observed_at, created_at)
+      VALUES
+      (@id, @runId, @sourceName, @sourcePriority, @rank, @sourceServerId, @canonicalMcpKey, @serverName, @provider, @repository, @description, @category, @officiality, @installs, @primarySource, @enrichedByJson, @fieldSourceMapJson, @payloadJson, @observedAt, @createdAt)
+    `);
+    const tx = this.db.transaction((batch: NormalizedMcpEntry[]) => {
+      const now = new Date().toISOString();
+      for (const row of batch) {
+        const fieldSourceMap = {
+          primary_source: row.primarySource,
+          description: row.primarySource,
+        };
+        upsertCurrent.run({
+          id: randomUUID(),
+          sourceName,
+          sourcePriority,
+          rank: row.rank ?? null,
+          sourceServerId: row.sourceServerId,
+          canonicalMcpKey: row.canonicalMcpKey,
+          serverName: row.name,
+          provider: row.provider ?? null,
+          repository: row.repository ?? null,
+          description: row.description ?? null,
+          category: row.category ?? null,
+          officiality: row.officiality,
+          installs: row.installs ?? null,
+          primarySource: row.primarySource,
+          enrichedByJson: row.enrichedBy ? toJson(row.enrichedBy) : null,
+          fieldSourceMapJson: toJson(fieldSourceMap),
+          payloadJson: row.payload ? toJson(row.payload) : null,
+          observedAt: snapshotAt,
+          createdAt: now,
+          updatedAt: now,
+        });
+        insertHistory.run({
+          id: randomUUID(),
+          runId,
+          sourceName,
+          sourcePriority,
+          rank: row.rank ?? null,
+          sourceServerId: row.sourceServerId,
+          canonicalMcpKey: row.canonicalMcpKey,
+          serverName: row.name,
+          provider: row.provider ?? null,
+          repository: row.repository ?? null,
+          description: row.description ?? null,
+          category: row.category ?? null,
+          officiality: row.officiality,
+          installs: row.installs ?? null,
+          primarySource: row.primarySource,
+          enrichedByJson: row.enrichedBy ? toJson(row.enrichedBy) : null,
+          fieldSourceMapJson: toJson(fieldSourceMap),
+          payloadJson: row.payload ? toJson(row.payload) : null,
+          observedAt: snapshotAt,
+          createdAt: now,
+        });
+      }
+    });
+    tx(entries);
+    return snapshotId;
+  }
+
+  getLatestAgentSnapshotAt(): string | null {
+    const skillRow = this.db.prepare(`SELECT observed_at FROM skills_current ORDER BY observed_at DESC LIMIT 1`).get() as { observed_at: string } | undefined;
+    const mcpRow = this.db.prepare(`SELECT observed_at FROM mcp_current ORDER BY observed_at DESC LIMIT 1`).get() as { observed_at: string } | undefined;
+    const candidates = [skillRow?.observed_at, mcpRow?.observed_at].filter((item): item is string => Boolean(item));
+    if (candidates.length === 0) return null;
+    return candidates.sort((a, b) => Date.parse(b) - Date.parse(a))[0];
+  }
+
+  getAgentsOverviewCounts(): { skills: number; mcpServers: number } {
+    const skills = this.db.prepare(`SELECT COUNT(*) AS count FROM skills_current`).get() as { count: number };
+    const mcp = this.db.prepare(`SELECT COUNT(*) AS count FROM mcp_current`).get() as { count: number };
+    return { skills: Number(skills?.count ?? 0), mcpServers: Number(mcp?.count ?? 0) };
+  }
+
+  getSkillEntries(query: AgentListQuery): { total: number; data: Array<Record<string, unknown>> } {
+    const page = Math.max(1, Math.floor(query.page ?? 1));
+    const pageSize = Math.min(200, Math.max(1, Math.floor(query.pageSize ?? 50)));
+    const sort = query.sort ?? "installs";
+    const order = query.order === "asc" ? "ASC" : "DESC";
+    const where: string[] = [];
+    const values: Array<string | number> = [];
+
+    if (query.view) {
+      where.push("view = ?");
+      values.push(query.view);
+    }
+    if (query.officiality) {
+      where.push("officiality = ?");
+      values.push(query.officiality);
+    }
+    if (query.category) {
+      where.push("LOWER(COALESCE(category, '')) = LOWER(?)");
+      values.push(query.category);
+    }
+    if (query.source) {
+      where.push("(LOWER(primary_source) = LOWER(?) OR LOWER(source_name) = LOWER(?))");
+      values.push(query.source, query.source);
+    }
+    if (query.q?.trim()) {
+      const needle = `%${query.q.trim().toLowerCase()}%`;
+      where.push("(LOWER(skill_name) LIKE ? OR LOWER(COALESCE(description, '')) LIKE ? OR LOWER(COALESCE(repository, '')) LIKE ?)");
+      values.push(needle, needle, needle);
+    }
+
+    const whereSql = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+    const sortSql =
+      sort === "name"
+        ? `skill_name ${order}`
+        : sort === "rank"
+          ? `COALESCE(rank, 999999) ${order}`
+          : `COALESCE(installs, -1) ${order}`;
+
+    const totalRow = this.db.prepare(`SELECT COUNT(*) AS count FROM skills_current ${whereSql}`).get(...values) as { count: number };
+    const rows = this.db.prepare(`
+      SELECT view, rank, source_skill_id, canonical_skill_key, skill_name, provider, repository, description, category, officiality, installs, installs_yesterday, change_24h, match_confidence, match_method, primary_source, enriched_by_json, payload_json, observed_at
+      FROM skills_current
+      ${whereSql}
+      ORDER BY ${sortSql}, skill_name ASC
+      LIMIT ? OFFSET ?
+    `).all(...values, pageSize, (page - 1) * pageSize) as Array<{
+      view: string;
+      rank: number | null;
+      source_skill_id: string;
+      canonical_skill_key: string;
+      skill_name: string;
+      provider: string | null;
+      repository: string | null;
+      description: string | null;
+      category: string | null;
+      officiality: "official" | "unofficial" | "unknown";
+      installs: number | null;
+      installs_yesterday: number | null;
+      change_24h: number | null;
+      match_confidence: number | null;
+      match_method: "strict" | "fuzzy" | "none" | null;
+      primary_source: string;
+      enriched_by_json: string | null;
+      payload_json: string | null;
+      observed_at: string;
+    }>;
+
+    return {
+      total: Number(totalRow?.count ?? 0),
+      data: rows.map((row) => ({
+        id: row.canonical_skill_key,
+        view: row.view,
+        rank: row.rank,
+        skillId: row.source_skill_id,
+        skill: row.skill_name,
+        provider: row.provider,
+        repository: row.repository,
+        description: row.description,
+        category: row.category,
+        officiality: row.officiality,
+        installs: row.installs,
+        installsYesterday: row.installs_yesterday,
+        change24h: row.change_24h,
+        matchConfidence: row.match_confidence,
+        matchMethod: row.match_method,
+        primarySource: row.primary_source,
+        enrichedBy: row.enriched_by_json ? (JSON.parse(row.enriched_by_json) as string[]) : [],
+        payload: row.payload_json ? (JSON.parse(row.payload_json) as Record<string, unknown>) : {},
+        updatedAt: row.observed_at,
+      })),
+    };
+  }
+
+  getMcpEntries(query: AgentListQuery): { total: number; data: Array<Record<string, unknown>> } {
+    const page = Math.max(1, Math.floor(query.page ?? 1));
+    const pageSize = Math.min(200, Math.max(1, Math.floor(query.pageSize ?? 50)));
+    const sort = query.sort ?? "installs";
+    const order = query.order === "asc" ? "ASC" : "DESC";
+    const where: string[] = [];
+    const values: Array<string | number> = [];
+
+    if (query.officiality) {
+      where.push("officiality = ?");
+      values.push(query.officiality);
+    }
+    if (query.category) {
+      where.push("LOWER(COALESCE(category, '')) = LOWER(?)");
+      values.push(query.category);
+    }
+    if (query.source) {
+      where.push("(LOWER(primary_source) = LOWER(?) OR LOWER(source_name) = LOWER(?))");
+      values.push(query.source, query.source);
+    }
+    if (query.q?.trim()) {
+      const needle = `%${query.q.trim().toLowerCase()}%`;
+      where.push("(LOWER(server_name) LIKE ? OR LOWER(COALESCE(description, '')) LIKE ? OR LOWER(COALESCE(repository, '')) LIKE ?)");
+      values.push(needle, needle, needle);
+    }
+    const whereSql = where.length > 0 ? `WHERE ${where.join(" AND ")}` : "";
+    const sortSql =
+      sort === "name"
+        ? `server_name ${order}`
+        : sort === "rank"
+          ? `COALESCE(rank, 999999) ${order}`
+          : `COALESCE(installs, -1) ${order}`;
+
+    const totalRow = this.db.prepare(`SELECT COUNT(*) AS count FROM mcp_current ${whereSql}`).get(...values) as { count: number };
+    const rows = this.db.prepare(`
+      SELECT rank, source_server_id, canonical_mcp_key, server_name, provider, repository, description, category, officiality, installs, primary_source, enriched_by_json, payload_json, observed_at
+      FROM mcp_current
+      ${whereSql}
+      ORDER BY ${sortSql}, server_name ASC
+      LIMIT ? OFFSET ?
+    `).all(...values, pageSize, (page - 1) * pageSize) as Array<{
+      rank: number | null;
+      source_server_id: string;
+      canonical_mcp_key: string;
+      server_name: string;
+      provider: string | null;
+      repository: string | null;
+      description: string | null;
+      category: string | null;
+      officiality: "official" | "unofficial" | "unknown";
+      installs: number | null;
+      primary_source: string;
+      enriched_by_json: string | null;
+      payload_json: string | null;
+      observed_at: string;
+    }>;
+
+    return {
+      total: Number(totalRow?.count ?? 0),
+      data: rows.map((row) => ({
+        id: row.canonical_mcp_key,
+        rank: row.rank,
+        serverId: row.source_server_id,
+        server: row.server_name,
+        owner: row.provider,
+        repository: row.repository,
+        description: row.description,
+        category: row.category,
+        officiality: row.officiality,
+        installs: row.installs,
+        primarySource: row.primary_source,
+        enrichedBy: row.enriched_by_json ? (JSON.parse(row.enriched_by_json) as string[]) : [],
+        payload: row.payload_json ? (JSON.parse(row.payload_json) as Record<string, unknown>) : {},
+        updatedAt: row.observed_at,
+      })),
+    };
   }
 
   insertNotificationLog(params: {

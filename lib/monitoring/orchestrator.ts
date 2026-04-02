@@ -2,6 +2,7 @@ import { getActiveLeaderboardSources } from "@/lib/monitoring/leaderboard-source
 import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
 import { diffTop10 } from "@/lib/monitoring/leaderboard-diff";
 import { sendTop10AlertEmail } from "@/lib/monitoring/notifications";
+import { collectAgentCatalogSnapshot } from "@/lib/monitoring/agents-sources";
 import { LEADERBOARD_CATEGORIES, type LeaderboardCategory } from "@/lib/monitoring/contracts";
 import { openMonitoringRuntime, type MonitoringRuntime, type MonitoringRuntimeOptions } from "@/lib/monitoring/runtime";
 import type { RunSummary } from "@/lib/monitoring/run-types";
@@ -84,6 +85,9 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     newsEntriesWritten: 0,
     notificationsSent: 0,
     notificationsFailed: 0,
+    metadataSourcesChecked: 0,
+    skillEntriesWritten: 0,
+    mcpEntriesWritten: 0,
   };
   let hadSourceErrors = false;
 
@@ -248,6 +252,55 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
         hadSourceErrors = true;
         continue;
       }
+    }
+
+    try {
+      const agentResult = await collectAgentCatalogSnapshot({ nowIso, timeoutMs });
+      summary.skillEntriesWritten = agentResult.skills.length;
+      summary.mcpEntriesWritten = agentResult.mcp.length;
+      summary.metadataSourcesChecked = agentResult.sourceHealth.length;
+
+      await repository.insertSkillsSnapshot(
+        runId,
+        "skills_sh",
+        100,
+        nowIso,
+        agentResult.skills,
+      );
+      await repository.insertMcpSnapshot(
+        runId,
+        "mcpmarket_catalog",
+        120,
+        nowIso,
+        agentResult.mcp,
+      );
+
+      for (const item of agentResult.sourceHealth) {
+        await repository.upsertSourceHealth({
+          sourceName: item.sourceName,
+          sourceType: "metadata",
+          enabled: true,
+          success: item.success,
+          latencyMs: item.latencyMs,
+          lastCheckedAt: nowIso,
+          lastSuccessAt: item.success ? nowIso : undefined,
+          lastErrorMessage: item.success ? undefined : item.errorMessage,
+        });
+        if (!item.success) {
+          hadSourceErrors = true;
+        }
+      }
+    } catch (error) {
+      hadSourceErrors = true;
+      await repository.upsertSourceHealth({
+        sourceName: "agent_catalog_pipeline",
+        sourceType: "metadata",
+        enabled: true,
+        success: false,
+        latencyMs: 0,
+        lastCheckedAt: nowIso,
+        lastErrorMessage: error instanceof Error ? error.message : String(error),
+      });
     }
 
     await repository.pruneNewsData(retentionDays);
