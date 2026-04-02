@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { AiNewsItem, Locale } from "@/components/dashboard-types";
@@ -102,10 +102,10 @@ function sectionText(locale: Locale, section: NewsSection) {
   return map[locale][section];
 }
 
-function toGridStyle(item: { colStart: number; rowStart: number; colSpan: number; rowSpan: number }): CSSProperties {
+function toGridStyle(item: { colSpan: number; rowSpan: number }, measuredRowSpan?: number): CSSProperties {
   return {
-    "--news-col": `${item.colStart} / span ${item.colSpan}`,
-    "--news-row": `${item.rowStart} / span ${item.rowSpan}`,
+    "--news-col-span": String(item.colSpan),
+    "--news-row-span": String(measuredRowSpan ?? item.rowSpan),
   } as CSSProperties;
 }
 
@@ -205,6 +205,8 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
     const value = params.get("sort");
     return value === "importance" ? "importance" : "newest";
   });
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const [measuredSpans, setMeasuredSpans] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let alive = true;
@@ -277,6 +279,50 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
 
   const bentoItems = useMemo(() => buildNewsBento(filtered), [filtered]);
   const loadingBento = useMemo(() => buildNewsBento(makeLoadingItems(12)), []);
+
+  const measureMasonry = useCallback(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const style = window.getComputedStyle(grid);
+    const rowHeight = Number.parseFloat(style.getPropertyValue("grid-auto-rows")) || 8;
+    const rowGap = Number.parseFloat(style.getPropertyValue("row-gap")) || 12;
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>("[data-news-card-id]"));
+    if (cards.length === 0) return;
+
+    const next: Record<string, number> = {};
+    for (const card of cards) {
+      const id = card.dataset.newsCardId;
+      if (!id) continue;
+      const height = card.getBoundingClientRect().height;
+      const span = Math.max(2, Math.ceil((height + rowGap) / (rowHeight + rowGap)));
+      next[id] = span;
+    }
+    setMeasuredSpans((prev) => {
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(next);
+      if (prevKeys.length === nextKeys.length && nextKeys.every((key) => prev[key] === next[key])) {
+        return prev;
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    const frame = window.requestAnimationFrame(measureMasonry);
+    const grid = gridRef.current;
+    if (!grid) return () => window.cancelAnimationFrame(frame);
+
+    const observer = new ResizeObserver(() => measureMasonry());
+    observer.observe(grid);
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>("[data-news-card-id]"));
+    for (const card of cards) observer.observe(card);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [bentoItems, loading, measureMasonry]);
 
   const resetFilters = () => {
     setSearch("");
@@ -369,12 +415,12 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
       {loading ? (
         <div
           aria-label={strings.loading}
-          className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[6rem] md:grid-flow-dense"
+          className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[8px] md:grid-flow-dense"
         >
           {loadingBento.map((item) => (
             <Skeleton
               key={item.id}
-              className="col-span-1 border md:[grid-column:var(--news-col)] md:[grid-row:var(--news-row)]"
+              className="col-span-1 border md:[grid-column:span_var(--news-col-span)] md:[grid-row-end:span_var(--news-row-span)]"
               style={{ ...toGridStyle(item), borderColor: "var(--border)", background: "var(--surface-subtle)" }}
             />
           ))}
@@ -382,7 +428,7 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
       ) : bentoItems.length === 0 ? (
         <p style={{ color: "var(--text-muted)" }}>{strings.empty}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[6rem] md:grid-flow-dense">
+        <div ref={gridRef} className="grid grid-cols-1 gap-3 md:grid-cols-6 md:auto-rows-[8px] md:grid-flow-dense">
           {bentoItems.map((item) => {
             const imageUrl = item.imageUrl && item.imageUrl.trim().length > 0 ? item.imageUrl : null;
             const description = fallbackDescription(item, locale);
@@ -390,9 +436,10 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
             return (
               <Card
                 key={item.id}
-                className="col-span-1 flex h-full min-h-0 flex-col overflow-hidden md:[grid-column:var(--news-col)] md:[grid-row:var(--news-row)]"
+                data-news-card-id={item.id}
+                className="col-span-1 flex h-fit min-h-0 flex-col overflow-hidden md:[grid-column:span_var(--news-col-span)] md:[grid-row-end:span_var(--news-row-span)]"
                 style={{
-                  ...toGridStyle(item),
+                  ...toGridStyle(item, measuredSpans[item.id]),
                   borderColor: "var(--border-strong)",
                   background: "var(--surface-subtle)",
                   boxShadow: "var(--shadow-sm)",

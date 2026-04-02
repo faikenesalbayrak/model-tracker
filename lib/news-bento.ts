@@ -10,8 +10,6 @@ type VariantSize = {
 export type ScoredNewsItem = AiNewsItem & {
   priorityScore: number;
   variant: NewsCardVariant;
-  colStart: number;
-  rowStart: number;
   colSpan: number;
   rowSpan: number;
 };
@@ -60,13 +58,6 @@ export function variantForIndex(index: number): NewsCardVariant {
   return LAYOUT_PATTERN[index % LAYOUT_PATTERN.length] ?? "standard";
 }
 
-function variantCandidates(variant: NewsCardVariant): NewsCardVariant[] {
-  if (variant === "hero") return ["hero", "tall", "wide", "standard"];
-  if (variant === "tall") return ["tall", "wide", "standard"];
-  if (variant === "wide") return ["wide", "standard"];
-  return ["standard"];
-}
-
 function resolveVariantSize(variant: NewsCardVariant, item: AiNewsItem): VariantSize {
   const base = VARIANT_SIZE[variant];
   const titleLen = item.title.trim().length;
@@ -76,94 +67,7 @@ function resolveVariantSize(variant: NewsCardVariant, item: AiNewsItem): Variant
   const bonus = Math.max(0, Math.min(1, textWeight + imageBoost));
   return { ...base, rowSpan: base.rowSpan + bonus };
 }
-
-type Placement = {
-  rowStart: number;
-  colStart: number;
-  colSpan: number;
-  rowSpan: number;
-  variant: NewsCardVariant;
-};
-
-function ensureRow(occupancy: boolean[][], rowIndex: number, columns: number): void {
-  while (occupancy.length <= rowIndex) {
-    occupancy.push(Array.from({ length: columns }, () => false));
-  }
-}
-
-function fitsAt(
-  occupancy: boolean[][],
-  rowIndex: number,
-  colIndex: number,
-  size: VariantSize,
-  columns: number,
-): boolean {
-  if (colIndex + size.colSpan > columns) return false;
-  for (let r = rowIndex; r < rowIndex + size.rowSpan; r += 1) {
-    ensureRow(occupancy, r, columns);
-    for (let c = colIndex; c < colIndex + size.colSpan; c += 1) {
-      if (occupancy[r]?.[c]) return false;
-    }
-  }
-  return true;
-}
-
-function occupy(
-  occupancy: boolean[][],
-  rowIndex: number,
-  colIndex: number,
-  size: VariantSize,
-  columns: number,
-): void {
-  for (let r = rowIndex; r < rowIndex + size.rowSpan; r += 1) {
-    ensureRow(occupancy, r, columns);
-    for (let c = colIndex; c < colIndex + size.colSpan; c += 1) {
-      occupancy[r][c] = true;
-    }
-  }
-}
-
-function nextFreeCell(occupancy: boolean[][], columns: number): { row: number; col: number } {
-  let row = 0;
-  while (true) {
-    ensureRow(occupancy, row, columns);
-    for (let col = 0; col < columns; col += 1) {
-      if (!occupancy[row]?.[col]) return { row, col };
-    }
-    row += 1;
-  }
-}
-
-function placeItem(occupancy: boolean[][], preferred: NewsCardVariant, columns: number, item: AiNewsItem): Placement {
-  const { row, col } = nextFreeCell(occupancy, columns);
-  const candidates = variantCandidates(preferred);
-
-  for (const variant of candidates) {
-    const size = resolveVariantSize(variant, item);
-    if (fitsAt(occupancy, row, col, size, columns)) {
-      occupy(occupancy, row, col, size, columns);
-      return {
-        rowStart: row + 1,
-        colStart: col + 1,
-        colSpan: size.colSpan,
-        rowSpan: size.rowSpan,
-        variant,
-      };
-    }
-  }
-
-  const fallback = VARIANT_SIZE.standard;
-  occupy(occupancy, row, col, fallback, columns);
-  return {
-    rowStart: row + 1,
-    colStart: col + 1,
-    colSpan: fallback.colSpan,
-    rowSpan: fallback.rowSpan,
-    variant: "standard",
-  };
-}
-
-export function buildNewsBento(items: AiNewsItem[], nowMs = Date.now(), columns = 6): ScoredNewsItem[] {
+export function buildNewsBento(items: AiNewsItem[], nowMs = Date.now()): ScoredNewsItem[] {
   const withScores = items.map((item) => ({ item, score: scoreNewsItem(item, nowMs) }));
 
   withScores.sort((left, right) => {
@@ -173,18 +77,15 @@ export function buildNewsBento(items: AiNewsItem[], nowMs = Date.now(), columns 
     return (Number.isFinite(r) ? r : 0) - (Number.isFinite(l) ? l : 0);
   });
 
-  const occupancy: boolean[][] = [];
   return withScores.map(({ item, score }, index) => {
     const preferred = variantForIndex(index);
-    const placed = placeItem(occupancy, preferred, columns, item);
+    const size = resolveVariantSize(preferred, item);
     return {
       ...item,
       priorityScore: score,
-      variant: placed.variant,
-      colStart: placed.colStart,
-      rowStart: placed.rowStart,
-      colSpan: placed.colSpan,
-      rowSpan: placed.rowSpan,
+      variant: preferred,
+      colSpan: size.colSpan,
+      rowSpan: size.rowSpan,
     };
   });
 }
