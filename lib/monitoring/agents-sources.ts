@@ -170,10 +170,12 @@ function parseAnchorCards(html: string, hrefMatchers: RegExp[]): Array<{ name: s
     const href = match[1] ?? "";
     if (!hrefMatchers.some((rx) => rx.test(href))) continue;
 
-    const inner = (match[2] ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const rawInner = match[2] ?? "";
+    const inner = rawInner.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
     if (!inner) continue;
 
-    const name = inner.split(" ").slice(0, 8).join(" ").trim();
+    const h3Match = rawInner.match(/<h3[^>]*>([^<]+)<\/h3>/i);
+    const name = (h3Match?.[1] ?? inner.split(" ").slice(0, 8).join(" ")).trim();
     if (!name || name.length < 2) continue;
 
     const around = html.slice(Math.max(0, match.index - 240), Math.min(html.length, (match.index ?? 0) + 480));
@@ -445,10 +447,12 @@ async function collectMcp(timeoutMs: number, sourceHealth: SourceHealthSample[])
   const rawMcp: NormalizedMcpEntry[] = [];
 
   const collectors: Array<{ sourceName: string; url: string; hosts: string[]; matchers: RegExp[] }> = [
-    { sourceName: "mcpmarket_catalog", url: MCPMARKET_BASE, hosts: ["mcpmarket.com"], matchers: [/\/server\//i, /\/mcp\//i] },
-    { sourceName: "getmymcp_catalog", url: GETMYMCP_BASE, hosts: ["www.getmymcp.com", "getmymcp.com"], matchers: [/\/mcp\//i, /\/server\//i] },
-    { sourceName: "mcpservers_catalog", url: MCPSERVERS_BASE, hosts: ["mcpservers.org", "www.mcpservers.org"], matchers: [/\/server\//i, /\/mcp\//i] },
-    { sourceName: "mcpsmith_catalog", url: MCPSMITH_BASE, hosts: ["mcpsmith.com", "www.mcpsmith.com"], matchers: [/\/server\//i, /\/mcp\//i] },
+    { sourceName: "mcpmarket_catalog", url: MCPMARKET_BASE, hosts: ["mcpmarket.com"], matchers: [/\/servers?\//i, /\/mcp\//i] },
+    { sourceName: "getmymcp_catalog", url: `${GETMYMCP_BASE}/leaderboard`, hosts: ["www.getmymcp.com", "getmymcp.com"], matchers: [/\/servers?\//i, /\/mcp\//i] },
+    { sourceName: "getmymcp_catalog", url: `${GETMYMCP_BASE}/server`, hosts: ["www.getmymcp.com", "getmymcp.com"], matchers: [/\/servers?\//i, /\/mcp\//i] },
+    { sourceName: "mcpservers_catalog", url: `${MCPSERVERS_BASE}/all`, hosts: ["mcpservers.org", "www.mcpservers.org"], matchers: [/\/servers?\//i, /\/mcp\//i] },
+    { sourceName: "mcpservers_catalog", url: MCPSERVERS_BASE, hosts: ["mcpservers.org", "www.mcpservers.org"], matchers: [/\/servers?\//i, /\/mcp\//i] },
+    { sourceName: "mcpsmith_catalog", url: MCPSMITH_BASE, hosts: ["mcpsmith.com", "www.mcpsmith.com"], matchers: [/\/servers?\//i, /\/mcp\//i] },
   ];
 
   for (const collector of collectors) {
