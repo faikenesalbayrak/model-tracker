@@ -456,11 +456,50 @@ function mcpEntryFromRaw(raw: RawMcpSeed, sourceName: string, rank: number): Nor
 async function collectMcp(timeoutMs: number, sourceHealth: SourceHealthSample[]): Promise<NormalizedMcpEntry[]> {
   const rawMcp: NormalizedMcpEntry[] = [];
 
+  const mcpserversPagedStart = Date.now();
+  try {
+    const maxPagesRaw = Number(process.env.MONITORING_MCPSERVERS_PAGES ?? "12");
+    const maxPages = Number.isFinite(maxPagesRaw) && maxPagesRaw > 0 ? Math.min(80, Math.floor(maxPagesRaw)) : 12;
+    const seen = new Set<string>();
+    for (let page = 1; page <= maxPages; page += 1) {
+      const url = `${MCPSERVERS_BASE}/all?sort=name&page=${page}`;
+      const html = (await fetchHtml(url, ["mcpservers.org", "www.mcpservers.org"], timeoutMs)).replace(/\u0000/g, "");
+      const cards = parseAnchorCards(html, [/\/servers?\//i]);
+      if (cards.length === 0) break;
+      for (const card of cards) {
+        const key = `${card.href}|${card.name}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        rawMcp.push(
+          mcpEntryFromRaw(
+            {
+              sourceServerId: toCanonicalToken(card.href || card.name),
+              name: card.name,
+              category: card.category,
+              description: card.description,
+              installs: card.installs,
+              sourceUrl: card.href,
+            },
+            "mcpservers_catalog",
+            rawMcp.length + 1,
+          ),
+        );
+      }
+    }
+    sourceHealth.push({ sourceName: "mcpservers_catalog", success: true, latencyMs: Date.now() - mcpserversPagedStart });
+  } catch (error) {
+    sourceHealth.push({
+      sourceName: "mcpservers_catalog",
+      success: false,
+      latencyMs: Date.now() - mcpserversPagedStart,
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
+  }
+
   const collectors: Array<{ sourceName: string; url: string; hosts: string[]; matchers: RegExp[] }> = [
     { sourceName: "mcpmarket_catalog", url: MCPMARKET_BASE, hosts: ["mcpmarket.com"], matchers: [/\/servers?\//i, /\/mcp\//i] },
     { sourceName: "getmymcp_catalog", url: `${GETMYMCP_BASE}/leaderboard`, hosts: ["www.getmymcp.com", "getmymcp.com"], matchers: [/\/servers?\//i, /\/mcp\//i] },
     { sourceName: "getmymcp_catalog", url: `${GETMYMCP_BASE}/server`, hosts: ["www.getmymcp.com", "getmymcp.com"], matchers: [/\/servers?\//i, /\/mcp\//i] },
-    { sourceName: "mcpservers_catalog", url: `${MCPSERVERS_BASE}/all`, hosts: ["mcpservers.org", "www.mcpservers.org"], matchers: [/\/servers?\//i, /\/mcp\//i] },
     { sourceName: "mcpservers_catalog", url: MCPSERVERS_BASE, hosts: ["mcpservers.org", "www.mcpservers.org"], matchers: [/\/servers?\//i, /\/mcp\//i] },
     { sourceName: "mcpsmith_catalog", url: MCPSMITH_BASE, hosts: ["mcpsmith.com", "www.mcpsmith.com"], matchers: [/\/servers?\//i, /\/mcp\//i] },
   ];
