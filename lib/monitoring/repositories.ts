@@ -13,6 +13,7 @@ import type {
   MonitorRunStatus,
   MonitorRunType,
 } from "@/lib/monitoring/run-types";
+import { computeDelta24h, toMcpDisplayName, toSkillDisplayName } from "@/lib/monitoring/agent-display";
 
 export interface InsertRunInput {
   runType: MonitorRunType;
@@ -44,6 +45,45 @@ export interface AgentListQuery {
   page?: number;
   pageSize?: number;
 }
+
+type SkillDbRow = {
+  view: string;
+  rank: number | null;
+  source_skill_id: string;
+  canonical_skill_key: string;
+  skill_name: string;
+  provider: string | null;
+  repository: string | null;
+  description: string | null;
+  category: string | null;
+  officiality: "official" | "unofficial" | "unknown";
+  installs: number | null;
+  installs_yesterday: number | null;
+  change_24h: number | null;
+  match_confidence: number | null;
+  match_method: "strict" | "fuzzy" | "none" | null;
+  primary_source: string;
+  enriched_by_json: string | null;
+  payload_json: string | null;
+  observed_at: string;
+};
+
+type McpDbRow = {
+  rank: number | null;
+  source_server_id: string;
+  canonical_mcp_key: string;
+  server_name: string;
+  provider: string | null;
+  repository: string | null;
+  description: string | null;
+  category: string | null;
+  officiality: "official" | "unofficial" | "unknown";
+  installs: number | null;
+  primary_source: string;
+  enriched_by_json: string | null;
+  payload_json: string | null;
+  observed_at: string;
+};
 
 function toJson(value: unknown): string {
   return JSON.stringify(value ?? null);
@@ -706,6 +746,44 @@ export class MonitoringRepository {
     return { skills: Number(skills?.count ?? 0), mcpServers: Number(mcp?.count ?? 0) };
   }
 
+  getSkillFacets(): { categories: string[]; sources: string[] } {
+    const categories = this.db.prepare(`
+      SELECT DISTINCT category
+      FROM skills_current
+      WHERE category IS NOT NULL AND TRIM(category) <> ''
+      ORDER BY category ASC
+    `).all() as Array<{ category: string }>;
+    const sources = this.db.prepare(`
+      SELECT DISTINCT primary_source
+      FROM skills_current
+      WHERE primary_source IS NOT NULL AND TRIM(primary_source) <> ''
+      ORDER BY primary_source ASC
+    `).all() as Array<{ primary_source: string }>;
+    return {
+      categories: categories.map((row) => row.category),
+      sources: sources.map((row) => row.primary_source),
+    };
+  }
+
+  getMcpFacets(): { categories: string[]; sources: string[] } {
+    const categories = this.db.prepare(`
+      SELECT DISTINCT category
+      FROM mcp_current
+      WHERE category IS NOT NULL AND TRIM(category) <> ''
+      ORDER BY category ASC
+    `).all() as Array<{ category: string }>;
+    const sources = this.db.prepare(`
+      SELECT DISTINCT primary_source
+      FROM mcp_current
+      WHERE primary_source IS NOT NULL AND TRIM(primary_source) <> ''
+      ORDER BY primary_source ASC
+    `).all() as Array<{ primary_source: string }>;
+    return {
+      categories: categories.map((row) => row.category),
+      sources: sources.map((row) => row.primary_source),
+    };
+  }
+
   getSkillEntries(query: AgentListQuery): { total: number; data: Array<Record<string, unknown>> } {
     const page = Math.max(1, Math.floor(query.page ?? 1));
     const pageSize = Math.min(200, Math.max(1, Math.floor(query.pageSize ?? 50)));
@@ -751,51 +829,11 @@ export class MonitoringRepository {
       ${whereSql}
       ORDER BY ${sortSql}, skill_name ASC
       LIMIT ? OFFSET ?
-    `).all(...values, pageSize, (page - 1) * pageSize) as Array<{
-      view: string;
-      rank: number | null;
-      source_skill_id: string;
-      canonical_skill_key: string;
-      skill_name: string;
-      provider: string | null;
-      repository: string | null;
-      description: string | null;
-      category: string | null;
-      officiality: "official" | "unofficial" | "unknown";
-      installs: number | null;
-      installs_yesterday: number | null;
-      change_24h: number | null;
-      match_confidence: number | null;
-      match_method: "strict" | "fuzzy" | "none" | null;
-      primary_source: string;
-      enriched_by_json: string | null;
-      payload_json: string | null;
-      observed_at: string;
-    }>;
+    `).all(...values, pageSize, (page - 1) * pageSize) as SkillDbRow[];
 
     return {
       total: Number(totalRow?.count ?? 0),
-      data: rows.map((row) => ({
-        id: row.canonical_skill_key,
-        view: row.view,
-        rank: row.rank,
-        skillId: row.source_skill_id,
-        skill: row.skill_name,
-        provider: row.provider,
-        repository: row.repository,
-        description: row.description,
-        category: row.category,
-        officiality: row.officiality,
-        installs: row.installs,
-        installsYesterday: row.installs_yesterday,
-        change24h: row.change_24h,
-        matchConfidence: row.match_confidence,
-        matchMethod: row.match_method,
-        primarySource: row.primary_source,
-        enrichedBy: row.enriched_by_json ? (JSON.parse(row.enriched_by_json) as string[]) : [],
-        payload: row.payload_json ? (JSON.parse(row.payload_json) as Record<string, unknown>) : {},
-        updatedAt: row.observed_at,
-      })),
+      data: rows.map((row) => mapSkillRow(row)),
     };
   }
 
@@ -839,41 +877,129 @@ export class MonitoringRepository {
       ${whereSql}
       ORDER BY ${sortSql}, server_name ASC
       LIMIT ? OFFSET ?
-    `).all(...values, pageSize, (page - 1) * pageSize) as Array<{
-      rank: number | null;
-      source_server_id: string;
-      canonical_mcp_key: string;
-      server_name: string;
-      provider: string | null;
-      repository: string | null;
-      description: string | null;
-      category: string | null;
-      officiality: "official" | "unofficial" | "unknown";
-      installs: number | null;
-      primary_source: string;
-      enriched_by_json: string | null;
-      payload_json: string | null;
-      observed_at: string;
-    }>;
+    `).all(...values, pageSize, (page - 1) * pageSize) as McpDbRow[];
 
     return {
       total: Number(totalRow?.count ?? 0),
-      data: rows.map((row) => ({
-        id: row.canonical_mcp_key,
-        rank: row.rank,
-        serverId: row.source_server_id,
-        server: row.server_name,
-        owner: row.provider,
-        repository: row.repository,
-        description: row.description,
-        category: row.category,
-        officiality: row.officiality,
-        installs: row.installs,
-        primarySource: row.primary_source,
-        enrichedBy: row.enriched_by_json ? (JSON.parse(row.enriched_by_json) as string[]) : [],
-        payload: row.payload_json ? (JSON.parse(row.payload_json) as Record<string, unknown>) : {},
-        updatedAt: row.observed_at,
-      })),
+      data: rows.map((row) => mapMcpRow(row)),
+    };
+  }
+
+  getSkillTrending24hEntries(query: AgentListQuery): { total: number; data: Array<Record<string, unknown>> } {
+    const next = {
+      ...query,
+      view: query.view === "hot" || query.view === "trending" ? query.view : undefined,
+      sort: "installs" as const,
+      order: "desc" as const,
+    };
+    const page = Math.max(1, Math.floor(next.page ?? 1));
+    const pageSize = Math.min(200, Math.max(1, Math.floor(next.pageSize ?? 50)));
+
+    const where: string[] = ["change_24h IS NOT NULL"];
+    const values: Array<string | number> = [];
+    if (next.officiality) {
+      where.push("officiality = ?");
+      values.push(next.officiality);
+    }
+    if (next.category) {
+      where.push("LOWER(COALESCE(category, '')) = LOWER(?)");
+      values.push(next.category);
+    }
+    if (next.source) {
+      where.push("(LOWER(primary_source) = LOWER(?) OR LOWER(source_name) = LOWER(?))");
+      values.push(next.source, next.source);
+    }
+    if (next.q?.trim()) {
+      const needle = `%${next.q.trim().toLowerCase()}%`;
+      where.push("(LOWER(skill_name) LIKE ? OR LOWER(COALESCE(description, '')) LIKE ? OR LOWER(COALESCE(repository, '')) LIKE ?)");
+      values.push(needle, needle, needle);
+    }
+    const whereSql = `WHERE ${where.join(" AND ")}`;
+
+    const viewPreferredSql = next.view ? "CASE WHEN view = ? THEN 0 ELSE 1 END," : "";
+    const orderValues = next.view ? [...values, next.view] : [...values];
+
+    const totalRow = this.db.prepare(`SELECT COUNT(*) AS count FROM skills_current ${whereSql}`).get(...values) as { count: number };
+    const rows = this.db.prepare(`
+      SELECT view, rank, source_skill_id, canonical_skill_key, skill_name, provider, repository, description, category, officiality, installs, installs_yesterday, change_24h, match_confidence, match_method, primary_source, enriched_by_json, payload_json, observed_at
+      FROM skills_current
+      ${whereSql}
+      ORDER BY ${viewPreferredSql} change_24h DESC, COALESCE(installs, -1) DESC, skill_name ASC
+      LIMIT ? OFFSET ?
+    `).all(...orderValues, pageSize, (page - 1) * pageSize) as SkillDbRow[];
+
+    return {
+      total: Number(totalRow?.count ?? 0),
+      data: rows.map((row) => mapSkillRow(row)),
+    };
+  }
+
+  getSkillTopEntries(query: AgentListQuery): { total: number; data: Array<Record<string, unknown>> } {
+    return this.getSkillEntries({
+      ...query,
+      view: "all_time",
+      sort: "installs",
+      order: "desc",
+    });
+  }
+
+  getMcpTopEntries(query: AgentListQuery): { total: number; data: Array<Record<string, unknown>> } {
+    return this.getMcpEntries({
+      ...query,
+      sort: "installs",
+      order: "desc",
+    });
+  }
+
+  getMcpTrending24hEntries(query: AgentListQuery): { total: number; data: Array<Record<string, unknown>> } {
+    const page = Math.max(1, Math.floor(query.page ?? 1));
+    const pageSize = Math.min(200, Math.max(1, Math.floor(query.pageSize ?? 50)));
+    const sinceIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const where: string[] = [];
+    const values: Array<string | number> = [sinceIso];
+
+    if (query.officiality) {
+      where.push("LOWER(COALESCE(c.officiality, '')) = LOWER(?)");
+      values.push(query.officiality);
+    }
+    if (query.category) {
+      where.push("LOWER(COALESCE(c.category, '')) = LOWER(?)");
+      values.push(query.category);
+    }
+    if (query.source) {
+      where.push("(LOWER(c.primary_source) = LOWER(?) OR LOWER(c.source_name) = LOWER(?))");
+      values.push(query.source, query.source);
+    }
+    if (query.q?.trim()) {
+      const needle = `%${query.q.trim().toLowerCase()}%`;
+      where.push("(LOWER(c.server_name) LIKE ? OR LOWER(COALESCE(c.description, '')) LIKE ? OR LOWER(COALESCE(c.repository, '')) LIKE ?)");
+      values.push(needle, needle, needle);
+    }
+    const filterSql = where.length > 0 ? `AND ${where.join(" AND ")}` : "";
+    const baseSql = `
+      FROM mcp_current c
+      LEFT JOIN (
+        SELECT canonical_mcp_key, installs, observed_at,
+               ROW_NUMBER() OVER (PARTITION BY canonical_mcp_key ORDER BY observed_at ASC) AS rn
+        FROM mcp_history
+        WHERE observed_at >= ?
+      ) h ON h.canonical_mcp_key = c.canonical_mcp_key
+      WHERE h.rn = 1
+      ${filterSql}
+    `;
+
+    const totalRow = this.db.prepare(`SELECT COUNT(*) AS count ${baseSql}`).get(...values) as { count: number };
+    const rows = this.db.prepare(`
+      SELECT c.rank, c.source_server_id, c.canonical_mcp_key, c.server_name, c.provider, c.repository, c.description, c.category, c.officiality, c.installs, c.primary_source, c.enriched_by_json, c.payload_json, c.observed_at,
+             h.installs AS installs_24h
+      ${baseSql}
+      ORDER BY COALESCE(c.installs, 0) - COALESCE(h.installs, 0) DESC, COALESCE(c.installs, -1) DESC, c.server_name ASC
+      LIMIT ? OFFSET ?
+    `).all(...values, pageSize, (page - 1) * pageSize) as Array<McpDbRow & { installs_24h: number | null }>;
+
+    return {
+      total: Number(totalRow?.count ?? 0),
+      data: rows.map((row) => mapMcpRow(row, row.installs_24h)),
     };
   }
 
@@ -964,4 +1090,52 @@ export class MonitoringRepository {
       updatedAt: now,
     });
   }
+}
+
+function mapSkillRow(row: SkillDbRow): Record<string, unknown> {
+  return {
+    id: row.canonical_skill_key,
+    view: row.view,
+    rank: row.rank,
+    skillId: row.source_skill_id,
+    skill: row.skill_name,
+    displayName: toSkillDisplayName(row.skill_name),
+    provider: row.provider,
+    repository: row.repository,
+    description: row.description,
+    category: row.category,
+    officiality: row.officiality,
+    installs: row.installs,
+    installsYesterday: row.installs_yesterday,
+    change24h: row.change_24h,
+    delta24h: row.change_24h,
+    matchConfidence: row.match_confidence,
+    matchMethod: row.match_method,
+    primarySource: row.primary_source,
+    enrichedBy: row.enriched_by_json ? (JSON.parse(row.enriched_by_json) as string[]) : [],
+    payload: row.payload_json ? (JSON.parse(row.payload_json) as Record<string, unknown>) : {},
+    updatedAt: row.observed_at,
+  };
+}
+
+function mapMcpRow(row: McpDbRow, installs24hAgo?: number | null): Record<string, unknown> {
+  const delta24h = computeDelta24h(row.installs, installs24hAgo);
+  return {
+    id: row.canonical_mcp_key,
+    rank: row.rank,
+    serverId: row.source_server_id,
+    server: row.server_name,
+    displayName: toMcpDisplayName(row.server_name),
+    owner: row.provider,
+    repository: row.repository,
+    description: row.description,
+    category: row.category,
+    officiality: row.officiality,
+    installs: row.installs,
+    delta24h,
+    primarySource: row.primary_source,
+    enrichedBy: row.enriched_by_json ? (JSON.parse(row.enriched_by_json) as string[]) : [],
+    payload: row.payload_json ? (JSON.parse(row.payload_json) as Record<string, unknown>) : {},
+    updatedAt: row.observed_at,
+  };
 }

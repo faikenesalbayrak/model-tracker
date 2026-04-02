@@ -101,6 +101,7 @@ export type SkillRow = {
   rank: number | null;
   skillId: string;
   skill: string;
+  displayName?: string;
   provider: string | null;
   repository: string | null;
   description: string | null;
@@ -109,6 +110,7 @@ export type SkillRow = {
   installs: number | null;
   installsYesterday: number | null;
   change24h: number | null;
+  delta24h?: number | null;
   matchConfidence: number | null;
   matchMethod: "strict" | "fuzzy" | "none" | null;
   primarySource: string;
@@ -122,12 +124,14 @@ export type McpServerRow = {
   rank: number | null;
   serverId: string;
   server: string;
+  displayName?: string;
   owner: string | null;
   repository: string | null;
   description: string | null;
   category: string | null;
   officiality: "official" | "unofficial" | "unknown";
   installs: number | null;
+  delta24h?: number | null;
   primarySource: string;
   enrichedBy: string[];
   payload: Record<string, unknown>;
