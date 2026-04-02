@@ -2,7 +2,7 @@ import { getActiveLeaderboardSources } from "@/lib/monitoring/leaderboard-source
 import { getActiveNewsSources } from "@/lib/monitoring/news-sources";
 import { diffTop10 } from "@/lib/monitoring/leaderboard-diff";
 import { sendTop10AlertEmail } from "@/lib/monitoring/notifications";
-import { collectAgentCatalogSnapshot } from "@/lib/monitoring/agents-sources";
+import { collectMcpCatalogSnapshot, collectSkillsCatalogSnapshot } from "@/lib/monitoring/agents-sources";
 import { LEADERBOARD_CATEGORIES, type LeaderboardCategory } from "@/lib/monitoring/contracts";
 import { openMonitoringRuntime, type MonitoringRuntime, type MonitoringRuntimeOptions } from "@/lib/monitoring/runtime";
 import type { RunSummary } from "@/lib/monitoring/run-types";
@@ -101,30 +101,21 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     const recipients = isNotificationsEnabled() ? getRecipients() : [];
     const newsAdapters = getActiveNewsSources();
 
-    // Metadata lane first: prioritize skills/MCP persistence even when
+    // Metadata lane first: prioritize MCP/skills persistence even when
     // serverless executions are interrupted later by runtime budgets.
     try {
-      const agentResult = await collectAgentCatalogSnapshot({ nowIso, timeoutMs });
-      summary.skillEntriesWritten = agentResult.skills.length;
-      summary.mcpEntriesWritten = agentResult.mcp.length;
-      summary.metadataSourcesChecked = agentResult.sourceHealth.length;
-
-      await repository.insertSkillsSnapshot(
-        runId,
-        "skills_sh",
-        100,
-        nowIso,
-        agentResult.skills,
-      );
+      const mcpResult = await collectMcpCatalogSnapshot({ timeoutMs });
+      summary.mcpEntriesWritten = mcpResult.mcp.length;
+      summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + mcpResult.sourceHealth.length;
       await repository.insertMcpSnapshot(
         runId,
         "mcpmarket_catalog",
         120,
         nowIso,
-        agentResult.mcp,
+        mcpResult.mcp,
       );
 
-      for (const item of agentResult.sourceHealth) {
+      for (const item of mcpResult.sourceHealth) {
         await repository.upsertSourceHealth({
           sourceName: item.sourceName,
           sourceType: "metadata",
@@ -142,7 +133,48 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     } catch (error) {
       hadSourceErrors = true;
       await repository.upsertSourceHealth({
-        sourceName: "agent_catalog_pipeline",
+        sourceName: "mcp_catalog_pipeline",
+        sourceType: "metadata",
+        enabled: true,
+        success: false,
+        latencyMs: 0,
+        lastCheckedAt: nowIso,
+        lastErrorMessage: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    try {
+      const skillResult = await collectSkillsCatalogSnapshot({ nowIso, timeoutMs });
+      summary.skillEntriesWritten = skillResult.skills.length;
+      summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + skillResult.sourceHealth.length;
+
+      await repository.insertSkillsSnapshot(
+        runId,
+        "skills_sh",
+        100,
+        nowIso,
+        skillResult.skills,
+      );
+
+      for (const item of skillResult.sourceHealth) {
+        await repository.upsertSourceHealth({
+          sourceName: item.sourceName,
+          sourceType: "metadata",
+          enabled: true,
+          success: item.success,
+          latencyMs: item.latencyMs,
+          lastCheckedAt: nowIso,
+          lastSuccessAt: item.success ? nowIso : undefined,
+          lastErrorMessage: item.success ? undefined : item.errorMessage,
+        });
+        if (!item.success) {
+          hadSourceErrors = true;
+        }
+      }
+    } catch (error) {
+      hadSourceErrors = true;
+      await repository.upsertSourceHealth({
+        sourceName: "skills_catalog_pipeline",
         sourceType: "metadata",
         enabled: true,
         success: false,

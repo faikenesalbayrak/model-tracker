@@ -14,6 +14,16 @@ export interface AgentCatalogCollectionResult {
   sourceHealth: SourceHealthSample[];
 }
 
+export interface SkillCatalogCollectionResult {
+  skills: NormalizedSkillEntry[];
+  sourceHealth: SourceHealthSample[];
+}
+
+export interface McpCatalogCollectionResult {
+  mcp: NormalizedMcpEntry[];
+  sourceHealth: SourceHealthSample[];
+}
+
 type RawSkillSeed = {
   source: string;
   skillId: string;
@@ -524,4 +534,21 @@ export async function collectAgentCatalogSnapshot(options: {
   ]);
 
   return { skills, mcp, sourceHealth };
+}
+
+export async function collectMcpCatalogSnapshot(options: {
+  timeoutMs: number;
+}): Promise<McpCatalogCollectionResult> {
+  const sourceHealth: SourceHealthSample[] = [];
+  const mcp = await collectMcp(options.timeoutMs, sourceHealth);
+  return { mcp, sourceHealth };
+}
+
+export async function collectSkillsCatalogSnapshot(options: {
+  nowIso: string;
+  timeoutMs: number;
+}): Promise<SkillCatalogCollectionResult> {
+  const sourceHealth: SourceHealthSample[] = [];
+  const skills = await collectSkills(options.nowIso, options.timeoutMs, sourceHealth);
+  return { skills, sourceHealth };
 }
