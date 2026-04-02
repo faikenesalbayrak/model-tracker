@@ -3,6 +3,7 @@ import { runScheduledCycle } from "@/lib/monitoring/orchestrator";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 type RunPayload = { nowIso?: string; timeoutMs?: number };
 

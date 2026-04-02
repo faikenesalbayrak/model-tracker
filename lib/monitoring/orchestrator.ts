@@ -221,39 +221,8 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
       }
     }
 
-    for (const adapter of newsAdapters) {
-      const startedAt = Date.now();
-      try {
-        summary.newsSourcesChecked += 1;
-        const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
-        const entries = await adapter.normalizeNews(raw, nowIso);
-        const filteredEntries = filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays);
-        await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
-        summary.newsEntriesWritten += filteredEntries.length;
-        await repository.upsertSourceHealth({
-          sourceName: adapter.sourceName,
-          sourceType: "news",
-          enabled: true,
-          success: true,
-          latencyMs: Date.now() - startedAt,
-          lastCheckedAt: nowIso,
-          lastSuccessAt: nowIso,
-        });
-      } catch (error) {
-        await repository.upsertSourceHealth({
-          sourceName: adapter.sourceName,
-          sourceType: "news",
-          enabled: true,
-          success: false,
-          latencyMs: Date.now() - startedAt,
-          lastCheckedAt: nowIso,
-          lastErrorMessage: error instanceof Error ? error.message : String(error),
-        });
-        hadSourceErrors = true;
-        continue;
-      }
-    }
-
+    // Metadata lane is intentionally executed before news so MCP/skills snapshots
+    // are not starved when runtime budgets are tight in serverless environments.
     try {
       const agentResult = await collectAgentCatalogSnapshot({ nowIso, timeoutMs });
       summary.skillEntriesWritten = agentResult.skills.length;
@@ -301,6 +270,39 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
         lastCheckedAt: nowIso,
         lastErrorMessage: error instanceof Error ? error.message : String(error),
       });
+    }
+
+    for (const adapter of newsAdapters) {
+      const startedAt = Date.now();
+      try {
+        summary.newsSourcesChecked += 1;
+        const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
+        const entries = await adapter.normalizeNews(raw, nowIso);
+        const filteredEntries = filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays);
+        await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
+        summary.newsEntriesWritten += filteredEntries.length;
+        await repository.upsertSourceHealth({
+          sourceName: adapter.sourceName,
+          sourceType: "news",
+          enabled: true,
+          success: true,
+          latencyMs: Date.now() - startedAt,
+          lastCheckedAt: nowIso,
+          lastSuccessAt: nowIso,
+        });
+      } catch (error) {
+        await repository.upsertSourceHealth({
+          sourceName: adapter.sourceName,
+          sourceType: "news",
+          enabled: true,
+          success: false,
+          latencyMs: Date.now() - startedAt,
+          lastCheckedAt: nowIso,
+          lastErrorMessage: error instanceof Error ? error.message : String(error),
+        });
+        hadSourceErrors = true;
+        continue;
+      }
     }
 
     await repository.pruneNewsData(retentionDays);
