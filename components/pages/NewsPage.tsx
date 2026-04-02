@@ -10,7 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton";
 import { buildNewsBento } from "@/lib/news-bento";
 import type { ScoredNewsItem } from "@/lib/news-bento";
-import { sanitizeNewsDescription } from "@/lib/news-display";
+import { sanitizeNewsDescription, sanitizeNewsLabel } from "@/lib/news-display";
 
 export type NewsSection = "overview" | "ai" | "aviation" | "regulations" | "releases";
 
@@ -118,9 +118,9 @@ function fallbackDescription(item: AiNewsItem, locale: Locale): string {
 }
 
 function sourceLabel(item: AiNewsItem): string {
-  const sourceDisplay = (item.sourceDisplay ?? "").trim();
+  const sourceDisplay = sanitizeNewsLabel(item.sourceDisplay) ?? "";
   if (sourceDisplay) return sourceDisplay;
-  return item.source;
+  return sanitizeNewsLabel(item.source) ?? item.source;
 }
 
 function makeLoadingItems(count: number): AiNewsItem[] {
@@ -433,6 +433,8 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
             const imageUrl = item.imageUrl && item.imageUrl.trim().length > 0 ? item.imageUrl : null;
             const description = fallbackDescription(item, locale);
             const isLogoLike = item.imageKind === "logo" || item.imageKind === "none";
+            const cleanPublisher = sanitizeNewsLabel(item.publisher);
+            const cleanSource = sanitizeNewsLabel(item.source) ?? item.source;
             return (
               <Card
                 key={item.id}
@@ -509,8 +511,14 @@ export function NewsPage({ locale, section = "overview" }: { locale: Locale; sec
                 </CardContent>
 
                 <CardFooter className="mt-auto flex items-center justify-between gap-2 pt-0">
-                  <span className="truncate text-[11px]" style={{ color: "var(--text-muted)" }} title={item.publisher ?? item.source}>
-                    {item.publisher ? `${locale === "tr" ? "Kaynak" : "Publisher"}: ${item.publisher}` : item.source}
+                  <span
+                    className="truncate text-[11px]"
+                    style={{ color: "var(--text-muted)" }}
+                    title={cleanPublisher ?? cleanSource}
+                  >
+                    {cleanPublisher
+                      ? `${locale === "tr" ? "Kaynak" : "Publisher"}: ${cleanPublisher}`
+                      : cleanSource}
                   </span>
 
                   <Button

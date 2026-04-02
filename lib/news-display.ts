@@ -33,8 +33,19 @@ export function sanitizeNewsDescription(raw: string | null | undefined): string 
   return normalized.length > 0 ? normalized : null;
 }
 
+export function sanitizeNewsLabel(raw: string | null | undefined): string | null {
+  const value = (raw ?? "").trim();
+  if (!value) return null;
+
+  const decoded = value.replace(/&([^;]+);/g, (_match, entity) => decodeEntity(entity));
+  const withoutTags = decoded.replace(/<[^>]*>/g, " ");
+  const withoutPrefixes = withoutTags.replace(/^\s*(kaynak|source|publisher)\s*:\s*/i, "");
+  const normalized = withoutPrefixes.replace(/\s+/g, " ").trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
 function cleanPublisherToken(value: string): string | null {
-  const token = value.trim().replace(/[|•]/g, " ").replace(/\s+/g, " ");
+  const token = sanitizeNewsLabel(value)?.replace(/[|•]/g, " ").replace(/\s+/g, " ") ?? "";
   if (!token) return null;
   if (token.length > 64) return null;
   if (!/[a-zA-Z]/.test(token)) return null;
@@ -106,9 +117,10 @@ export function classifyImageKind(
 }
 
 export function formatNewsSourceDisplay(source: string, publisher: string | null): string {
-  const cleanSource = source.trim();
-  if (!cleanSource) return publisher ?? "Unknown Source";
+  const cleanSource = sanitizeNewsLabel(source) ?? "";
+  const cleanPublisher = sanitizeNewsLabel(publisher);
+  if (!cleanSource) return cleanPublisher ?? "Unknown Source";
   if (!/google news/i.test(cleanSource)) return cleanSource;
-  if (!publisher || publisher.trim().length === 0) return "Google News";
-  return `Google News | ${publisher.trim()}`;
+  if (!cleanPublisher || cleanPublisher.length === 0) return "Google News";
+  return `Google News | ${cleanPublisher}`;
 }

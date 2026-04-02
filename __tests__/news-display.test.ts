@@ -6,6 +6,7 @@ import {
   formatNewsSourceDisplay,
   isLikelyImageUrl,
   sanitizeNewsDescription,
+  sanitizeNewsLabel,
 } from "@/lib/news-display";
 
 describe("news-display", () => {
@@ -13,6 +14,11 @@ describe("news-display", () => {
     expect(sanitizeNewsDescription("AI&nbsp;&amp;&nbsp;ML&nbsp; launch   ")).toBe("AI & ML launch");
     expect(sanitizeNewsDescription("  ")).toBeNull();
     expect(sanitizeNewsDescription(null)).toBeNull();
+  });
+
+  it("sanitizes source and publisher labels with markup", () => {
+    expect(sanitizeNewsLabel("Kaynak: <name>Jess Weatherbed</name>")).toBe("Jess Weatherbed");
+    expect(sanitizeNewsLabel("Publisher:&nbsp;WIRED")).toBe("WIRED");
   });
 
   it("derives publisher from canonical url host", () => {
@@ -35,6 +41,7 @@ describe("news-display", () => {
 
   it("formats google news source display with publisher", () => {
     expect(formatNewsSourceDisplay("Google News", "Reuters")).toBe("Google News | Reuters");
+    expect(formatNewsSourceDisplay("Google News", "Kaynak: <name>WIRED</name>")).toBe("Google News | WIRED");
     expect(formatNewsSourceDisplay("Google News", null)).toBe("Google News");
     expect(formatNewsSourceDisplay("Reuters", "Reuters")).toBe("Reuters");
   });

@@ -6,6 +6,7 @@ import {
   extractPublisherFromTitle,
   isLikelyImageUrl,
   sanitizeNewsDescription,
+  sanitizeNewsLabel,
   formatNewsSourceDisplay,
 } from "@/lib/news-display";
 
@@ -95,9 +96,9 @@ function pickEntryImageData(entry: NormalizedNewsEntry): {
 function resolvePublisher(entry: NormalizedNewsEntry): string | null {
   const fromTitle = extractPublisherFromTitle(entry.title);
   const fromOutlet = typeof entry.authorOrOutlet === "string" && entry.authorOrOutlet.trim().length > 0
-    ? entry.authorOrOutlet.trim()
+    ? sanitizeNewsLabel(entry.authorOrOutlet)
     : null;
-  const fromHost = derivePublisherFromUrl(entry.canonicalUrl);
+  const fromHost = sanitizeNewsLabel(derivePublisherFromUrl(entry.canonicalUrl));
   const preferred = fromTitle || fromOutlet || fromHost;
   if (
     entry.sourceName === "google_news_ai" &&
@@ -109,8 +110,8 @@ function resolvePublisher(entry: NormalizedNewsEntry): string | null {
 }
 
 export function toNewsApiItem(entry: NormalizedNewsEntry, nowIso: string): NewsApiItem {
-  const source = getNewsSourceLabel(entry);
-  const publisher = resolvePublisher(entry);
+  const source = sanitizeNewsLabel(getNewsSourceLabel(entry)) ?? getNewsSourceLabel(entry);
+  const publisher = sanitizeNewsLabel(resolvePublisher(entry));
   const description = sanitizeNewsDescription(entry.summary ?? null);
   const image = pickEntryImageData(entry);
   return {
