@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runScheduledCycle } from "@/lib/monitoring/orchestrator";
+import { MonitoringRunConflictError, runScheduledCycle, type RunLane } from "@/lib/monitoring/orchestrator";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-type RunPayload = { nowIso?: string; timeoutMs?: number };
+type RunPayload = { nowIso?: string; timeoutMs?: number; lanes?: RunLane[] };
+const RUN_LANES: RunLane[] = ["metadata", "leaderboard", "news", "maintenance"];
 
 function isManualRunEnabled(): boolean {
   const value = process.env.MONITORING_MANUAL_RUN_ENABLED?.trim().toLowerCase();
@@ -18,6 +19,29 @@ function readBearerToken(request: NextRequest): string | null {
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim() ||
     null
   );
+}
+
+function parseLanes(input: string[]): RunLane[] | undefined {
+  const parsed = input
+    .flatMap((value) => value.split(","))
+    .map((value) => value.trim().toLowerCase())
+    .filter((value): value is RunLane => RUN_LANES.includes(value as RunLane));
+  return parsed.length > 0 ? parsed : undefined;
+}
+
+function parseLanesFromSearchParams(request: NextRequest): RunLane[] | undefined {
+  const explicit = request.nextUrl.searchParams.getAll("lane");
+  if (explicit.length === 0) {
+    return undefined;
+  }
+  return parseLanes(explicit);
+}
+
+function parseLanesFromPayload(payload: RunPayload): RunLane[] | undefined {
+  if (!Array.isArray(payload.lanes) || payload.lanes.length === 0) {
+    return undefined;
+  }
+  return parseLanes(payload.lanes.map((value) => String(value)));
 }
 
 function authorizeManual(request: NextRequest): boolean {
@@ -36,16 +60,19 @@ function authorizeCron(request: NextRequest): boolean {
   return readBearerToken(request) === cronSecret;
 }
 
-async function executeRun(payload: RunPayload) {
+async function executeRun(payload: RunPayload, lanes: RunLane[] | undefined, runType: "manual" | "scheduled_12h") {
   const result = await runScheduledCycle({
     nowIso: payload.nowIso,
     timeoutMs: payload.timeoutMs,
+    lanes,
+    runType,
   });
   return NextResponse.json(
     {
       ok: true,
-      type: "scheduled",
+      type: runType,
       runId: result.runId,
+      lanes: lanes ?? RUN_LANES,
       summary: result.summary,
     },
     { headers: { "Cache-Control": "no-store" } },
@@ -60,6 +87,13 @@ function unauthorizedResponse() {
 }
 
 function errorResponse(error: unknown) {
+  if (error instanceof MonitoringRunConflictError) {
+    return NextResponse.json(
+      { ok: false, error: error.message },
+      { status: 409, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   return NextResponse.json(
     {
       ok: false,
@@ -76,18 +110,25 @@ export async function GET(request: NextRequest) {
 
   const timeoutRaw = request.nextUrl.searchParams.get("timeoutMs");
   const timeoutMs = timeoutRaw ? Number(timeoutRaw) : undefined;
+  const lanes = parseLanesFromSearchParams(request);
 
   try {
-    return await executeRun({
-      timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : undefined,
-    });
+    return await executeRun(
+      {
+        timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : undefined,
+      },
+      lanes,
+      "scheduled_12h",
+    );
   } catch (error) {
     return errorResponse(error);
   }
 }
 
 export async function POST(request: NextRequest) {
-  if (!authorizeManual(request) && !authorizeCron(request)) {
+  const manualAuthorized = authorizeManual(request);
+  const cronAuthorized = authorizeCron(request);
+  if (!manualAuthorized && !cronAuthorized) {
     return unauthorizedResponse();
   }
 
@@ -98,8 +139,11 @@ export async function POST(request: NextRequest) {
     // allow empty body
   }
 
+  const lanes = parseLanesFromPayload(payload) ?? parseLanesFromSearchParams(request);
+  const runType = cronAuthorized && !manualAuthorized ? "scheduled_12h" : "manual";
+
   try {
-    return await executeRun(payload);
+    return await executeRun(payload, lanes, runType);
   } catch (error) {
     return errorResponse(error);
   }

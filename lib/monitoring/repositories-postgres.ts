@@ -159,6 +159,33 @@ export class PostgresMonitoringRepository {
     );
   }
 
+  async failStaleRunningRuns(staleBeforeIso: string, errorMessage: string): Promise<number> {
+    const result = await this.db.query(
+      `
+      UPDATE public.monitor_runs
+      SET status = 'failed',
+          completed_at = NOW(),
+          error_message = $2
+      WHERE status = 'running'
+        AND started_at < $1
+      `,
+      [staleBeforeIso, errorMessage],
+    );
+    return result.rowCount ?? 0;
+  }
+
+  async acquireRunLease(lockKey: string): Promise<boolean> {
+    const result = await this.db.query<{ locked: boolean }>(
+      `SELECT pg_try_advisory_lock(hashtext($1)) AS locked`,
+      [lockKey],
+    );
+    return Boolean(result.rows[0]?.locked);
+  }
+
+  async releaseRunLease(lockKey: string): Promise<void> {
+    await this.db.query(`SELECT pg_advisory_unlock(hashtext($1))`, [lockKey]);
+  }
+
   async getLatestLeaderboardSnapshot(
     category: LeaderboardCategory,
     sourceName: string,

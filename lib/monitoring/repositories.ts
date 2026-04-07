@@ -107,6 +107,8 @@ function historyTableForCategory(category: LeaderboardCategory): string {
   return `${domainForCategory(category)}_history`;
 }
 
+const SQLITE_RUN_LEASES = new Set<string>();
+
 export class MonitoringRepository {
   constructor(private readonly db: MonitoringDatabase) {}
 
@@ -150,6 +152,34 @@ export class MonitoringRepository {
       summaryJson: summary ? toJson(summary) : null,
       errorMessage: errorMessage ?? null,
     });
+  }
+
+  failStaleRunningRuns(staleBeforeIso: string, errorMessage: string): number {
+    const result = this.db.prepare(`
+      UPDATE monitor_runs
+      SET status = 'failed',
+          completed_at = @completedAt,
+          error_message = @errorMessage
+      WHERE status = 'running'
+        AND started_at < @staleBeforeIso
+    `).run({
+      completedAt: new Date().toISOString(),
+      errorMessage,
+      staleBeforeIso,
+    });
+    return result.changes;
+  }
+
+  acquireRunLease(lockKey: string): boolean {
+    if (SQLITE_RUN_LEASES.has(lockKey)) {
+      return false;
+    }
+    SQLITE_RUN_LEASES.add(lockKey);
+    return true;
+  }
+
+  releaseRunLease(lockKey: string): void {
+    SQLITE_RUN_LEASES.delete(lockKey);
   }
 
   getLatestLeaderboardSnapshot(

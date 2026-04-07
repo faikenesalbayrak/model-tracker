@@ -6,13 +6,32 @@ import { sendTop10AlertEmail } from "@/lib/monitoring/notifications";
 import { collectMcpCatalogSnapshot, collectSkillsCatalogSnapshot } from "@/lib/monitoring/agents-sources";
 import { LEADERBOARD_CATEGORIES, type LeaderboardCategory } from "@/lib/monitoring/contracts";
 import { openMonitoringRuntime, type MonitoringRuntime, type MonitoringRuntimeOptions } from "@/lib/monitoring/runtime";
-import type { RunSummary } from "@/lib/monitoring/run-types";
+import type { MonitorRunType, RunSummary } from "@/lib/monitoring/run-types";
+
+export type RunLane = "metadata" | "leaderboard" | "news" | "maintenance";
 
 export interface RunCycleOptions {
   runtime?: MonitoringRuntime;
   runtimeOptions?: MonitoringRuntimeOptions;
   nowIso?: string;
   timeoutMs?: number;
+  lanes?: RunLane[];
+  runType?: MonitorRunType;
+  lockKey?: string;
+}
+
+const DEFAULT_RUN_LANES: RunLane[] = ["metadata", "leaderboard", "news", "maintenance"];
+
+export class MonitoringRunConflictError extends Error {
+  constructor(message = "Another monitoring run is already in progress.") {
+    super(message);
+    this.name = "MonitoringRunConflictError";
+  }
+}
+
+function normalizeLanes(lanes: RunLane[] | undefined): Set<RunLane> {
+  const safe = Array.isArray(lanes) && lanes.length > 0 ? lanes : DEFAULT_RUN_LANES;
+  return new Set(safe);
 }
 
 function getRecipients(): string[] {
@@ -69,6 +88,7 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
   const shouldClose = !options.runtime;
   const repository = runtime.repository;
   const nowIso = options.nowIso ?? new Date().toISOString();
+  const lanes = normalizeLanes(options.lanes);
   const timeoutMs = options.timeoutMs ?? 15_000;
   const ingestWindowDaysRaw = Number(process.env.MONITORING_NEWS_INGEST_WINDOW_DAYS ?? "14");
   const ingestWindowDays = Number.isFinite(ingestWindowDaysRaw) && ingestWindowDaysRaw > 0
@@ -91,110 +111,169 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     mcpEntriesWritten: 0,
   };
   let hadSourceErrors = false;
+  const lockKey = options.lockKey ?? "monitoring:scheduled:global";
+  const runStaleMinutesRaw = Number(process.env.MONITORING_RUNNING_STALE_MINUTES ?? "20");
+  const runStaleMinutes = Number.isFinite(runStaleMinutesRaw) && runStaleMinutesRaw > 0
+    ? Math.floor(runStaleMinutesRaw)
+    : 20;
+  const staleBeforeIso = new Date(Date.now() - runStaleMinutes * 60 * 1000).toISOString();
+  const leaseAcquired = await repository.acquireRunLease(lockKey);
+  if (!leaseAcquired) {
+    if (shouldClose) {
+      await runtime.close();
+    }
+    throw new MonitoringRunConflictError();
+  }
+
+  await repository.failStaleRunningRuns(
+    staleBeforeIso,
+    `Marked stale after ${runStaleMinutes} minutes without completion.`,
+  );
 
   const runId = await repository.insertRun({
-    runType: "scheduled_12h",
+    runType: options.runType ?? "scheduled_12h",
     status: "running",
     startedAt: nowIso,
   });
 
   try {
     const recipients = isNotificationsEnabled() ? getRecipients() : [];
-    const newsAdapters = getActiveNewsSources();
+    const newsAdapters = lanes.has("news") ? getActiveNewsSources() : [];
 
     // Metadata lane first: prioritize MCP/skills persistence even when
     // serverless executions are interrupted later by runtime budgets.
-    try {
-      const mcpResult = await collectMcpCatalogSnapshot({ timeoutMs });
-      summary.mcpEntriesWritten = mcpResult.mcp.length;
-      summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + mcpResult.sourceHealth.length;
-      await repository.insertMcpSnapshot(
-        runId,
-        "mcpmarket_catalog",
-        120,
-        nowIso,
-        mcpResult.mcp,
-      );
+    if (lanes.has("metadata")) {
+      try {
+        const mcpResult = await collectMcpCatalogSnapshot({ timeoutMs });
+        summary.mcpEntriesWritten = mcpResult.mcp.length;
+        summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + mcpResult.sourceHealth.length;
+        await repository.insertMcpSnapshot(
+          runId,
+          "mcpmarket_catalog",
+          120,
+          nowIso,
+          mcpResult.mcp,
+        );
 
-      for (const item of mcpResult.sourceHealth) {
+        for (const item of mcpResult.sourceHealth) {
+          await repository.upsertSourceHealth({
+            sourceName: item.sourceName,
+            sourceType: "metadata",
+            enabled: true,
+            success: item.success,
+            latencyMs: item.latencyMs,
+            lastCheckedAt: nowIso,
+            lastSuccessAt: item.success ? nowIso : undefined,
+            lastErrorMessage: item.success ? undefined : item.errorMessage,
+          });
+          if (!item.success) {
+            hadSourceErrors = true;
+          }
+        }
+      } catch (error) {
+        hadSourceErrors = true;
         await repository.upsertSourceHealth({
-          sourceName: item.sourceName,
+          sourceName: "mcp_catalog_pipeline",
           sourceType: "metadata",
           enabled: true,
-          success: item.success,
-          latencyMs: item.latencyMs,
+          success: false,
+          latencyMs: 0,
           lastCheckedAt: nowIso,
-          lastSuccessAt: item.success ? nowIso : undefined,
-          lastErrorMessage: item.success ? undefined : item.errorMessage,
+          lastErrorMessage: error instanceof Error ? error.message : String(error),
         });
-        if (!item.success) {
-          hadSourceErrors = true;
-        }
       }
-    } catch (error) {
-      hadSourceErrors = true;
-      await repository.upsertSourceHealth({
-        sourceName: "mcp_catalog_pipeline",
-        sourceType: "metadata",
-        enabled: true,
-        success: false,
-        latencyMs: 0,
-        lastCheckedAt: nowIso,
-        lastErrorMessage: error instanceof Error ? error.message : String(error),
-      });
-    }
 
-    try {
-      const skillResult = await collectSkillsCatalogSnapshot({ nowIso, timeoutMs });
-      summary.skillEntriesWritten = skillResult.skills.length;
-      summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + skillResult.sourceHealth.length;
+      try {
+        const skillResult = await collectSkillsCatalogSnapshot({ nowIso, timeoutMs });
+        summary.skillEntriesWritten = skillResult.skills.length;
+        summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + skillResult.sourceHealth.length;
 
-      await repository.insertSkillsSnapshot(
-        runId,
-        "skills_sh",
-        100,
-        nowIso,
-        skillResult.skills,
-      );
+        await repository.insertSkillsSnapshot(
+          runId,
+          "skills_sh",
+          100,
+          nowIso,
+          skillResult.skills,
+        );
 
-      for (const item of skillResult.sourceHealth) {
+        for (const item of skillResult.sourceHealth) {
+          await repository.upsertSourceHealth({
+            sourceName: item.sourceName,
+            sourceType: "metadata",
+            enabled: true,
+            success: item.success,
+            latencyMs: item.latencyMs,
+            lastCheckedAt: nowIso,
+            lastSuccessAt: item.success ? nowIso : undefined,
+            lastErrorMessage: item.success ? undefined : item.errorMessage,
+          });
+          if (!item.success) {
+            hadSourceErrors = true;
+          }
+        }
+      } catch (error) {
+        hadSourceErrors = true;
         await repository.upsertSourceHealth({
-          sourceName: item.sourceName,
+          sourceName: "skills_catalog_pipeline",
           sourceType: "metadata",
           enabled: true,
-          success: item.success,
-          latencyMs: item.latencyMs,
+          success: false,
+          latencyMs: 0,
           lastCheckedAt: nowIso,
-          lastSuccessAt: item.success ? nowIso : undefined,
-          lastErrorMessage: item.success ? undefined : item.errorMessage,
+          lastErrorMessage: error instanceof Error ? error.message : String(error),
         });
-        if (!item.success) {
-          hadSourceErrors = true;
-        }
       }
-    } catch (error) {
-      hadSourceErrors = true;
-      await repository.upsertSourceHealth({
-        sourceName: "skills_catalog_pipeline",
-        sourceType: "metadata",
-        enabled: true,
-        success: false,
-        latencyMs: 0,
-        lastCheckedAt: nowIso,
-        lastErrorMessage: error instanceof Error ? error.message : String(error),
-      });
     }
 
-    for (const category of LEADERBOARD_CATEGORIES) {
-      const adapters = getActiveLeaderboardSources(category);
-      for (const adapter of adapters) {
-        const startedAt = Date.now();
-        try {
-          const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
-          summary.leaderboardSourcesChecked += 1;
+    if (lanes.has("leaderboard")) {
+      for (const category of LEADERBOARD_CATEGORIES) {
+        const adapters = getActiveLeaderboardSources(category);
+        for (const adapter of adapters) {
+          const startedAt = Date.now();
+          try {
+            const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
+            summary.leaderboardSourcesChecked += 1;
 
-          const currentEntries = await adapter.normalizeTop10(raw, category as LeaderboardCategory, nowIso);
-          if (currentEntries.length === 0) {
+            const currentEntries = await adapter.normalizeTop10(raw, category as LeaderboardCategory, nowIso);
+            if (currentEntries.length === 0) {
+              await repository.upsertSourceHealth({
+                sourceName: adapter.sourceName,
+                sourceType: "leaderboard",
+                enabled: true,
+                success: true,
+                latencyMs: Date.now() - startedAt,
+                lastCheckedAt: nowIso,
+                lastSuccessAt: nowIso,
+              });
+              continue;
+            }
+
+            const previous = await repository.getLatestLeaderboardSnapshot(
+              category as LeaderboardCategory,
+              adapter.sourceName,
+            );
+            const previousTop10 = (previous?.entries ?? []).slice(0, 10);
+            const currentTop10 = currentEntries.slice(0, 10);
+            const changes = diffTop10(category, adapter.sourceName, previousTop10, currentTop10);
+
+            await repository.insertLeaderboardSnapshot(
+              runId,
+              category as LeaderboardCategory,
+              adapter.sourceName,
+              adapter.priority,
+              nowIso,
+              currentEntries,
+            );
+            summary.leaderboardSnapshotsWritten += 1;
+
+            const insertedChanges = await repository.insertLeaderboardChanges(
+              runId,
+              category as LeaderboardCategory,
+              adapter.sourceName,
+              changes,
+            );
+            summary.leaderboardChangesDetected += insertedChanges;
+
             await repository.upsertSourceHealth({
               sourceName: adapter.sourceName,
               sourceType: "leaderboard",
@@ -204,95 +283,94 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
               lastCheckedAt: nowIso,
               lastSuccessAt: nowIso,
             });
+            if (changes.length > 0 && recipients.length > 0) {
+              for (const recipient of recipients) {
+                const dedupeKey = `top10:${category}:${adapter.sourceName}:${changes.map((c) => c.eventFingerprint).join(",")}:${recipient}`;
+                try {
+                  const sent = await sendTop10AlertEmail({
+                    to: [recipient],
+                    category,
+                    sourceName: adapter.sourceName,
+                    runTimeIso: nowIso,
+                    changes: changes.map((item) => ({
+                      modelName: item.modelName,
+                      vendor: item.vendor,
+                      changeType: item.changeType,
+                      rankBefore: item.rankBefore,
+                      rankAfter: item.rankAfter,
+                    })),
+                  });
+                  await repository.insertNotificationLog({
+                    runId,
+                    notificationType: "top10_alert",
+                    category,
+                    sourceName: adapter.sourceName,
+                    dedupeKey,
+                    recipient,
+                    subject: `Top10 alert ${category}`,
+                    status: "sent",
+                    messageId: sent.messageId,
+                    sentAt: nowIso,
+                  });
+                  summary.notificationsSent += 1;
+                } catch (error) {
+                  await repository.insertNotificationLog({
+                    runId,
+                    notificationType: "top10_alert",
+                    category,
+                    sourceName: adapter.sourceName,
+                    dedupeKey,
+                    recipient,
+                    subject: `Top10 alert ${category}`,
+                    status: "failed",
+                    errorMessage: error instanceof Error ? error.message : String(error),
+                  });
+                  summary.notificationsFailed += 1;
+                }
+              }
+            }
+          } catch (error) {
+            await repository.upsertSourceHealth({
+              sourceName: adapter.sourceName,
+              sourceType: "leaderboard",
+              enabled: true,
+              success: false,
+              latencyMs: Date.now() - startedAt,
+              lastCheckedAt: nowIso,
+              lastErrorMessage: error instanceof Error ? error.message : String(error),
+            });
+            hadSourceErrors = true;
             continue;
           }
+        }
+      }
+    }
 
-          const previous = await repository.getLatestLeaderboardSnapshot(
-            category as LeaderboardCategory,
-            adapter.sourceName,
+    if (lanes.has("news")) {
+      for (const adapter of newsAdapters) {
+        const startedAt = Date.now();
+        try {
+          summary.newsSourcesChecked += 1;
+          const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
+          const entries = await adapter.normalizeNews(raw, nowIso);
+          const filteredEntries = await enrichNewsEntriesWithOgImages(
+            filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays),
           );
-          const previousTop10 = (previous?.entries ?? []).slice(0, 10);
-          const currentTop10 = currentEntries.slice(0, 10);
-          const changes = diffTop10(category, adapter.sourceName, previousTop10, currentTop10);
-
-          await repository.insertLeaderboardSnapshot(
-            runId,
-            category as LeaderboardCategory,
-            adapter.sourceName,
-            adapter.priority,
-            nowIso,
-            currentEntries,
-          );
-          summary.leaderboardSnapshotsWritten += 1;
-
-          const insertedChanges = await repository.insertLeaderboardChanges(
-            runId,
-            category as LeaderboardCategory,
-            adapter.sourceName,
-            changes,
-          );
-          summary.leaderboardChangesDetected += insertedChanges;
-
+          await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
+          summary.newsEntriesWritten += filteredEntries.length;
           await repository.upsertSourceHealth({
             sourceName: adapter.sourceName,
-            sourceType: "leaderboard",
+            sourceType: "news",
             enabled: true,
             success: true,
             latencyMs: Date.now() - startedAt,
             lastCheckedAt: nowIso,
             lastSuccessAt: nowIso,
           });
-
-          if (changes.length > 0 && recipients.length > 0) {
-            for (const recipient of recipients) {
-              const dedupeKey = `top10:${category}:${adapter.sourceName}:${changes.map((c) => c.eventFingerprint).join(",")}:${recipient}`;
-              try {
-                const sent = await sendTop10AlertEmail({
-                  to: [recipient],
-                  category,
-                  sourceName: adapter.sourceName,
-                  runTimeIso: nowIso,
-                  changes: changes.map((item) => ({
-                    modelName: item.modelName,
-                    vendor: item.vendor,
-                    changeType: item.changeType,
-                    rankBefore: item.rankBefore,
-                    rankAfter: item.rankAfter,
-                  })),
-                });
-                await repository.insertNotificationLog({
-                  runId,
-                  notificationType: "top10_alert",
-                  category,
-                  sourceName: adapter.sourceName,
-                  dedupeKey,
-                  recipient,
-                  subject: `Top10 alert ${category}`,
-                  status: "sent",
-                  messageId: sent.messageId,
-                  sentAt: nowIso,
-                });
-                summary.notificationsSent += 1;
-              } catch (error) {
-                await repository.insertNotificationLog({
-                  runId,
-                  notificationType: "top10_alert",
-                  category,
-                  sourceName: adapter.sourceName,
-                  dedupeKey,
-                  recipient,
-                  subject: `Top10 alert ${category}`,
-                  status: "failed",
-                  errorMessage: error instanceof Error ? error.message : String(error),
-                });
-                summary.notificationsFailed += 1;
-              }
-            }
-          }
         } catch (error) {
           await repository.upsertSourceHealth({
             sourceName: adapter.sourceName,
-            sourceType: "leaderboard",
+            sourceType: "news",
             enabled: true,
             success: false,
             latencyMs: Date.now() - startedAt,
@@ -305,43 +383,10 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
       }
     }
 
-    for (const adapter of newsAdapters) {
-      const startedAt = Date.now();
-      try {
-        summary.newsSourcesChecked += 1;
-        const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
-        const entries = await adapter.normalizeNews(raw, nowIso);
-        const filteredEntries = await enrichNewsEntriesWithOgImages(
-          filterEntriesForIngestWindow(entries, nowIso, ingestWindowDays),
-        );
-        await repository.insertNewsSnapshot(runId, adapter.sourceName, nowIso, filteredEntries);
-        summary.newsEntriesWritten += filteredEntries.length;
-        await repository.upsertSourceHealth({
-          sourceName: adapter.sourceName,
-          sourceType: "news",
-          enabled: true,
-          success: true,
-          latencyMs: Date.now() - startedAt,
-          lastCheckedAt: nowIso,
-          lastSuccessAt: nowIso,
-        });
-      } catch (error) {
-        await repository.upsertSourceHealth({
-          sourceName: adapter.sourceName,
-          sourceType: "news",
-          enabled: true,
-          success: false,
-          latencyMs: Date.now() - startedAt,
-          lastCheckedAt: nowIso,
-          lastErrorMessage: error instanceof Error ? error.message : String(error),
-        });
-        hadSourceErrors = true;
-        continue;
-      }
+    if (lanes.has("maintenance")) {
+      await repository.pruneNewsData(retentionDays);
+      await repository.pruneHistoryData(retentionDays);
     }
-
-    await repository.pruneNewsData(retentionDays);
-    await repository.pruneHistoryData(retentionDays);
 
     const runStatus = hadSourceErrors || summary.notificationsFailed > 0 ? "partial_success" : "success";
     await repository.updateRun(runId, runStatus, new Date().toISOString(), summary);
@@ -356,8 +401,12 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     );
     throw error;
   } finally {
-    if (shouldClose) {
-      await runtime.close();
+    try {
+      await repository.releaseRunLease(lockKey);
+    } finally {
+      if (shouldClose) {
+        await runtime.close();
+      }
     }
   }
 }
