@@ -494,8 +494,8 @@ function isActiveSource(item: SourceRegistryItem): boolean {
 }
 
 export function getActiveNewsSources(): NewsAdapter[] {
-  const maxSources = Number(process.env.MONITORING_NEWS_MAX_SOURCES ?? "50");
-  const safeMax = Number.isFinite(maxSources) && maxSources > 0 ? Math.floor(maxSources) : 50;
+  const maxSources = Number(process.env.MONITORING_NEWS_MAX_SOURCES ?? "18");
+  const safeMax = Number.isFinite(maxSources) && maxSources > 0 ? Math.floor(maxSources) : 18;
 
   return SOURCE_REGISTRY
     .filter(isActiveSource)

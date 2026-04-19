@@ -19,10 +19,9 @@ Bu proje artık `monitoring` pipeline için iki backend destekler:
 
 ## Otomatik Çalıştırma
 
-`vercel.json` içindeki cronlar:
+`vercel.json` içindeki günlük cron:
 
 1. `0 6 * * *` -> `/api/monitoring/run?type=scheduled` (Istanbul 09:00)
-2. `0 18 * * *` -> `/api/monitoring/run?type=scheduled` (Istanbul 21:00)
 
 `/api/monitoring/run` cron çağrılarında `Authorization: Bearer <CRON_SECRET>` bekler.
 
@@ -35,3 +34,8 @@ Bu proje artık `monitoring` pipeline için iki backend destekler:
    - `POSTGRES_URL`
    - `DATABASE_URL`
 4. Local dev için production DB kullanırken `MONITORING_READ_ONLY=true` önerilir.
+5. Tek cron/gün setup için önerilen guardrail env:
+   - `MONITORING_RUN_BUDGET_MS=260000`
+   - `MONITORING_SOURCE_TIMEOUT_MS=8000`
+   - `MONITORING_NEWS_MAX_SOURCES=18`
+   - `MONITORING_SKILLS_ENRICHMENT_MAX=30`

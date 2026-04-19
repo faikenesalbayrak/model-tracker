@@ -106,7 +106,7 @@ function inferOfficiality(input: { repository?: string; provider?: string; sourc
   return "unknown";
 }
 
-async function fetchHtml(url: string, allowedHosts: string[], timeoutMs: number): Promise<string> {
+async function fetchHtml(url: string, allowedHosts: string[], timeoutMs: number, retries?: number): Promise<string> {
   const { data } = await fetchWithRetry<string>(
     url,
     {
@@ -117,9 +117,31 @@ async function fetchHtml(url: string, allowedHosts: string[], timeoutMs: number)
       },
     },
     async (response) => response.text(),
-    { allowedHosts, timeoutMs },
+    { allowedHosts, timeoutMs, retries },
   );
   return data;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) return [];
+  const results: R[] = new Array(items.length);
+  const safeConcurrency = Math.max(1, Math.min(concurrency, items.length));
+  let cursor = 0;
+
+  async function worker(): Promise<void> {
+    while (cursor < items.length) {
+      const current = cursor;
+      cursor += 1;
+      results[current] = await mapper(items[current], current);
+    }
+  }
+
+  await Promise.all(Array.from({ length: safeConcurrency }, () => worker()));
+  return results;
 }
 
 function parseSkillsShRows(html: string): RawSkillSeed[] {
@@ -289,6 +311,20 @@ function mergeMcp(rows: NormalizedMcpEntry[]): NormalizedMcpEntry[] {
 }
 
 async function collectSkills(nowIso: string, timeoutMs: number, sourceHealth: SourceHealthSample[]): Promise<NormalizedSkillEntry[]> {
+  const enrichmentEnabled = (process.env.MONITORING_SKILLS_ENRICHMENT_ENABLED ?? "true").toLowerCase() !== "false";
+  const enrichmentMaxRaw = Number(process.env.MONITORING_SKILLS_ENRICHMENT_MAX ?? "30");
+  const enrichmentMax = Number.isFinite(enrichmentMaxRaw) && enrichmentMaxRaw > 0
+    ? Math.floor(enrichmentMaxRaw)
+    : 30;
+  const enrichmentConcurrencyRaw = Number(process.env.MONITORING_SKILLS_ENRICHMENT_CONCURRENCY ?? "4");
+  const enrichmentConcurrency = Number.isFinite(enrichmentConcurrencyRaw) && enrichmentConcurrencyRaw > 0
+    ? Math.floor(enrichmentConcurrencyRaw)
+    : 4;
+  const enrichmentTimeoutRaw = Number(process.env.MONITORING_SKILLS_ENRICHMENT_TIMEOUT_MS ?? "4000");
+  const enrichmentTimeoutMs = Number.isFinite(enrichmentTimeoutRaw) && enrichmentTimeoutRaw > 0
+    ? Math.min(timeoutMs, Math.floor(enrichmentTimeoutRaw))
+    : Math.min(timeoutMs, 4000);
+
   const views: Array<{ view: "all_time" | "trending" | "hot"; url: string }> = [
     { view: "all_time", url: `${SKILLS_SH_BASE}/` },
     { view: "trending", url: `${SKILLS_SH_BASE}/trending` },
@@ -342,19 +378,21 @@ async function collectSkills(nowIso: string, timeoutMs: number, sourceHealth: So
   const enrichmentCandidates = [...baseRows]
     .filter((item) => item.view === "all_time")
     .sort((a, b) => (b.installs ?? 0) - (a.installs ?? 0))
-    .slice(0, 180);
+    .slice(0, enrichmentMax);
 
-  if (enrichmentCandidates.length > 0) {
+  if (enrichmentEnabled && enrichmentCandidates.length > 0) {
     const startedAt = Date.now();
     try {
-      const enriched = await Promise.all(
-        enrichmentCandidates.map(async (item) => {
+      const enriched = await mapWithConcurrency(
+        enrichmentCandidates,
+        enrichmentConcurrency,
+        async (item) => {
           const providerPath = (item.provider ?? "").trim();
           if (!providerPath || !item.sourceSkillId) return null;
 
           const detailUrl = `${SKILLS_RANK_BASE}/skill/${providerPath}/${encodeURIComponent(item.sourceSkillId)}`;
           try {
-            const html = await fetchHtml(detailUrl, ["skills-rank.com"], timeoutMs);
+            const html = await fetchHtml(detailUrl, ["skills-rank.com"], enrichmentTimeoutMs, 0);
             const details = parseSkillsRankDetail(html);
             return {
               ...item,
@@ -373,7 +411,7 @@ async function collectSkills(nowIso: string, timeoutMs: number, sourceHealth: So
           } catch {
             return null;
           }
-        }),
+        },
       );
 
       for (const row of enriched) {
@@ -458,7 +496,7 @@ async function collectMcp(timeoutMs: number, sourceHealth: SourceHealthSample[])
 
   const mcpserversPagedStart = Date.now();
   try {
-    const maxPagesRaw = Number(process.env.MONITORING_MCPSERVERS_PAGES ?? "30");
+    const maxPagesRaw = Number(process.env.MONITORING_MCPSERVERS_PAGES ?? "12");
     const maxPages = Number.isFinite(maxPagesRaw) && maxPagesRaw > 0 ? Math.min(80, Math.floor(maxPagesRaw)) : 12;
     const seen = new Set<string>();
     for (let page = 1; page <= maxPages; page += 1) {

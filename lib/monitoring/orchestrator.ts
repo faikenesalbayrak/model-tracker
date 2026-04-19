@@ -89,7 +89,12 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
   const repository = runtime.repository;
   const nowIso = options.nowIso ?? new Date().toISOString();
   const lanes = normalizeLanes(options.lanes);
-  const timeoutMs = options.timeoutMs ?? 15_000;
+  const timeoutMsRaw = Number(process.env.MONITORING_SOURCE_TIMEOUT_MS ?? "8000");
+  const defaultTimeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw > 0 ? Math.floor(timeoutMsRaw) : 8000;
+  const timeoutMs = options.timeoutMs ?? defaultTimeoutMs;
+  const runBudgetRaw = Number(process.env.MONITORING_RUN_BUDGET_MS ?? "260000");
+  const runBudgetMs = Number.isFinite(runBudgetRaw) && runBudgetRaw > 0 ? Math.floor(runBudgetRaw) : 260000;
+  const runDeadlineTs = Date.now() + runBudgetMs;
   const ingestWindowDaysRaw = Number(process.env.MONITORING_NEWS_INGEST_WINDOW_DAYS ?? "14");
   const ingestWindowDays = Number.isFinite(ingestWindowDaysRaw) && ingestWindowDaysRaw > 0
     ? Math.floor(ingestWindowDaysRaw)
@@ -111,6 +116,7 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     mcpEntriesWritten: 0,
   };
   let hadSourceErrors = false;
+  let budgetExceeded = false;
   const lockKey = options.lockKey ?? "monitoring:scheduled:global";
   const runStaleMinutesRaw = Number(process.env.MONITORING_RUNNING_STALE_MINUTES ?? "20");
   const runStaleMinutes = Number.isFinite(runStaleMinutesRaw) && runStaleMinutesRaw > 0
@@ -137,37 +143,64 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
   });
 
   try {
+    function hasBudget(): boolean {
+      return Date.now() < runDeadlineTs;
+    }
+
+    async function markBudgetExceeded(context: string): Promise<void> {
+      hadSourceErrors = true;
+      if (budgetExceeded) {
+        return;
+      }
+      budgetExceeded = true;
+      await repository.upsertSourceHealth({
+        sourceName: "run_budget_guard",
+        sourceType: "metadata",
+        enabled: true,
+        success: false,
+        latencyMs: runBudgetMs,
+        lastCheckedAt: new Date().toISOString(),
+        lastErrorMessage: `Run budget exceeded while processing ${context}.`,
+      });
+    }
+
     const recipients = isNotificationsEnabled() ? getRecipients() : [];
     const newsAdapters = lanes.has("news") ? getActiveNewsSources() : [];
 
     // Metadata lane first: prioritize MCP/skills persistence even when
     // serverless executions are interrupted later by runtime budgets.
     if (lanes.has("metadata")) {
-      try {
-        const mcpResult = await collectMcpCatalogSnapshot({ timeoutMs });
-        summary.mcpEntriesWritten = mcpResult.mcp.length;
-        summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + mcpResult.sourceHealth.length;
-        await repository.insertMcpSnapshot(
-          runId,
-          "mcpmarket_catalog",
-          120,
-          nowIso,
-          mcpResult.mcp,
-        );
+      if (!hasBudget()) {
+        await markBudgetExceeded("metadata");
+      }
 
-        for (const item of mcpResult.sourceHealth) {
-          await repository.upsertSourceHealth({
-            sourceName: item.sourceName,
-            sourceType: "metadata",
-            enabled: true,
-            success: item.success,
-            latencyMs: item.latencyMs,
-            lastCheckedAt: nowIso,
-            lastSuccessAt: item.success ? nowIso : undefined,
-            lastErrorMessage: item.success ? undefined : item.errorMessage,
-          });
-          if (!item.success) {
-            hadSourceErrors = true;
+      try {
+        if (hasBudget()) {
+          const mcpResult = await collectMcpCatalogSnapshot({ timeoutMs });
+          summary.mcpEntriesWritten = mcpResult.mcp.length;
+          summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + mcpResult.sourceHealth.length;
+          await repository.insertMcpSnapshot(
+            runId,
+            "mcpmarket_catalog",
+            120,
+            nowIso,
+            mcpResult.mcp,
+          );
+
+          for (const item of mcpResult.sourceHealth) {
+            await repository.upsertSourceHealth({
+              sourceName: item.sourceName,
+              sourceType: "metadata",
+              enabled: true,
+              success: item.success,
+              latencyMs: item.latencyMs,
+              lastCheckedAt: nowIso,
+              lastSuccessAt: item.success ? nowIso : undefined,
+              lastErrorMessage: item.success ? undefined : item.errorMessage,
+            });
+            if (!item.success) {
+              hadSourceErrors = true;
+            }
           }
         }
       } catch (error) {
@@ -184,31 +217,33 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
       }
 
       try {
-        const skillResult = await collectSkillsCatalogSnapshot({ nowIso, timeoutMs });
-        summary.skillEntriesWritten = skillResult.skills.length;
-        summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + skillResult.sourceHealth.length;
+        if (hasBudget()) {
+          const skillResult = await collectSkillsCatalogSnapshot({ nowIso, timeoutMs });
+          summary.skillEntriesWritten = skillResult.skills.length;
+          summary.metadataSourcesChecked = (summary.metadataSourcesChecked ?? 0) + skillResult.sourceHealth.length;
 
-        await repository.insertSkillsSnapshot(
-          runId,
-          "skills_sh",
-          100,
-          nowIso,
-          skillResult.skills,
-        );
+          await repository.insertSkillsSnapshot(
+            runId,
+            "skills_sh",
+            100,
+            nowIso,
+            skillResult.skills,
+          );
 
-        for (const item of skillResult.sourceHealth) {
-          await repository.upsertSourceHealth({
-            sourceName: item.sourceName,
-            sourceType: "metadata",
-            enabled: true,
-            success: item.success,
-            latencyMs: item.latencyMs,
-            lastCheckedAt: nowIso,
-            lastSuccessAt: item.success ? nowIso : undefined,
-            lastErrorMessage: item.success ? undefined : item.errorMessage,
-          });
-          if (!item.success) {
-            hadSourceErrors = true;
+          for (const item of skillResult.sourceHealth) {
+            await repository.upsertSourceHealth({
+              sourceName: item.sourceName,
+              sourceType: "metadata",
+              enabled: true,
+              success: item.success,
+              latencyMs: item.latencyMs,
+              lastCheckedAt: nowIso,
+              lastSuccessAt: item.success ? nowIso : undefined,
+              lastErrorMessage: item.success ? undefined : item.errorMessage,
+            });
+            if (!item.success) {
+              hadSourceErrors = true;
+            }
           }
         }
       } catch (error) {
@@ -227,8 +262,16 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
 
     if (lanes.has("leaderboard")) {
       for (const category of LEADERBOARD_CATEGORIES) {
+        if (!hasBudget()) {
+          await markBudgetExceeded(`leaderboard:${category}`);
+          break;
+        }
         const adapters = getActiveLeaderboardSources(category);
         for (const adapter of adapters) {
+          if (!hasBudget()) {
+            await markBudgetExceeded(`leaderboard:${category}:${adapter.sourceName}`);
+            break;
+          }
           const startedAt = Date.now();
           try {
             const raw = await adapter.fetchRaw({ nowIso, timeoutMs });
@@ -348,6 +391,10 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
 
     if (lanes.has("news")) {
       for (const adapter of newsAdapters) {
+        if (!hasBudget()) {
+          await markBudgetExceeded(`news:${adapter.sourceName}`);
+          break;
+        }
         const startedAt = Date.now();
         try {
           summary.newsSourcesChecked += 1;
@@ -384,8 +431,12 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     }
 
     if (lanes.has("maintenance")) {
-      await repository.pruneNewsData(retentionDays);
-      await repository.pruneHistoryData(retentionDays);
+      if (!hasBudget()) {
+        await markBudgetExceeded("maintenance");
+      } else {
+        await repository.pruneNewsData(retentionDays);
+        await repository.pruneHistoryData(retentionDays);
+      }
     }
 
     const runStatus = hadSourceErrors || summary.notificationsFailed > 0 ? "partial_success" : "success";
