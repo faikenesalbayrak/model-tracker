@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/monitoring/run?type=scheduled",
+      "path": "/api/monitoring/run?type=scheduled&lane=metadata&lane=leaderboard&lane=maintenance",
       "schedule": "0 6 * * *"
     }
   ]
