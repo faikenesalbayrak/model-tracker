@@ -41,7 +41,9 @@ export async function GET() {
 
       const releaseDate = toIsoDate(
         (payload as Record<string, unknown>).release_date ??
-        (payload as Record<string, unknown>).releaseDate,
+        (payload as Record<string, unknown>).releaseDate ??
+        (payload as Record<string, unknown>).announcement_date ??
+        (payload as Record<string, unknown>).livebench_release_date,
       );
       if (!releaseDate) {
         return false;
