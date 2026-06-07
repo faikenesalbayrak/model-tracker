@@ -1,0 +1,14 @@
+.next
+node_modules
+.venv
+.venv-favicon
+.venv-imagegen
+.playwright-mcp
+.git
+.DS_Store
+coverage
+out
+build
+data/*.db*
+data/*.json
+*.tsbuildinfo
