@@ -6,7 +6,10 @@
     "dev": "next dev --webpack -p 4000",
     "build": "next build",
     "start": "next start -p 4000",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "smoke:leaderboard": "node scripts/leaderboard-smoke.mjs",
+    "maintenance:leaderboard": "node scripts/leaderboard-maintenance.mjs"
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",

@@ -50,6 +50,14 @@ CREATE TABLE IF NOT EXISTS source_health (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS monitoring_run_leases (
+  lock_key TEXT PRIMARY KEY,
+  owner_id UUID NOT NULL,
+  acquired_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS notification_log (
   id UUID PRIMARY KEY,
   run_id UUID REFERENCES monitor_runs(id) ON DELETE SET NULL,

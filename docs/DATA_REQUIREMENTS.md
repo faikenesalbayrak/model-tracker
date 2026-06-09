@@ -132,10 +132,10 @@ Kurallar:
 5. Retention: `news_history` için 30 gün purge
 
 ### 3) Scheduler Requirements
-1. Local process içinde çalışmalı (serverless yok)
+1. Production Vercel cron ile çalışır; local scheduler sadece explicit opt-in geliştirme fallback'idir.
 2. Timezone: `Europe/Istanbul`
-3. Run saatleri:
-   - günlük `09:00` ve `21:00` (monitoring + news ingest)
+3. Run saati:
+   - günlük tek cron: `09:00` Istanbul (`0 6 * * *` UTC), tüm lane'ler tek çağrıda: `metadata`, `leaderboard`, `news`, `maintenance`
 
 ### 4) Persistence Requirements (Domain current/history)
 Gerekli tablolar:

@@ -61,6 +61,10 @@ function fromJsonArraySafe(value: unknown): string[] {
 
 type LeaderboardDomain = "llm" | "vlm" | "tts" | "stt" | "embeddings";
 
+const DEFAULT_CATEGORY_SOURCE: Partial<Record<LeaderboardCategory, string>> = {
+  general_llm: "artificial_analysis_models_page",
+};
+
 function domainForCategory(category: LeaderboardCategory): LeaderboardDomain {
   if (category === "general_llm") return "llm";
   if (category === "image_generation" || category === "video_generation") return "vlm";
@@ -117,6 +121,8 @@ type McpPgRow = {
 };
 
 export class PostgresMonitoringRepository {
+  private readonly runLeaseOwners = new Map<string, string>();
+
   constructor(private readonly db: PoolClient) {}
 
   async insertRun(input: InsertRunInput): Promise<string> {
@@ -175,15 +181,45 @@ export class PostgresMonitoringRepository {
   }
 
   async acquireRunLease(lockKey: string): Promise<boolean> {
-    const result = await this.db.query<{ locked: boolean }>(
-      `SELECT pg_try_advisory_lock(hashtext($1)) AS locked`,
-      [lockKey],
+    const ownerId = randomUUID();
+    const runBudgetRaw = Number(process.env.MONITORING_RUN_BUDGET_MS ?? "260000");
+    const runBudgetMs = Number.isFinite(runBudgetRaw) && runBudgetRaw > 0 ? Math.floor(runBudgetRaw) : 260000;
+    const ttlRaw = Number(process.env.MONITORING_RUN_LEASE_TTL_MS ?? "");
+    const requestedTtlMs = Number.isFinite(ttlRaw) && ttlRaw > 0
+      ? Math.floor(ttlRaw)
+      : Math.max(runBudgetMs + 120000, 420000);
+    const ttlMs = Math.max(requestedTtlMs, runBudgetMs + 120000, 360000);
+    const result = await this.db.query<{ owner_id: string }>(
+      `
+      INSERT INTO public.monitoring_run_leases (lock_key, owner_id, expires_at, acquired_at, updated_at)
+      VALUES ($1, $2, NOW() + ($3::int * INTERVAL '1 millisecond'), NOW(), NOW())
+      ON CONFLICT (lock_key) DO UPDATE SET
+        owner_id = EXCLUDED.owner_id,
+        expires_at = EXCLUDED.expires_at,
+        acquired_at = NOW(),
+        updated_at = NOW()
+      WHERE public.monitoring_run_leases.expires_at < NOW()
+      RETURNING owner_id
+      `,
+      [lockKey, ownerId, ttlMs],
     );
-    return Boolean(result.rows[0]?.locked);
+    const acquired = result.rows[0]?.owner_id === ownerId;
+    if (acquired) {
+      this.runLeaseOwners.set(lockKey, ownerId);
+    }
+    return acquired;
   }
 
   async releaseRunLease(lockKey: string): Promise<void> {
-    await this.db.query(`SELECT pg_advisory_unlock(hashtext($1))`, [lockKey]);
+    const ownerId = this.runLeaseOwners.get(lockKey);
+    if (!ownerId) {
+      return;
+    }
+    await this.db.query(
+      `DELETE FROM public.monitoring_run_leases WHERE lock_key = $1 AND owner_id = $2`,
+      [lockKey, ownerId],
+    );
+    this.runLeaseOwners.delete(lockKey);
   }
 
   async getLatestLeaderboardSnapshot(
@@ -232,15 +268,20 @@ export class PostgresMonitoringRepository {
 
   async getLatestCategorySnapshot(category: LeaderboardCategory): Promise<LatestCategorySnapshotRef | null> {
     const currentTable = currentTableForCategory(category);
+    const defaultSource = DEFAULT_CATEGORY_SOURCE[category];
     const snapshot = await this.db.query<{ id: string; source_name: string; snapshot_at: string }>(
       `
-      SELECT source_name, observed_at AS snapshot_at
+      SELECT source_name, MAX(observed_at) AS snapshot_at
       FROM public.${currentTable}
       WHERE category = $1
-      ORDER BY observed_at DESC, source_priority ASC
+      GROUP BY source_name
+      ORDER BY
+        ${defaultSource ? "CASE WHEN source_name = $2 THEN 0 ELSE 1 END," : ""}
+        MAX(observed_at) DESC,
+        MIN(source_priority) ASC
       LIMIT 1
       `,
-      [category],
+      defaultSource ? [category, defaultSource] : [category],
     );
 
     if (snapshot.rowCount === 0) {

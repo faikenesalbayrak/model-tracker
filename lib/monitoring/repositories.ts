@@ -91,6 +91,10 @@ function toJson(value: unknown): string {
 
 type LeaderboardDomain = "llm" | "vlm" | "tts" | "stt" | "embeddings";
 
+const DEFAULT_CATEGORY_SOURCE: Partial<Record<LeaderboardCategory, string>> = {
+  general_llm: "artificial_analysis_models_page",
+};
+
 function domainForCategory(category: LeaderboardCategory): LeaderboardDomain {
   if (category === "general_llm") return "llm";
   if (category === "image_generation" || category === "video_generation") return "vlm";
@@ -223,13 +227,18 @@ export class MonitoringRepository {
   }
 
   getLatestCategorySnapshot(category: LeaderboardCategory): LatestCategorySnapshotRef | null {
+    const defaultSource = DEFAULT_CATEGORY_SOURCE[category];
     const snapshot = this.db.prepare(`
-      SELECT source_name, observed_at AS snapshot_at
+      SELECT source_name, MAX(observed_at) AS snapshot_at
       FROM ${currentTableForCategory(category)}
       WHERE category = ?
-      ORDER BY observed_at DESC, source_priority ASC
+      GROUP BY source_name
+      ORDER BY
+        ${defaultSource ? "CASE WHEN source_name = ? THEN 0 ELSE 1 END," : ""}
+        MAX(observed_at) DESC,
+        MIN(source_priority) ASC
       LIMIT 1
-    `).get(category) as { source_name: string; snapshot_at: string } | undefined;
+    `).get(...(defaultSource ? [category, defaultSource] : [category])) as { source_name: string; snapshot_at: string } | undefined;
 
     if (!snapshot) {
       return null;

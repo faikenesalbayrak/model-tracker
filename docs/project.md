@@ -395,5 +395,5 @@ Bu proje için local-first monitoring katmanı eklenmiştir:
    - `scripts/render_alert_image.py`
 
 Çalışma zamanları (Europe/Istanbul):
-1. Günlük monitoring: `09:00` ve `21:00`
-2. Haftalık digest: `Pazartesi 09:15`
+1. Günlük monitoring: tek cron `09:00`
+2. Haftalık digest: kaldırıldı

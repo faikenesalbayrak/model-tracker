@@ -19,6 +19,9 @@ export function bootstrapMonitoringScheduler(): SchedulerHandles | null {
   if (process.env.NODE_ENV === "test") {
     return null;
   }
+  if (process.env.VERCEL) {
+    return null;
+  }
   if (!isEnabled()) {
     return null;
   }

@@ -3,8 +3,8 @@
 ## Summary
 Bu doküman, monitoring sisteminin güncel üretim mimarisini özetler.
 
-- Çalışma modu: local process scheduler + API route tetikleme
-- Zamanlama: Europe/Istanbul, günlük `09:00` ve `21:00`
+- Çalışma modu: Vercel cron + API route tetikleme; local scheduler yalnız opt-in geliştirme fallback'idir
+- Zamanlama: Europe/Istanbul, günlük tek çalıştırma `09:00`
 - Persistence modeli: domain bazlı `current/history`
 - Weekly digest: kaldırıldı
 
@@ -76,7 +76,7 @@ Bu doküman, monitoring sisteminin güncel üretim mimarisini özetler.
 
 ## Test Plan
 1. Diff motoru: entered/exited/moved/no-change
-2. Scheduler: `09:00` ve `21:00` tetik doğrulaması
+2. Scheduler: tek günlük `09:00` tetik doğrulaması
 3. Persistence: upsert, dedupe, retention purge
 4. Notification: SMTP sent/failed log doğrulaması
 5. Cache resilience: read-only filesystem senaryosu

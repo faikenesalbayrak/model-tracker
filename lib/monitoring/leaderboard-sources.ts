@@ -175,6 +175,127 @@ function canonicalKey(modelName: string, vendor?: string): string {
   return `${normalizedVendor}:${normalizedModel}`;
 }
 
+export interface GeneralLlmQualityInput {
+  modelName: string;
+  vendor?: string;
+  modelUrl?: string | null;
+  sourceModelId?: string | null;
+  releaseDate?: string | null;
+  deprecated?: boolean | null;
+  deleted?: boolean | null;
+  hasListingEvidence?: boolean;
+  nowIso?: string;
+  requireTrustedLocator?: boolean;
+}
+
+function normalizeModelNameForQuality(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/['"`]/g, "")
+    .replace(/[()]/g, " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-+/g, "-");
+}
+
+function hasTrustedArtificialAnalysisLocator(input: GeneralLlmQualityInput): boolean {
+  const modelUrl = input.modelUrl?.trim();
+  if (modelUrl) {
+    try {
+      const parsed = new URL(modelUrl, "https://artificialanalysis.ai");
+      if (
+        ["artificialanalysis.ai", "www.artificialanalysis.ai"].includes(parsed.hostname) &&
+        parsed.pathname.startsWith("/models/")
+      ) {
+        return true;
+      }
+    } catch {
+      return false;
+    }
+  }
+
+  const sourceModelId = input.sourceModelId?.trim();
+  if (!sourceModelId) return false;
+  try {
+    const parsed = new URL(sourceModelId, "https://artificialanalysis.ai");
+    return (
+      ["artificialanalysis.ai", "www.artificialanalysis.ai"].includes(parsed.hostname) &&
+      parsed.pathname.startsWith("/models/")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function isFutureDate(dateValue: string | null | undefined, nowIso: string | undefined): boolean {
+  if (!dateValue) return false;
+  const parsed = Date.parse(dateValue);
+  if (!Number.isFinite(parsed)) return false;
+  const now = nowIso ? Date.parse(nowIso) : Date.now();
+  if (!Number.isFinite(now)) return false;
+  return parsed > now;
+}
+
+export function shouldAcceptGeneralLlmModel(input: GeneralLlmQualityInput): boolean {
+  const normalized = normalizeModelNameForQuality(input.modelName);
+  if (!normalized) return false;
+  if (input.deprecated === true) return false;
+  if (input.deleted === true) return false;
+
+  const syntheticPatterns = [
+    /\bxhigh\b/,
+    /\b(?:high|medium|low)-effort\b/,
+    /\bpreview-(?:high|medium|low|minimal)\b/,
+    /\bpreview\b/,
+    /\bfallback\b/,
+    /\b(?:high|medium|low|minimal)\b/,
+    /\b20\d{2}-\d{2}-\d{2}\b/,
+    /\b20\d{6}\b/,
+    /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)-?20\d{2}\b/,
+    /-(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\b/,
+    /\bgpt-5-[1-9]\b/,
+    /\bgemini-3\b/,
+    /\bclaude-[a-z]+-5\b/,
+    /\bclaude-4-(?:[5-9]|\d{2,})\b/,
+    /\bclaude-(?:opus|sonnet)-4-(?:[5-9]|\d{2,})\b/,
+    /\bqwen3-(?:[5-9]|\d{2,})\b/,
+    /\bdeepseek-v4\b/,
+    /\bgrok-4-(?:[1-9]|\d{2,})\b/,
+    /\bkimi-k2-(?:[1-9]|\d{2,})\b/,
+    /\bminimax-m3\b/,
+    /\bmimo-v2-(?:[1-9]|\d{2,})\b/,
+    /\bgemma-4\b/,
+    /\bstep-3-(?:[5-9]|\d{2,})\b/,
+    /\bmistral-medium-3-(?:[5-9]|\d{2,})\b/,
+  ];
+  if (syntheticPatterns.some((pattern) => pattern.test(normalized))) {
+    return false;
+  }
+
+  if (isFutureDate(input.releaseDate, input.nowIso)) {
+    return false;
+  }
+
+  if (input.requireTrustedLocator && !hasTrustedArtificialAnalysisLocator(input)) {
+    return false;
+  }
+  if (input.requireTrustedLocator && input.hasListingEvidence === false) {
+    return false;
+  }
+
+  return true;
+}
+
+function hasArtificialAnalysisListingEvidence(item: AAModelLike): boolean {
+  if (Array.isArray(item.host_models) && item.host_models.length > 0) return true;
+  if (typeof item.model_weights_source_url === "string" && item.model_weights_source_url.trim()) return true;
+  if (normalizePriceValue(item.price_1m_input_tokens) !== null) return true;
+  if (normalizePriceValue(item.price_1m_output_tokens) !== null) return true;
+  if (normalizePositiveValue(item.timescaleData?.median_output_speed) !== null) return true;
+  return false;
+}
+
 function inferVendorFromModelId(modelId: string): string | undefined {
   const normalized = modelId.trim().toLowerCase();
   if (!normalized) return undefined;
@@ -355,7 +476,7 @@ async function fetchLiveBenchSnapshot(): Promise<LiveBenchSnapshot> {
   throw new Error("Could not fetch a valid LiveBench snapshot.");
 }
 
-function entriesFromLiveBenchSnapshot(snapshot: LiveBenchSnapshot): NormalizedLeaderboardEntry[] {
+function entriesFromLiveBenchSnapshot(snapshot: LiveBenchSnapshot, nowIso?: string): NormalizedLeaderboardEntry[] {
   const rows = parseCsvTable(snapshot.csvText);
   const categories = snapshot.categories;
   const categoryColumnsByName = Object.entries(categories)
@@ -386,6 +507,16 @@ function entriesFromLiveBenchSnapshot(snapshot: LiveBenchSnapshot): NormalizedLe
       }
 
       const vendor = inferVendorFromModelId(sourceModelId);
+      if (
+        !shouldAcceptGeneralLlmModel({
+          modelName: sourceModelId,
+          vendor,
+          nowIso,
+        })
+      ) {
+        return null;
+      }
+
       return {
         rank: 0,
         sourceModelId,
@@ -1001,7 +1132,7 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
 
     return { aaHtml, hfRows, sweRows };
   },
-  async normalizeTop10(raw: unknown, category: LeaderboardCategory): Promise<NormalizedLeaderboardEntry[]> {
+  async normalizeTop10(raw: unknown, category: LeaderboardCategory, nowIso?: string): Promise<NormalizedLeaderboardEntry[]> {
     const rawRecord = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
     const html = String(rawRecord.aaHtml ?? raw ?? "");
     const hfRows = Array.isArray(rawRecord.hfRows) ? (rawRecord.hfRows as Array<Record<string, unknown>>) : [];
@@ -1018,9 +1149,27 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
 
     const rows = filtered
       .filter((item) => typeof scoreOf(item) === "number" && Number.isFinite(scoreOf(item)))
-      .map((item) => {
+      .map((item): NormalizedLeaderboardEntry | null => {
         const modelName = nameOf(item);
         const vendor = item.model_creators?.name ?? undefined;
+        if (
+          category === "general_llm" &&
+          !shouldAcceptGeneralLlmModel({
+            modelName,
+            vendor,
+            modelUrl: item.model_url ?? item.hosts_url,
+            sourceModelId: item.id,
+            releaseDate: item.release_date,
+            deprecated: item.deprecated,
+            deleted: item.deleted,
+            hasListingEvidence: hasArtificialAnalysisListingEvidence(item),
+            nowIso,
+            requireTrustedLocator: true,
+          })
+        ) {
+          return null;
+        }
+
         const gpqaEnriched = lookupEnrichedScore(enrichment.gpqaByModel, modelName);
         const mmluEnriched = lookupEnrichedScore(enrichment.mmluByModel, modelName);
         const sweEnriched = lookupEnrichedScore(enrichment.sweByModel, modelName);
@@ -1072,7 +1221,8 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
             reasoning_model: item.reasoning_model,
           },
         } satisfies NormalizedLeaderboardEntry;
-      });
+      })
+      .filter((item): item is NormalizedLeaderboardEntry => item !== null);
     return rankEntries(rows);
   },
 };
@@ -1085,12 +1235,12 @@ const liveBenchGeneralLlmAdapter: LeaderboardAdapter = {
   async fetchRaw(): Promise<unknown> {
     return fetchLiveBenchSnapshot();
   },
-  async normalizeTop10(raw: unknown): Promise<NormalizedLeaderboardEntry[]> {
+  async normalizeTop10(raw: unknown, _category: LeaderboardCategory, nowIso?: string): Promise<NormalizedLeaderboardEntry[]> {
     const snapshot = (raw && typeof raw === "object" ? (raw as LiveBenchSnapshot) : null);
     if (!snapshot?.csvText || !snapshot.categories || !snapshot.releaseDate) {
       return [];
     }
-    return entriesFromLiveBenchSnapshot(snapshot);
+    return entriesFromLiveBenchSnapshot(snapshot, nowIso);
   },
 };
 

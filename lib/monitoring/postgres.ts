@@ -12,6 +12,14 @@ function resolveConnectionString(): string | null {
   if (postgresUrl) return postgresUrl;
 
   const databaseUrl = process.env.DATABASE_URL?.trim();
+  const allowDatabaseUrlFallback = process.env.MONITORING_ALLOW_DATABASE_URL_FALLBACK?.trim().toLowerCase();
+  const fallbackAllowed = allowDatabaseUrlFallback === "1" || allowDatabaseUrlFallback === "true" || allowDatabaseUrlFallback === "yes";
+  if (databaseUrl && fallbackAllowed) return databaseUrl;
+  if (databaseUrl && (process.env.VERCEL || process.env.NODE_ENV === "production")) {
+    throw new Error(
+      "DATABASE_URL fallback is disabled for monitoring in production. Set MONITORING_DATABASE_URL or POSTGRES_URL, or explicitly set MONITORING_ALLOW_DATABASE_URL_FALLBACK=true.",
+    );
+  }
   if (databaseUrl) return databaseUrl;
 
   return null;

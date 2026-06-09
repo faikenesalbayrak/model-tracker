@@ -28,6 +28,11 @@ export interface ArtificialAnalysisModel {
   reasoning_model?: boolean | null;
   release_date?: string | null;
   knowledge_cutoff_date?: string | null;
+  deprecated?: boolean | null;
+  deleted?: boolean | null;
+  model_weights_source_url?: string | null;
+  intelligence_index_is_estimated?: boolean | null;
+  host_models?: unknown[] | null;
   model_url?: string | null;
   hosts_url?: string | null;
   input_modality_image?: boolean | null;
@@ -113,36 +118,55 @@ function extractJsonArrayAt(input: string, startBracketIndex: number): string | 
 }
 
 function parseModelsArray(decodedStream: string): ArtificialAnalysisModel[] {
-  const marker = "\"models\":[";
-  const markerLen = marker.length;
-  let position = decodedStream.indexOf(marker);
+  const markers = [
+    { marker: "\"models\":[", priority: 1 },
+    { marker: "\"defaultData\":[", priority: 2 },
+  ];
+  const candidates: Array<{ rows: ArtificialAnalysisModel[]; scoredCount: number; priority: number }> = [];
 
-  while (position !== -1) {
-    const arrayStart = position + markerLen - 1;
-    const arrayLiteral = extractJsonArrayAt(decodedStream, arrayStart);
-    if (!arrayLiteral) {
-      break;
-    }
+  for (const { marker, priority } of markers) {
+    const markerLen = marker.length;
+    let position = decodedStream.indexOf(marker);
 
-    try {
-      const parsed = JSON.parse(arrayLiteral) as unknown;
-      if (
-        Array.isArray(parsed) &&
-        parsed.length > 0 &&
-        typeof parsed[0] === "object" &&
-        parsed[0] !== null &&
-        "intelligence_index" in parsed[0]
-      ) {
-        return parsed as ArtificialAnalysisModel[];
+    while (position !== -1) {
+      const arrayStart = position + markerLen - 1;
+      const arrayLiteral = extractJsonArrayAt(decodedStream, arrayStart);
+      if (!arrayLiteral) {
+        break;
       }
-    } catch {
-      // Try the next `models` array.
-    }
 
-    position = decodedStream.indexOf(marker, position + markerLen);
+      try {
+        const parsed = JSON.parse(arrayLiteral) as unknown;
+        if (
+          Array.isArray(parsed)
+        ) {
+          const scoredCount = parsed.filter((item) => {
+            if (!item || typeof item !== "object") return false;
+            const score = (item as Record<string, unknown>).intelligence_index;
+            return typeof score === "number" && Number.isFinite(score);
+          }).length;
+          if (scoredCount > 0) {
+            candidates.push({
+              rows: parsed as ArtificialAnalysisModel[],
+              scoredCount,
+              priority,
+            });
+          }
+        }
+      } catch {
+        // Try the next candidate array.
+      }
+
+      position = decodedStream.indexOf(marker, position + markerLen);
+    }
   }
 
-  return [];
+  candidates.sort((left, right) => (
+    right.scoredCount - left.scoredCount ||
+    right.priority - left.priority ||
+    right.rows.length - left.rows.length
+  ));
+  return candidates[0]?.rows ?? [];
 }
 
 export function extractArtificialAnalysisModels(html: string): ArtificialAnalysisModel[] {

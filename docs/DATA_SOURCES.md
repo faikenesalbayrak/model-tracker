@@ -3,11 +3,12 @@
 Bu doküman, projedeki tüm veri kaynaklarını ve her kaynaktan çekilebilen alanları listeler.
 
 ## Monitoring Pipeline (Yeni)
-- Çalışma modu: local-first, uygulama process’i içinde scheduler.
-- Frekans: günde 2 kez (`09:00`, `21:00`, Europe/Istanbul).
+- Çalışma modu: production'da Vercel cron; local scheduler yalnız explicit opt-in fallback.
+- Frekans: günde 1 kez (`09:00`, Europe/Istanbul / `0 6 * * *` UTC).
 - Persistence:
   - Local: SQLite (`docs/sqlite_monitoring_schema.sql`)
   - Prod: Postgres/Neon (`docs/postgres_monitoring_schema.sql`)
+- Prod DB seçiminde `MONITORING_DATABASE_URL` veya `POSTGRES_URL` zorunludur; `DATABASE_URL` fallback'i yalnız explicit `MONITORING_ALLOW_DATABASE_URL_FALLBACK=true` ile açılır.
 - Ana tablolar:
 1. `monitor_runs`
 2. `leaderboard_changes`

@@ -91,7 +91,10 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
   const lanes = normalizeLanes(options.lanes);
   const timeoutMsRaw = Number(process.env.MONITORING_SOURCE_TIMEOUT_MS ?? "8000");
   const defaultTimeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw > 0 ? Math.floor(timeoutMsRaw) : 8000;
-  const timeoutMs = options.timeoutMs ?? defaultTimeoutMs;
+  const timeoutMaxRaw = Number(process.env.MONITORING_SOURCE_TIMEOUT_MAX_MS ?? "15000");
+  const timeoutMaxMs = Number.isFinite(timeoutMaxRaw) && timeoutMaxRaw > 0 ? Math.floor(timeoutMaxRaw) : 15000;
+  const requestedTimeoutMs = options.timeoutMs ?? defaultTimeoutMs;
+  const timeoutMs = Math.min(Math.max(1, Math.floor(requestedTimeoutMs)), timeoutMaxMs);
   const runBudgetRaw = Number(process.env.MONITORING_RUN_BUDGET_MS ?? "260000");
   const runBudgetMs = Number.isFinite(runBudgetRaw) && runBudgetRaw > 0 ? Math.floor(runBudgetRaw) : 260000;
   const runDeadlineTs = Date.now() + runBudgetMs;
@@ -123,6 +126,12 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     ? Math.floor(runStaleMinutesRaw)
     : 20;
   const staleBeforeIso = new Date(Date.now() - runStaleMinutes * 60 * 1000).toISOString();
+
+  await repository.failStaleRunningRuns(
+    staleBeforeIso,
+    `Marked stale after ${runStaleMinutes} minutes without completion.`,
+  );
+
   const leaseAcquired = await repository.acquireRunLease(lockKey);
   if (!leaseAcquired) {
     if (shouldClose) {
@@ -130,11 +139,6 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
     }
     throw new MonitoringRunConflictError();
   }
-
-  await repository.failStaleRunningRuns(
-    staleBeforeIso,
-    `Marked stale after ${runStaleMinutes} minutes without completion.`,
-  );
 
   const runId = await repository.insertRun({
     runType: options.runType ?? "scheduled_12h",
@@ -283,11 +287,12 @@ export async function runScheduledCycle(options: RunCycleOptions = {}): Promise<
                 sourceName: adapter.sourceName,
                 sourceType: "leaderboard",
                 enabled: true,
-                success: true,
+                success: false,
                 latencyMs: Date.now() - startedAt,
                 lastCheckedAt: nowIso,
-                lastSuccessAt: nowIso,
+                lastErrorMessage: `${adapter.sourceName}: no leaderboard rows normalized for ${category}.`,
               });
+              hadSourceErrors = true;
               continue;
             }
 
