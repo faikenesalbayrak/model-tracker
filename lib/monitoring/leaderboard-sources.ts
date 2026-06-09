@@ -237,6 +237,57 @@ function isFutureDate(dateValue: string | null | undefined, nowIso: string | und
   return parsed > now;
 }
 
+function isAfterGeneralLlmReleaseCutoff(dateValue: string | null | undefined): boolean {
+  if (!dateValue) return false;
+  const parsed = Date.parse(dateValue);
+  if (!Number.isFinite(parsed)) return false;
+  const cutoffRaw = process.env.MONITORING_GENERAL_LLM_RELEASE_CUTOFF ?? "2025-08-31T23:59:59.999Z";
+  const cutoff = Date.parse(cutoffRaw);
+  if (!Number.isFinite(cutoff)) return false;
+  return parsed > cutoff;
+}
+
+function isTrustedGeneralLlmFamily(input: GeneralLlmQualityInput, normalized: string): boolean {
+  const vendor = canonicalize(input.vendor ?? "");
+  if (vendor === "openai") {
+    return (
+      /^o[134](?:-|$)/.test(normalized) ||
+      /^gpt-4(?:-|$)/.test(normalized) ||
+      /^gpt-4o(?:-|$)/.test(normalized) ||
+      /^chatgpt-4o(?:-|$)/.test(normalized) ||
+      /^gpt-oss-(?:20b|120b)$/.test(normalized)
+    );
+  }
+  if (vendor === "anthropic") {
+    return /^claude-(?:opus|sonnet|haiku)-(?:4|3(?:-|$)|3-5|3-7)(?:-|$)/.test(normalized);
+  }
+  if (vendor === "google") {
+    return /^gemini-2-5(?:-|$)/.test(normalized) || /^gemma-3(?:-|$)/.test(normalized);
+  }
+  if (vendor === "meta") {
+    return /^llama-(?:4|3)(?:-|$)/.test(normalized);
+  }
+  if (vendor === "deepseek") {
+    return /^deepseek-(?:r1|v3)(?:-|$)/.test(normalized);
+  }
+  if (vendor === "xai") {
+    return /^grok-3(?:-|$)/.test(normalized);
+  }
+  if (vendor === "mistral") {
+    return /^mistral-(?:large|small|medium)(?:-|$)/.test(normalized) && !/^mistral-(?:large|small|medium)-[4-9]/.test(normalized);
+  }
+  if (vendor === "microsoft") {
+    return /^phi-4(?:-|$)/.test(normalized);
+  }
+  if (vendor === "amazon") {
+    return /^nova-(?:micro|lite|pro|premier)(?:-|$)/.test(normalized);
+  }
+  if (vendor === "cohere") {
+    return /^command-a(?:-|$)/.test(normalized) || /^command-r(?:-|$)/.test(normalized);
+  }
+  return false;
+}
+
 export function shouldAcceptGeneralLlmModel(input: GeneralLlmQualityInput): boolean {
   const normalized = normalizeModelNameForQuality(input.modelName);
   if (!normalized) return false;
@@ -276,11 +327,17 @@ export function shouldAcceptGeneralLlmModel(input: GeneralLlmQualityInput): bool
   if (isFutureDate(input.releaseDate, input.nowIso)) {
     return false;
   }
+  if (input.requireTrustedLocator && isAfterGeneralLlmReleaseCutoff(input.releaseDate)) {
+    return false;
+  }
 
   if (input.requireTrustedLocator && !hasTrustedArtificialAnalysisLocator(input)) {
     return false;
   }
   if (input.requireTrustedLocator && input.hasListingEvidence === false) {
+    return false;
+  }
+  if (input.requireTrustedLocator && !isTrustedGeneralLlmFamily(input, normalized)) {
     return false;
   }
 

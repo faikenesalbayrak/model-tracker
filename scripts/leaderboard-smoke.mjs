@@ -5,7 +5,7 @@ const baseUrl = (process.env.LEADERBOARD_SMOKE_BASE_URL || DEFAULT_BASE_URL).rep
 const timeoutMs = Number(process.env.LEADERBOARD_SMOKE_TIMEOUT_MS || "20000");
 
 const categories = [
-  ["general_llm", 20],
+  ["general_llm", 10],
   ["image_generation", 5],
   ["video_generation", 5],
   ["text_to_speech", 5],

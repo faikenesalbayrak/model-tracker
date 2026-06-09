@@ -233,7 +233,7 @@ async function validateRemoteLeaderboard() {
   }
 
   const expectations = [
-    ["general_llm", 20],
+    ["general_llm", 10],
     ["image_generation", 5],
     ["video_generation", 5],
     ["text_to_speech", 5],

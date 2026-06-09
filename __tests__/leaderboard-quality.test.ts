@@ -40,6 +40,26 @@ describe("leaderboard quality filters", () => {
     ).toBe(true);
     expect(
       shouldAcceptGeneralLlmModel({
+        modelName: "o3",
+        vendor: "OpenAI",
+        modelUrl: "https://artificialanalysis.ai/models/o3/providers",
+        hasListingEvidence: true,
+        nowIso: NOW,
+        requireTrustedLocator: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldAcceptGeneralLlmModel({
+        modelName: "Gemini 2.5 Pro",
+        vendor: "Google",
+        modelUrl: "https://artificialanalysis.ai/models/gemini-2-5-pro/providers",
+        hasListingEvidence: true,
+        nowIso: NOW,
+        requireTrustedLocator: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldAcceptGeneralLlmModel({
         modelName: "Claude Sonnet 4",
         vendor: "Anthropic",
         modelUrl: "https://artificialanalysis.ai/models/claude-sonnet-4/providers",
@@ -69,6 +89,20 @@ describe("leaderboard quality filters", () => {
         sourceModelId: "gpt-4-1",
         releaseDate: "2026-06-10",
         nowIso: NOW,
+      }),
+    ).toBe(false);
+  });
+
+  it("rejects Artificial Analysis rows after the conservative public leaderboard cutoff", () => {
+    expect(
+      shouldAcceptGeneralLlmModel({
+        modelName: "Command A+",
+        vendor: "Cohere",
+        modelUrl: "https://artificialanalysis.ai/models/command-a-plus/providers",
+        releaseDate: "2026-05-20",
+        hasListingEvidence: true,
+        nowIso: NOW,
+        requireTrustedLocator: true,
       }),
     ).toBe(false);
   });
@@ -125,6 +159,26 @@ describe("leaderboard quality filters", () => {
         vendor: "Meta",
         modelUrl: "https://artificialanalysis.ai/models/muse-spark",
         hasListingEvidence: false,
+        nowIso: NOW,
+        requireTrustedLocator: true,
+      }),
+    ).toBe(false);
+    expect(
+      shouldAcceptGeneralLlmModel({
+        modelName: "GLM-5.1",
+        vendor: "Z AI",
+        modelUrl: "https://artificialanalysis.ai/models/glm-5-1/providers",
+        hasListingEvidence: true,
+        nowIso: NOW,
+        requireTrustedLocator: true,
+      }),
+    ).toBe(false);
+    expect(
+      shouldAcceptGeneralLlmModel({
+        modelName: "North Mini Code",
+        vendor: "Cohere",
+        modelUrl: "https://artificialanalysis.ai/models/north-mini-code/providers",
+        hasListingEvidence: true,
         nowIso: NOW,
         requireTrustedLocator: true,
       }),
