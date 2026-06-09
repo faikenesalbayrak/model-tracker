@@ -120,12 +120,20 @@ export interface SourceRegistryItem {
 
 export const SOURCE_REGISTRY: SourceRegistryItem[] = [
   {
+    sourceName: "vellum_llm_leaderboard",
+    sourceType: "leaderboard",
+    status: "enabled",
+    priority: 5,
+    categories: ["general_llm"],
+    note: "Primary source for current public general LLM leaderboard.",
+  },
+  {
     sourceName: "artificial_analysis_models_page",
     sourceType: "leaderboard",
     status: "enabled",
     priority: 10,
     categories: ["general_llm"],
-    note: "Primary source for general LLM leaderboard.",
+    note: "Secondary Artificial Analysis model-detail source for general LLM snapshots.",
   },
   {
     sourceName: "livebench_general_llm",

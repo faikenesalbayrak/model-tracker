@@ -17,6 +17,7 @@ import { LEADERBOARD_CATEGORIES, SOURCE_REGISTRY } from "@/lib/monitoring/contra
 import { HF_DATASETS_SEARCH_API, HF_LEADERBOARD_V2_DATASET, LAB_HF_ORGS, PWC_API_BASE } from "@/lib/sources";
 
 const ARTIFICIAL_ANALYSIS_MODELS_URL = "https://artificialanalysis.ai/models";
+const VELLUM_LLM_LEADERBOARD_URL = "https://www.vellum.ai/llm-leaderboard";
 const AA_IMAGE_TEXT_TO_IMAGE_URL = "https://artificialanalysis.ai/image/leaderboard/text-to-image";
 const AA_IMAGE_EDITING_URL = "https://artificialanalysis.ai/image/leaderboard/editing";
 const AA_VIDEO_TEXT_TO_VIDEO_URL = "https://artificialanalysis.ai/video/leaderboard/text-to-video";
@@ -368,11 +369,83 @@ function inferVendorFromModelId(modelId: string): string | undefined {
     [/^command/, "Cohere"],
     [/^kimi/, "Moonshot AI"],
     [/^phi/, "Microsoft"],
+    [/^nova/, "Amazon"],
   ];
   for (const [pattern, vendor] of mappings) {
     if (pattern.test(normalized)) return vendor;
   }
   return undefined;
+}
+
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/g, " ")
+    .replace(/<style[\s\S]*?<\/style>/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, "\"")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function cleanVellumModelName(value: string): string {
+  return value
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/\bGPT\s+(\d)/gi, "GPT-$1")
+    .replace(/\bGPT oss\b/gi, "GPT-OSS");
+}
+
+function entriesFromVellumLeaderboardHtml(html: string): NormalizedLeaderboardEntry[] {
+  const text = htmlToPlainText(html);
+  const sections = text.match(/Best in [\s\S]+?(?=Best in |Fastest and most affordable models)/g) ?? [];
+  const byModel = new Map<string, { modelName: string; vendor?: string; count: number; sum: number; max: number; tasks: string[] }>();
+
+  for (const section of sections) {
+    const tableStart = section.indexOf("Model Score");
+    if (tableStart === -1) continue;
+    const taskName = section.slice(0, tableStart).replace(/\s+\d+(?:\.\d+)?\s*%[\s\S]*$/, "").trim();
+    const tableText = section.slice(tableStart + "Model Score".length);
+    const pattern = /([A-Z][A-Za-z0-9 .+'\-\[\]]+?)\s+(\d+(?:\.\d+)?)\s*%/g;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(tableText)) !== null) {
+      const modelName = cleanVellumModelName(match[1] ?? "");
+      if (!modelName || modelName.includes("Model Score")) continue;
+      const score = Number(match[2]);
+      if (!Number.isFinite(score)) continue;
+      const vendor = inferVendorFromModelId(modelName);
+      const key = canonicalKey(modelName, vendor);
+      const existing = byModel.get(key) ?? { modelName, vendor, count: 0, sum: 0, max: 0, tasks: [] };
+      existing.count += 1;
+      existing.sum += score;
+      existing.max = Math.max(existing.max, score);
+      if (taskName) existing.tasks.push(taskName);
+      byModel.set(key, existing);
+    }
+  }
+
+  const rows = [...byModel.entries()].map(([key, item]) => {
+    const average = item.sum / item.count;
+    return {
+      rank: 0,
+      sourceModelId: key,
+      canonicalModelKey: key,
+      modelName: item.modelName,
+      vendor: item.vendor,
+      score: item.count * 100 + average,
+      scoreUnit: "vellum_multi_task_score",
+      modelUrl: `${VELLUM_LLM_LEADERBOARD_URL}#compare-models`,
+      payload: {
+        task_count: item.count,
+        average_task_score: average,
+        max_task_score: item.max,
+        tasks: [...new Set(item.tasks)],
+      },
+    } satisfies NormalizedLeaderboardEntry;
+  });
+
+  return rankEntries(rows).slice(0, 30);
 }
 
 function parseCsvLine(line: string): string[] {
@@ -1284,6 +1357,31 @@ const artificialAnalysisAdapter: LeaderboardAdapter = {
   },
 };
 
+const vellumLlmLeaderboardAdapter: LeaderboardAdapter = {
+  sourceName: "vellum_llm_leaderboard",
+  sourceType: "leaderboard",
+  categories: ["general_llm"],
+  priority: 5,
+  async fetchRaw(): Promise<unknown> {
+    return fetchWithRetry<string>(
+      VELLUM_LLM_LEADERBOARD_URL,
+      {
+        method: "GET",
+        headers: {
+          Accept: "text/html,application/xhtml+xml",
+          "User-Agent": "model-tracker-monitoring/1.0",
+        },
+      },
+      async (response) => response.text(),
+      { allowedHosts: ["www.vellum.ai", "vellum.ai"] },
+    ).then((r) => r.data);
+  },
+  async normalizeTop10(raw: unknown): Promise<NormalizedLeaderboardEntry[]> {
+    const html = String(raw ?? "");
+    return entriesFromVellumLeaderboardHtml(html);
+  },
+};
+
 const liveBenchGeneralLlmAdapter: LeaderboardAdapter = {
   sourceName: "livebench_general_llm",
   sourceType: "leaderboard",
@@ -1794,6 +1892,7 @@ const mtebEmbeddingsAdapter: LeaderboardAdapter = {
 };
 
 const LEADERBOARD_ADAPTERS: Record<string, LeaderboardAdapter> = {
+  [vellumLlmLeaderboardAdapter.sourceName]: vellumLlmLeaderboardAdapter,
   [artificialAnalysisAdapter.sourceName]: artificialAnalysisAdapter,
   [liveBenchGeneralLlmAdapter.sourceName]: liveBenchGeneralLlmAdapter,
   // Image generation

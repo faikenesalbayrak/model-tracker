@@ -62,7 +62,7 @@ function fromJsonArraySafe(value: unknown): string[] {
 type LeaderboardDomain = "llm" | "vlm" | "tts" | "stt" | "embeddings";
 
 const DEFAULT_CATEGORY_SOURCE: Partial<Record<LeaderboardCategory, string>> = {
-  general_llm: "artificial_analysis_models_page",
+  general_llm: "vellum_llm_leaderboard",
 };
 
 function domainForCategory(category: LeaderboardCategory): LeaderboardDomain {

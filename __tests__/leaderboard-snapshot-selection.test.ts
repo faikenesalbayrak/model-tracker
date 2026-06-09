@@ -35,17 +35,26 @@ describe("leaderboard snapshot source selection", () => {
           score: 45,
         },
       ]);
+      repository.insertLeaderboardSnapshot(runId, "general_llm", "vellum_llm_leaderboard", 5, observedAt, [
+        {
+          rank: 1,
+          canonicalModelKey: "anthropic:claude_opus_4_8",
+          modelName: "Claude Opus 4.8",
+          vendor: "Anthropic",
+          score: 376,
+        },
+      ]);
 
       const snapshot = repository.getLatestCategorySnapshot("general_llm");
 
-      expect(snapshot?.sourceName).toBe("artificial_analysis_models_page");
-      expect(snapshot?.entries[0].modelName).toBe("GPT-4.1");
+      expect(snapshot?.sourceName).toBe("vellum_llm_leaderboard");
+      expect(snapshot?.entries[0].modelName).toBe("Claude Opus 4.8");
     } finally {
       closeDatabase(db);
     }
   });
 
-  it("falls back to LiveBench when the primary general LLM source is unavailable", () => {
+  it("falls back to another source when the primary general LLM source is unavailable", () => {
     const db = initDatabase(":memory:");
     try {
       runMigrations(path.join(process.cwd(), "docs", "sqlite_monitoring_schema.sql"), db);
@@ -76,7 +85,7 @@ describe("leaderboard snapshot source selection", () => {
     }
   });
 
-  it("keeps the primary general LLM source as the UI default even when secondary data is fresher", () => {
+  it("keeps the Vellum general LLM source as the UI default even when secondary data is fresher", () => {
     const db = initDatabase(":memory:");
     try {
       runMigrations(path.join(process.cwd(), "docs", "sqlite_monitoring_schema.sql"), db);
@@ -87,13 +96,13 @@ describe("leaderboard snapshot source selection", () => {
         startedAt: new Date().toISOString(),
       });
 
-      repository.insertLeaderboardSnapshot(runId, "general_llm", "artificial_analysis_models_page", 10, "2000-01-01T00:00:00.000Z", [
+      repository.insertLeaderboardSnapshot(runId, "general_llm", "vellum_llm_leaderboard", 5, "2000-01-01T00:00:00.000Z", [
         {
           rank: 1,
-          canonicalModelKey: "openai:gpt_4_1",
-          modelName: "GPT-4.1",
-          vendor: "OpenAI",
-          score: 45,
+          canonicalModelKey: "anthropic:claude_opus_4_8",
+          modelName: "Claude Opus 4.8",
+          vendor: "Anthropic",
+          score: 376,
         },
       ]);
       repository.insertLeaderboardSnapshot(runId, "general_llm", "livebench_general_llm", 20, new Date().toISOString(), [
@@ -108,8 +117,8 @@ describe("leaderboard snapshot source selection", () => {
 
       const snapshot = repository.getLatestCategorySnapshot("general_llm");
 
-      expect(snapshot?.sourceName).toBe("artificial_analysis_models_page");
-      expect(snapshot?.entries[0].modelName).toBe("GPT-4.1");
+      expect(snapshot?.sourceName).toBe("vellum_llm_leaderboard");
+      expect(snapshot?.entries[0].modelName).toBe("Claude Opus 4.8");
     } finally {
       closeDatabase(db);
     }

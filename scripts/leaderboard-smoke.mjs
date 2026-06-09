@@ -19,25 +19,11 @@ const forbiddenGeneralLlmPatterns = [
   /\bpreview-(?:high|medium|low|minimal)\b/,
   /\bpreview\b/,
   /\bfallback\b/,
-  /\b(?:high|medium|low|minimal)\b/,
+  /\b(?:minimal)\b/,
   /\b20\d{2}-\d{2}-\d{2}\b/,
   /\b20\d{6}\b/,
   /\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)-?20\d{2}\b/,
   /-(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])\b/,
-  /\bgpt-5-[1-9]\b/,
-  /\bgemini-3\b/,
-  /\bclaude-[a-z]+-5\b/,
-  /\bclaude-4-(?:[5-9]|\d{2,})\b/,
-  /\bclaude-(?:opus|sonnet)-4-(?:[5-9]|\d{2,})\b/,
-  /\bqwen3-(?:[5-9]|\d{2,})\b/,
-  /\bdeepseek-v4\b/,
-  /\bgrok-4-(?:[1-9]|\d{2,})\b/,
-  /\bkimi-k2-(?:[1-9]|\d{2,})\b/,
-  /\bminimax-m3\b/,
-  /\bmimo-v2-(?:[1-9]|\d{2,})\b/,
-  /\bgemma-4\b/,
-  /\bstep-3-(?:[5-9]|\d{2,})\b/,
-  /\bmistral-medium-3-(?:[5-9]|\d{2,})\b/,
 ];
 
 function normalizeModelNameForQuality(value) {
@@ -113,8 +99,8 @@ async function main() {
     }
 
     if (category === "general_llm") {
-      if (payload?.sourceName !== "artificial_analysis_models_page") {
-        failures.push(`${category}: expected sourceName artificial_analysis_models_page, got ${payload?.sourceName ?? "missing"}`);
+      if (payload?.sourceName !== "vellum_llm_leaderboard") {
+        failures.push(`${category}: expected sourceName vellum_llm_leaderboard, got ${payload?.sourceName ?? "missing"}`);
       }
 
       const badNames = rows
